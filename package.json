@@ -1,0 +1,11 @@
+{
+  "name": "shazizzle-prep",
+  "version": "1.0.0",
+  "description": "Prep work for shzizzle",
+  "main": "index.js",
+  "author": "Jonathan Taylor",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
