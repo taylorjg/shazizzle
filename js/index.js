@@ -6,23 +6,19 @@ const SECONDS = 1
 const findBound = (xs, f) => xs.reduce((acc, x) => f(x, acc) ? x : acc, 0)
 
 const main = async () => {
-  const audioContext = new OfflineAudioContext(1, SAMPLE_RATE * SECONDS * 1, SAMPLE_RATE)
-  const gainNode = audioContext.createGain()
-  gainNode.gain.value = 1
+  const audioContext = new OfflineAudioContext(1, SAMPLE_RATE * SECONDS, SAMPLE_RATE)
 
-  const makeOscillator = f => {
-    const oscillator = audioContext.createOscillator()
-    oscillator.type = 'sine'
-    oscillator.frequency.value = f
-    oscillator.connect(audioContext.destination)
+  const makeOscillator = (ctx, hz) => {
+    const oscillator = new OscillatorNode(ctx, { frequency: hz })
+    oscillator.connect(ctx.destination)
     return oscillator
   }
 
   const oscillators = [
-    makeOscillator(2),
-    makeOscillator(4),
-    makeOscillator(6),
-    makeOscillator(8)
+    makeOscillator(audioContext, 2),
+    makeOscillator(audioContext, 4),
+    makeOscillator(audioContext, 6),
+    makeOscillator(audioContext, 8)
   ]
 
   const startOscillator = when => oscillator => oscillator.start(when)
@@ -35,7 +31,7 @@ const main = async () => {
   const data = audioBuffer.getChannelData(0)
   console.dir(data)
 
-    const config = {
+  const config = {
     type: 'line',
     data: {
       labels: data.map((_, index) => index),
