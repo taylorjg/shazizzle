@@ -19,10 +19,13 @@ const main = async () => {
   const audioContext = new OfflineAudioContext(1, SAMPLE_RATE * SECONDS, SAMPLE_RATE)
 
   const oscillators = [
-    makeOscillator(audioContext, 20),
-    makeOscillator(audioContext, 200),
-    makeOscillator(audioContext, 440),
-    makeOscillator(audioContext, 1000)
+    makeOscillator(audioContext, 2),
+    makeOscillator(audioContext, 4),
+    makeOscillator(audioContext, 6),
+    makeOscillator(audioContext, 8)
+    // makeOscillator(audioContext, 200),
+    // makeOscillator(audioContext, 440),
+    // makeOscillator(audioContext, 1000)
   ]
 
   const analyser = new AnalyserNode(audioContext, { fftSize: SAMPLE_RATE })
@@ -37,17 +40,21 @@ const main = async () => {
   const frequencyData = new Uint8Array(analyser.frequencyBinCount)
   analyser.getByteFrequencyData(frequencyData)
 
-  const config1 = {
+  const chart1Config = {
     type: 'line',
     data: {
       labels: data.map((_, index) => index),
       datasets: [{
         borderColor: 'orange',
+        borderWidth: 0.5,
+        pointStyle: 'line',
+        radius: 1,
         data,
         fill: false,
       }]
     },
     options: {
+      responsive: false,
       animation: {
         duration: 0
       },
@@ -61,24 +68,32 @@ const main = async () => {
             max: upperBound(data)
           }
         }]
+      },
+      tooltips: {
+        enabled: false
       }
     }
   }
 
-  const chartContext1 = document.getElementById('canvas1').getContext('2d')
-  new Chart(chartContext1, config1)
+  const chart1 = document.getElementById('chart1')
+  new Chart(chart1, chart1Config)
 
-  const config2 = {
+  const chart2Config = {
     type: 'line',
     data: {
       labels: frequencyData.map((_, index) => index),
       datasets: [{
         borderColor: 'orange',
+        borderWidth: 0.5,
+        pointStyle: 'line',
+        radius: 1,
         data: frequencyData,
         fill: false,
       }]
     },
     options: {
+      responsive: false,
+      maintainAspectRatio: false,
       animation: {
         duration: 0
       },
@@ -92,12 +107,15 @@ const main = async () => {
             max: upperBound(frequencyData)
           }
         }]
+      },
+      tooltips: {
+        enabled: false
       }
     }
   }
 
-  const chartContext2 = document.getElementById('canvas2').getContext('2d')
-  new Chart(chartContext2, config2)
+  const chart2 = document.getElementById('chart2')
+  new Chart(chart2, chart2Config)
 }
 
 main()
