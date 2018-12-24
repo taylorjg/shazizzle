@@ -3,8 +3,13 @@ const SECONDS = 1
 let currentSampleRate = 4096
 let currentFrequencies = [2, 8]
 
-// const sampleRate3000 = document.getElementById('sampleRate3000')
-// const sampleRate4096 = document.getElementById('sampleRate4096')
+const sampleRate4096 = document.getElementById('sampleRate4096')
+const sampleRate8192 = document.getElementById('sampleRate8192')
+
+const sampleRateRadioButtons = [
+  sampleRate4096,
+  sampleRate8192
+]
 
 const frequency2 = document.getElementById('frequency2')
 const frequency4 = document.getElementById('frequency4')
@@ -22,26 +27,25 @@ const frequencyCheckboxes = [
   frequency1000
 ]
 
-// const onSampleRateChange = e => {
-//   currentSampleRate = Number(e.target.value)
-//   drawCharts(currentSampleRate, currentFrequencies)
-// }
+const onSampleRateChange = e => {
+  currentSampleRate = Number(e.target.value)
+  drawCharts(currentSampleRate, currentFrequencies)
+}
 
-const onFrequencyCheckboxChange = e => {
+const onFrequencyChange = () => {
   currentFrequencies = getFrequencyCheckboxes()
   drawCharts(currentSampleRate, currentFrequencies)
 }
 
-// sampleRate3000.addEventListener('change', onSampleRateChange)
-// sampleRate4096.addEventListener('change', onSampleRateChange)
+sampleRate4096.addEventListener('change', onSampleRateChange)
+sampleRate8192.addEventListener('change', onSampleRateChange)
 
 frequencyCheckboxes.forEach(checkbox =>
-  checkbox.addEventListener('change', onFrequencyCheckboxChange))
+  checkbox.addEventListener('change', onFrequencyChange))
 
-// const setSampleRateCheckboxes = sampleRate => {
-//   sampleRate3000.checked = sampleRate === Number(sampleRate3000.value)
-//   sampleRate4096.checked = sampleRate === Number(sampleRate4096.value)
-// }
+const setSampleRateRadioButtons = sampleRate =>
+  sampleRateRadioButtons.forEach(radioButton =>
+    radioButton.checked = sampleRate === Number(radioButton.value))
 
 const setFrequencyCheckboxes = frequencies =>
   frequencyCheckboxes.forEach(checkbox =>
@@ -52,7 +56,7 @@ const getFrequencyCheckboxes = () =>
     .map(checkbox => checkbox.checked ? Number(checkbox.value) : undefined)
     .filter(R.identity)
 
-// setSampleRateCheckboxes(currentSampleRate)
+setSampleRateRadioButtons(currentSampleRate)
 setFrequencyCheckboxes(currentFrequencies)
 
 const findBound = (xs, f) => xs.reduce((acc, x) => f(x, acc) ? x : acc)
@@ -121,3 +125,27 @@ const drawChart = (elementId, data) => {
 }
 
 drawCharts(currentSampleRate, currentFrequencies)
+
+const recordSample = async duration => {
+  const SAMPLE_RATE = 4096
+  const constraints = {
+    audio: {
+      sampleRate: {
+        exact: SAMPLE_RATE
+      }
+    }
+  }
+  const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
+  const mediaRecorder = new MediaRecorder(mediaStream, { audioBitsPerSecond: SAMPLE_RATE })
+  const chunks = []
+  mediaRecorder.ondataavailable = e => {
+    console.error(`[mediaRecorder.ondataavailable] e.data.length: ${e.data.length}`)
+    chunks.push(e.data)
+  }
+  mediaRecorder.onerror = e => {
+    console.error(`[mediaRecorder.onerror] ${e}`)
+  }
+  mediaRecorder.start()
+  await new Promise(resolve => setTimeout(resolve, duration))
+  mediaRecorder.stop()
+}
