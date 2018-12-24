@@ -9,40 +9,52 @@
 </head>
 
 <body>
-    <div id="charts">
-        <span class="chart-container">
-            <canvas id="chart1"></canvas>
-        </span>
-        <span class="chart-container">
-            <canvas id="chart2"></canvas>
-        </span>
+    <div class="container">
+        <div id="charts">
+            <span class="chart-container">
+                <canvas id="chart1"></canvas>
+            </span>
+            <span class="chart-container">
+                <canvas id="chart2"></canvas>
+            </span>
+        </div>
+        <div>
+            <fieldset>
+                <legend>Sample rate</legend>
+                <label class="radio-inline">
+                    <input type="radio" name="sampleRate" id="sampleRate4096" value="4096" />4096
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="sampleRate" id="sampleRate8192" value="8192" />8192
+                </label>
+            </fieldset>
+        </div>
+        <br />
+        <div>
+            <fieldset>
+                <legend>Frequencies</legend>
+                <label class="checkbox-inline">
+                    <input type="checkbox" id="frequency2" value="2" />2
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" id="frequency4" value="4" />4
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" id="frequency6" value="6" />6
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" id="frequency8" value="8" />8
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" id="frequency440" value="440" />440
+                </label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" id="frequency1000" value="1000" />1000
+                </label>
+            </fieldset>
+        </div>
     </div>
-    <div>
-        <fieldset>
-            <legend>Sample rate</legend>
-            <input type="radio" name="sampleRate" id="sampleRate4096" value="4096" />
-            <label for="sampleRate4096">4096</label>
-            <input type="radio" name="sampleRate" id="sampleRate8192" value="8192" />
-            <label for="sampleRate8192">8192</label>
-        </fieldset>
-    </div>
-    <div>
-        <fieldset>
-            <legend>Frequencies</legend>
-            <input type="checkbox" id="frequency2" value="2" />
-            <label for="frequency2">2</label>
-            <input type="checkbox" id="frequency4" value="4" />
-            <label for="frequency4">4</label>
-            <input type="checkbox" id="frequency6" value="6" />
-            <label for="frequency6">6</label>
-            <input type="checkbox" id="frequency8" value="8" />
-            <label for="frequency8">8</label>
-            <input type="checkbox" id="frequency440" value="440" />
-            <label for="frequency440">440</label>
-            <input type="checkbox" id="frequency1000" value="1000" />
-            <label for="frequency1000">1000</label>
-        </fieldset>
-    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
