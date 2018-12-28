@@ -1,4 +1,4 @@
-const SECONDS = 1
+const SECONDS = 2
 
 const createCheckboxes = (parentId, name, values) => {
   const parent = document.getElementById(parentId)
@@ -58,11 +58,13 @@ const buttonsOnChange = (buttons, fn) =>
 
 const sampleRateValues = [4096, 8192, 16384, 32768]
 const fftSizeValues = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
+const gainValues = [0.125, 0.25, 0.5, 0.75, 1.0]
 const frequencyValues = [1, 2, 4, 6, 8, 440, 1000, 2000]
 
-let currentSampleRate = R.head(sampleRateValues)
-let currentFftSize = R.head(fftSizeValues)
-let currentFrequencies = R.take(1, frequencyValues)
+let currentSampleRate = 4096
+let currentFftSize = 1024
+let currentGain = 0.5
+let currentFrequencies = [440, 1000, 2000]
 
 const sampleRateRadioButtons = createRadioButtons(
   'sampleRates',
@@ -74,6 +76,11 @@ const fftSizeRadioButtons = createRadioButtons(
   'fftSize',
   fftSizeValues)
 
+const gainRadioButtons = createRadioButtons(
+  'gains',
+  'gain',
+  gainValues)
+
 const frequencyCheckboxes = createCheckboxes(
   'frequencies',
   'frequency',
@@ -81,25 +88,32 @@ const frequencyCheckboxes = createCheckboxes(
 
 const onSampleRateChange = () => {
   currentSampleRate = getCheckedRadioButton(sampleRateRadioButtons)
-  drawCharts(currentSampleRate, currentFftSize, currentFrequencies)
+  drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
 }
 
 const onFFtSizeChange = () => {
   currentFftSize = getCheckedRadioButton(fftSizeRadioButtons)
-  drawCharts(currentSampleRate, currentFftSize, currentFrequencies)
+  drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
+}
+
+const onGainChange = () => {
+  currentGain = getCheckedRadioButton(gainRadioButtons)
+  drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
 }
 
 const onFrequencyChange = () => {
   currentFrequencies = getCheckedCheckboxes(frequencyCheckboxes)
-  drawCharts(currentSampleRate, currentFftSize, currentFrequencies)
+  drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
 }
 
 setCheckedRadioButton(sampleRateRadioButtons, currentSampleRate)
 setCheckedRadioButton(fftSizeRadioButtons, currentFftSize)
+setCheckedRadioButton(gainRadioButtons, currentGain)
 setCheckedCheckboxes(frequencyCheckboxes, currentFrequencies)
 
 buttonsOnChange(sampleRateRadioButtons, onSampleRateChange)
 buttonsOnChange(fftSizeRadioButtons, onFFtSizeChange)
+buttonsOnChange(gainRadioButtons, onGainChange)
 buttonsOnChange(frequencyCheckboxes, onFrequencyChange)
 
 const findBound = (xs, f) => xs.reduce((acc, x) => f(x, acc) ? x : acc)
@@ -108,38 +122,40 @@ const lowerBound = xs => Math.floor(findBound(xs, R.lt))
 const getIndices = xs => xs.map((_, index) => index)
 const range = n => Array.from(Array(n).keys())
 
-const makeOscillator = context => frequency => {
-  const oscillator = new OscillatorNode(context, { frequency })
-  oscillator.connect(context.destination)
-  return oscillator
+const makeOscillatorNode = (audioContext, gainNode) => frequency => {
+  const oscillatorNode = new OscillatorNode(audioContext, { frequency })
+  oscillatorNode.connect(gainNode)
+  return oscillatorNode
 }
 
 const startOscillator = when => oscillator => oscillator.start(when)
 const stopOscillator = when => oscillator => oscillator.stop(when)
 
-const drawCharts = async (sampleRate, fftSize, frequencies) => {
+const drawCharts = async (sampleRate, fftSize, gain, frequencies) => {
   const audioContext = new OfflineAudioContext(1, sampleRate * SECONDS, sampleRate)
-  const oscillators = frequencies.map(makeOscillator(audioContext))
-  const analyser = new AnalyserNode(audioContext, { fftSize })
-  oscillators.forEach(oscillator => oscillator.connect(analyser))
-  oscillators.forEach(startOscillator(audioContext.currentTime + 0))
-  oscillators.forEach(stopOscillator(audioContext.currentTime + 1))
+  const gainNode = new GainNode(audioContext, { gain })
+  const oscillators = frequencies.map(makeOscillatorNode(audioContext, gainNode))
+  gainNode.connect(audioContext.destination)
+  const analyserNode = new AnalyserNode(audioContext, { fftSize })
+  gainNode.connect(analyserNode)
+  oscillators.forEach(startOscillator(audioContext.currentTime + 1))
+  oscillators.forEach(stopOscillator(audioContext.currentTime + 2))
   const audioBuffer = await audioContext.startRendering()
   const channelData = audioBuffer.getChannelData(0)
-  const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
-  const frequencyData = new Uint8Array(analyser.frequencyBinCount)
-  analyser.getByteTimeDomainData(timeDomainData)
-  analyser.getByteFrequencyData(frequencyData)
+  const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
+  const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
+  analyserNode.getByteTimeDomainData(timeDomainData)
+  analyserNode.getByteFrequencyData(frequencyData)
   drawChart('chart1', channelData)
   drawChart('chart2', timeDomainData)
   drawChart('chart3', frequencyData)
 }
 
 const drawChart = (elementId, data) => {
-  const indices = getIndices(data)
-  // const indices = range(data.length)
+  // const indices = getIndices(data)
+  const indices = range(data.length)
   // console.log(`data: ${JSON.stringify(data, null, 2)}`)
-  console.log(`[drawChart] elementId: ${elementId}; indices: ${R.head(indices)} - ${R.last(indices)}; data.length: ${data.length}`)
+  // console.log(`[drawChart] elementId: ${elementId}; indices: ${R.head(indices)} - ${R.last(indices)}; data.length: ${data.length}`)
   const config = {
     type: 'line',
     data: {
@@ -176,7 +192,7 @@ const drawChart = (elementId, data) => {
   new Chart(chart, config)
 }
 
-drawCharts(currentSampleRate, currentFftSize, currentFrequencies)
+drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
 
 // document.getElementById('go').addEventListener('click', () => {
 //   drawCharts(currentSampleRate, currentFftSize, currentFrequencies)
