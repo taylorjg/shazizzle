@@ -1,39 +1,63 @@
 const SECONDS = 1
 
-let currentSampleRate = 4096
-let currentFrequencies = [2, 8]
+const createCheckboxes = (parentId, name, values) => {
+  const parent = document.getElementById(parentId)
+  return values.map(value => {
+    const label = document.createElement('label')
+    label.setAttribute('class', 'checkbox-inline')
+    const input = document.createElement('input')
+    input.setAttribute('type', 'checkbox')
+    input.setAttribute('id', `${name}${value}`)
+    input.setAttribute('value', value)
+    const text = document.createTextNode(value)
+    label.appendChild(input)
+    label.appendChild(text)
+    parent.appendChild(label)
+    return input
+  })
+}
 
-const sampleRate4096 = document.getElementById('sampleRate4096')
-const sampleRate8192 = document.getElementById('sampleRate8192')
+const createRadioButtons = (parentId, name, values) => {
+  const parent = document.getElementById(parentId)
+  return values.map(value => {
+    const label = document.createElement('label')
+    label.setAttribute('class', 'radio-inline')
+    const input = document.createElement('input')
+    input.setAttribute('type', 'radio')
+    input.setAttribute('name', name)
+    input.setAttribute('id', `${name}${value}`)
+    input.setAttribute('value', value)
+    const text = document.createTextNode(value)
+    label.appendChild(input)
+    label.appendChild(text)
+    parent.appendChild(label)
+    return input
+  })
+}
 
-const sampleRateRadioButtons = [
-  sampleRate4096,
-  sampleRate8192
-]
+const sampleRateValues = [4096, 8192]
+const frequencyValues = [1, 2, 4, 6, 8, 440, 1000, 2000]
 
-const frequency2 = document.getElementById('frequency2')
-const frequency4 = document.getElementById('frequency4')
-const frequency6 = document.getElementById('frequency6')
-const frequency8 = document.getElementById('frequency8')
-const frequency440 = document.getElementById('frequency440')
-const frequency1000 = document.getElementById('frequency1000')
+const sampleRateRadioButtons = createRadioButtons(
+  'sampleRates',
+  'sampleRate',
+  sampleRateValues)
 
-const frequencyCheckboxes = [
-  frequency2,
-  frequency4,
-  frequency6,
-  frequency8,
-  frequency440,
-  frequency1000
-]
+const frequencyCheckboxes = createCheckboxes(
+  'frequencies',
+  'frequency',
+  frequencyValues)
 
-const onSampleRateChange = e => {
-  currentSampleRate = Number(e.target.value)
+let currentSampleRate = sampleRateValues[0]
+let currentFrequencies = frequencyValues.slice(0, 1)
+
+const onSampleRateChange = () => {
+  currentSampleRate = getCheckedRadioButton(sampleRateRadioButtons)
   drawCharts(currentSampleRate, currentFrequencies)
 }
 
 const onFrequencyChange = () => {
-  currentFrequencies = getFrequencyCheckboxes()
+  currentFrequencies = getCheckedCheckboxes(frequencyCheckboxes)
   drawCharts(currentSampleRate, currentFrequencies)
 }
 
@@ -43,21 +67,26 @@ sampleRate8192.addEventListener('change', onSampleRateChange)
 frequencyCheckboxes.forEach(checkbox =>
   checkbox.addEventListener('change', onFrequencyChange))
 
-const setSampleRateRadioButtons = sampleRate =>
-  sampleRateRadioButtons.forEach(radioButton =>
-    radioButton.checked = sampleRate === Number(radioButton.value))
+const setCheckedRadioButton = (buttons, value) =>
+  buttons.forEach(button =>
+    button.checked = value === Number(button.value))
 
-const setFrequencyCheckboxes = frequencies =>
-  frequencyCheckboxes.forEach(checkbox =>
-    checkbox.checked = frequencies.includes(Number(checkbox.value)))
+const getCheckedRadioButton = buttons =>
+  buttons
+    .map(button => button.checked ? Number(button.value) : undefined)
+    .filter(R.identity)[0]
 
-const getFrequencyCheckboxes = () =>
-  frequencyCheckboxes
-    .map(checkbox => checkbox.checked ? Number(checkbox.value) : undefined)
+const setCheckedCheckboxes = (buttons, values) =>
+  buttons.forEach(button =>
+    button.checked = values.includes(Number(button.value)))
+
+const getCheckedCheckboxes = buttons =>
+  buttons
+    .map(button => button.checked ? Number(button.value) : undefined)
     .filter(R.identity)
 
-setSampleRateRadioButtons(currentSampleRate)
-setFrequencyCheckboxes(currentFrequencies)
+setCheckedRadioButton(sampleRateRadioButtons, currentSampleRate)
+setCheckedCheckboxes(frequencyCheckboxes, currentFrequencies)
 
 const findBound = (xs, f) => xs.reduce((acc, x) => f(x, acc) ? x : acc)
 const upperBound = xs => Math.ceil(findBound(xs, R.gt))
@@ -103,6 +132,7 @@ const drawChart = (elementId, data) => {
       }]
     },
     options: {
+      events: [],
       animation: {
         duration: 0
       },
