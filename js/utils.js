@@ -1,5 +1,8 @@
 const U = {};
+
 (function (exports) {
+
+  const SLIVER_SIZE = 1 / 44
 
   const createCheckboxes = (parentId, name, values) => {
     const parent = document.getElementById(parentId)
@@ -99,6 +102,21 @@ const U = {};
     new Chart(chart, config)
   }
 
+  const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
+    const srcDataStartIndex = Math.floor(srcBuffer.sampleRate * sliverIndex * SLIVER_SIZE)
+    const srcDataEndIndex = Math.floor(srcBuffer.sampleRate * (sliverIndex + 1) * SLIVER_SIZE)
+    const srcDataRange = R.range(srcDataStartIndex, srcDataEndIndex)
+    const channelRange = R.range(0, srcBuffer.numberOfChannels)
+    channelRange.forEach(channelIndex => {
+      const srcChannelData = srcBuffer.getChannelData(channelIndex)
+      const dstChannelData = dstBuffer.getChannelData(channelIndex)
+      srcDataRange.forEach(srcDataIndex => {
+        const dstDataIndex = srcDataIndex - srcDataStartIndex
+        dstChannelData[dstDataIndex] = srcChannelData[srcDataIndex]
+      })
+    })
+  }
+
   exports.createCheckboxes = createCheckboxes
   exports.createRadioButtons = createRadioButtons
   exports.getCheckedCheckboxes = getCheckedCheckboxes
@@ -107,4 +125,6 @@ const U = {};
   exports.setCheckedRadioButton = setCheckedRadioButton
   exports.buttonsOnChange = buttonsOnChange
   exports.drawChart = drawChart
+  exports.copySliver = copySliver
+  exports.SLIVER_SIZE = SLIVER_SIZE
 })(U)

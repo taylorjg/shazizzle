@@ -1,7 +1,3 @@
-const SECONDS = 1
-const CHANNELS = 1
-const SLIVER_SIZE = 1 / 44
-
 const sampleRateValues = [4096, 8192, 16384, 32768, 44100, 1024 * 44]
 const fftSizeValues = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
 const gainValues = [0.125, 0.25, 0.5, 0.75, 1.0]
@@ -72,14 +68,16 @@ const startOscillator = when => oscillator => oscillator.start(when)
 const stopOscillator = when => oscillator => oscillator.stop(when)
 
 const drawCharts = async (sampleRate, fftSize, gain, frequencies) => {
-  const audioContext = new OfflineAudioContext(CHANNELS, CHANNELS * sampleRate * SECONDS, sampleRate)
+  const CHANNELS = 1
+  const DURATION = 1
+  const audioContext = new OfflineAudioContext(CHANNELS, CHANNELS * DURATION * sampleRate, sampleRate)
   const gainNode = new GainNode(audioContext, { gain })
   const oscillators = frequencies.map(makeOscillatorNode(audioContext, gainNode))
   gainNode.connect(audioContext.destination)
   const analyserNode = new AnalyserNode(audioContext, { fftSize })
   gainNode.connect(analyserNode)
-  oscillators.forEach(startOscillator(audioContext.currentTime + 0 * SLIVER_SIZE))
-  oscillators.forEach(stopOscillator(audioContext.currentTime + 44 * SLIVER_SIZE))
+  oscillators.forEach(startOscillator(0))
+  oscillators.forEach(stopOscillator(DURATION))
   const audioBuffer = await audioContext.startRendering()
   const channelData = audioBuffer.getChannelData(0)
   const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
@@ -95,11 +93,11 @@ const drawCharts = async (sampleRate, fftSize, gain, frequencies) => {
 const visualiseSliver = async (inputBuffer, sliverIndex) => {
   const options = {
     numberOfChannels: inputBuffer.numberOfChannels,
-    length: Math.ceil(inputBuffer.numberOfChannels * inputBuffer.sampleRate * SLIVER_SIZE),
+    length: Math.ceil(inputBuffer.numberOfChannels * inputBuffer.sampleRate * U.SLIVER_SIZE),
     sampleRate: inputBuffer.sampleRate
   }
   const sliverBuffer = new AudioBuffer(options)
-  copySliver(inputBuffer, sliverBuffer, sliverIndex)
+  U.copySliver(inputBuffer, sliverBuffer, sliverIndex)
   const audioContext = new OfflineAudioContext(options)
   const sourceNode = new AudioBufferSourceNode(audioContext, { buffer: sliverBuffer })
   const analyserNode = new AnalyserNode(audioContext, { fftSize: 1024 })
@@ -113,21 +111,6 @@ const visualiseSliver = async (inputBuffer, sliverIndex) => {
   analyserNode.getByteFrequencyData(frequencyData)
   U.drawChart('chart4', timeDomainData)
   U.drawChart('chart5', frequencyData)
-}
-
-const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
-  const srcDataStartIndex = Math.floor(srcBuffer.sampleRate * sliverIndex * SLIVER_SIZE)
-  const srcDataEndIndex = Math.floor(srcBuffer.sampleRate * (sliverIndex + 1) * SLIVER_SIZE)
-  const srcDataRange = R.range(srcDataStartIndex, srcDataEndIndex)
-  const channelRange = R.range(0, srcBuffer.numberOfChannels)
-  channelRange.forEach(channelIndex => {
-    const srcChannelData = srcBuffer.getChannelData(channelIndex)
-    const dstChannelData = dstBuffer.getChannelData(channelIndex)
-    srcDataRange.forEach(srcDataIndex => {
-      const dstDataIndex = srcDataIndex - srcDataStartIndex
-      dstChannelData[dstDataIndex] = srcChannelData[srcDataIndex]
-    })
-  })
 }
 
 drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
