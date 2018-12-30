@@ -5,6 +5,9 @@
   "main": "index.js",
   "author": "Jonathan Taylor",
   "license": "MIT",
+  "scripts": {
+    "start": "node js/server.js"
+  },
   "dependencies": {
     "express": "^4.16.4"
   }
