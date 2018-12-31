@@ -117,6 +117,8 @@ const U = {};
     })
   }
 
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
   exports.createCheckboxes = createCheckboxes
   exports.createRadioButtons = createRadioButtons
   exports.getCheckedCheckboxes = getCheckedCheckboxes
@@ -124,6 +126,7 @@ const U = {};
   exports.getCheckedRadioButton = getCheckedRadioButton
   exports.setCheckedRadioButton = setCheckedRadioButton
   exports.buttonsOnChange = buttonsOnChange
+  exports.delay = delay
   exports.drawChart = drawChart
   exports.copySliver = copySliver
   exports.SLIVER_SIZE = SLIVER_SIZE

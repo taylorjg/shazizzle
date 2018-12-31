@@ -3,6 +3,10 @@
   flex-direction: column;
 }
 
+#record {
+  margin: 10px;
+}
+
 .chart-container {
   margin: 10px;
   width: 100%;
