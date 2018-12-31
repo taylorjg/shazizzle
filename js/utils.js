@@ -117,6 +117,29 @@ const U = {};
     })
   }
 
+  const visualiseSliver = async (inputBuffer, sliverIndex, timeDomainChartId, frequencyChartId) => {
+    const options = {
+      numberOfChannels: inputBuffer.numberOfChannels,
+      length: Math.ceil(inputBuffer.numberOfChannels * inputBuffer.sampleRate * SLIVER_SIZE),
+      sampleRate: inputBuffer.sampleRate
+    }
+    const sliverBuffer = new AudioBuffer(options)
+    copySliver(inputBuffer, sliverBuffer, sliverIndex)
+    const audioContext = new OfflineAudioContext(options)
+    const sourceNode = new AudioBufferSourceNode(audioContext, { buffer: sliverBuffer })
+    const analyserNode = new AnalyserNode(audioContext, { fftSize: 1024 })
+    sourceNode.connect(audioContext.destination)
+    sourceNode.connect(analyserNode)
+    sourceNode.start()
+    await audioContext.startRendering()
+    const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
+    const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
+    analyserNode.getByteTimeDomainData(timeDomainData)
+    analyserNode.getByteFrequencyData(frequencyData)
+    drawChart(timeDomainChartId, timeDomainData)
+    drawChart(frequencyChartId, frequencyData)
+  }
+
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
   exports.createCheckboxes = createCheckboxes
@@ -129,5 +152,6 @@ const U = {};
   exports.delay = delay
   exports.drawChart = drawChart
   exports.copySliver = copySliver
+  exports.visualiseSliver = visualiseSliver
   exports.SLIVER_SIZE = SLIVER_SIZE
 })(U)
