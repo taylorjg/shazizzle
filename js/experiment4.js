@@ -36,8 +36,28 @@ const onRecord = async () => {
     controlPanel.style.display = 'block'
   }
   mediaRecorder.start()
+  visualiseLive(mediaRecorder, mediaStream)
   await U.delay(2000)
   mediaRecorder.stop()
+}
+
+const visualiseLive = async (mediaRecorder, mediaStream) => {
+  const audioContext = new AudioContext()
+  const source = audioContext.createMediaStreamSource(mediaStream)
+  const analyser = new AnalyserNode(audioContext, { fftSize: 1024 })
+  source.connect(analyser)
+  const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
+  const frequencyData = new Uint8Array(analyser.frequencyBinCount)
+  const draw = () => {
+    analyser.getByteTimeDomainData(timeDomainData)
+    analyser.getByteFrequencyData(frequencyData)
+    U.drawChart('chart1', timeDomainData)
+    U.drawChart('chart2', frequencyData)
+    if (mediaRecorder.state === 'recording') {
+      requestAnimationFrame(draw)
+    }
+  }
+  requestAnimationFrame(draw)
 }
 
 const updateControls = () => {
