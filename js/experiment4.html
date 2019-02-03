@@ -13,10 +13,10 @@
         <button class="btn btn-xs btn-danger" id="record">Record</button>
         <div id="charts">
             <span class="chart-container">
-                <canvas id="chart1"></canvas>
+                <canvas id="timeDomainChart"></canvas>
             </span>
             <span class="chart-container">
-                <canvas id="chart2"></canvas>
+                <canvas id="fftChart"></canvas>
             </span>
         </div>
         <div id="controlPanel" style="display: none">
@@ -46,8 +46,10 @@
             </button>
             <span id="currentSliverLabel"></span> of <span id="maxSliverLabel"></span>
         </div>
-        <div>
-            <canvas id="chart3" width="800" height="512" style="background-color: aliceblue;"></canvas>
+        <div id="charts">
+            <span class="chart-container">
+                <canvas class="waterfall-plot" id="waterfallPlot"></canvas>
+            </span>
         </div>
     </div>
 

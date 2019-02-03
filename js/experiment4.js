@@ -35,14 +35,14 @@ const onRecord = async () => {
       recordButton.disabled = false
       mediaStream.getTracks().forEach(track => track.stop())
       controlPanel.style.display = 'block'
-      drawWaterfallChart('chart3', audioBuffer, maxSliver)
+      drawWaterfallPlot('waterfallPlot', audioBuffer, maxSliver)
     } finally {
       URL.revokeObjectURL(url)
     }
   }
   startLiveVisualisation(mediaRecorder, mediaStream)
   mediaRecorder.start()
-  await U.delay(5000)
+  await U.delay(2000)
   mediaRecorder.stop()
 }
 
@@ -56,8 +56,8 @@ const startLiveVisualisation = (mediaRecorder, mediaStream) => {
   const draw = () => {
     analyser.getByteTimeDomainData(timeDomainData)
     analyser.getByteFrequencyData(frequencyData)
-    U.drawChart('chart1', timeDomainData)
-    U.drawChart('chart2', frequencyData)
+    U.drawChart('timeDomainChart', timeDomainData)
+    U.drawChart('fftChart', frequencyData)
     if (mediaRecorder.state === 'recording') {
       requestAnimationFrame(draw)
     }
@@ -95,60 +95,13 @@ const toRgb = ([r, g, b]) => `rgb(${r * 255}, ${g * 255}, ${b * 255})`
 
 const colourMap = CM.getColourMap('CMRmap').map(toRgb)
 
-// const drawWaterfallChart = (chartId, audioBuffer, sliverCount) => {
-
-//   const sliverIndices = R.range(0, sliverCount)
-//   const sliverLabels = sliverIndices.map(index => `Sliver${index}`)
-
-//   const frequencyBinIndices = R.range(0, colourMap.length)
-//   const frequencyBinLabels = frequencyBinIndices.map(index => `FrequencyBin${index}`)
-
-//   const datasets = frequencyBinLabels.map((frequencyBinLabel, index) => ({
-//     label: frequencyBinLabel,
-//     data: Array(sliverCount).fill(1),
-//     backgroundColor: colourMap[index]
-//   }))
-
-//   const config = {
-//     type: 'bar',
-//     data: {
-//       labels: sliverLabels,
-//       datasets
-//     },
-//     options: {
-//       events: [],
-//       animation: {
-//         duration: 0
-//       },
-//       legend: {
-//         display: false
-//       },
-//       scales: {
-//         xAxes: [{
-//           stacked: true,
-//           barPercentage: 1.0,
-//           categoryPercentage: 1.0
-//         }],
-//         yAxes: [{
-//           stacked: true,
-//           ticks: {
-//             min: 0,
-//             max: frequencyBinIndices.length
-//           }
-//         }]
-//       }
-//     }
-//   }
-
-//   const chart = document.getElementById(chartId)
-//   new Chart(chart, config)
-// }
-
-const drawWaterfallChart = (chartId, audioBuffer, sliverCount) => {
+const drawWaterfallPlot = (chartId, audioBuffer, sliverCount) => {
   const chart = document.getElementById(chartId)
   const ctx = chart.getContext('2d')
   const cw = chart.clientWidth
   const ch = chart.clientHeight
+  chart.width = cw
+  chart.height = ch
   const binCount = 512
   const w = cw / sliverCount
   const h = ch / binCount
@@ -156,9 +109,8 @@ const drawWaterfallChart = (chartId, audioBuffer, sliverCount) => {
   sliverIndices.forEach(async sliverIndex => {
     const { frequencyData } = await U.getSliverData(audioBuffer, sliverIndex)
     frequencyData.forEach((binValue, binIndex) => {
-      // Since frequencyData is a Uint8Array, bin values are 0-255
-      // so we can use these values to index directly into the colour map
-      // which has a length of 256.
+      // Since frequencyData is a Uint8Array and the colour map has 256 entries,
+      // we can use bin values to index directly into the colour map.
       ctx.fillStyle = colourMap[binValue]
       ctx.fillRect(sliverIndex * w, ch - binIndex * h, w, -h)
     })

@@ -3,8 +3,20 @@
   flex-direction: column;
 }
 
+@media (min-width: 768px) {
+  #charts {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+}
+
 #record {
   margin: 10px;
+}
+
+#controlPanel {
+  margin-left: 10px;
 }
 
 .chart-container {
@@ -12,18 +24,14 @@
   width: 100%;
 }
 
-.chart-container canvas {
+canvas {
+  background-color: aliceblue;
   width: 100%;
 }
 
-#controlPanel {
-  margin-bottom: 10px;
-}
-
-@media (min-width: 768px) {
-  #charts {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
+.waterfall-plot {
+  /* margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: 10px; */
+  height: 512px;
 }
