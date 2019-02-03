@@ -12,8 +12,12 @@
   width: 100%;
 }
 
-canvas {
+.chart-container canvas {
   width: 100%;
+}
+
+#controlPanel {
+  margin-bottom: 10px;
 }
 
 @media (min-width: 768px) {

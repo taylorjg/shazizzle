@@ -23,25 +23,30 @@ const onRecord = async () => {
   mediaRecorder.onstop = async () => {
     const blob = new Blob(chunks)
     const url = URL.createObjectURL(blob)
-    const config = { responseType: 'arraybuffer' }
-    const response = await axios.get(url, config)
-    const data = response.data
-    const audioContext = new OfflineAudioContext({ length: 44100, sampleRate: 44100 })
-    audioBuffer = await audioContext.decodeAudioData(data)
-    currentSliver = 0
-    maxSliver = Math.ceil(audioBuffer.duration / U.SLIVER_SIZE)
-    changeSliver(0)()
-    recordButton.disabled = false
-    mediaStream.getTracks().forEach(track => track.stop())
-    controlPanel.style.display = 'block'
+    try {
+      const config = { responseType: 'arraybuffer' }
+      const response = await axios.get(url, config)
+      const data = response.data
+      const audioContext = new OfflineAudioContext({ length: 44100, sampleRate: 44100 })
+      audioBuffer = await audioContext.decodeAudioData(data)
+      currentSliver = 0
+      maxSliver = Math.ceil(audioBuffer.duration / U.SLIVER_SIZE)
+      changeSliver(0)()
+      recordButton.disabled = false
+      mediaStream.getTracks().forEach(track => track.stop())
+      controlPanel.style.display = 'block'
+      drawWaterfallChart('chart3', audioBuffer, maxSliver)
+    } finally {
+      URL.revokeObjectURL(url)
+    }
   }
+  startLiveVisualisation(mediaRecorder, mediaStream)
   mediaRecorder.start()
-  visualiseLive(mediaRecorder, mediaStream)
-  await U.delay(2000)
+  await U.delay(5000)
   mediaRecorder.stop()
 }
 
-const visualiseLive = async (mediaRecorder, mediaStream) => {
+const startLiveVisualisation = (mediaRecorder, mediaStream) => {
   const audioContext = new AudioContext()
   const source = audioContext.createMediaStreamSource(mediaStream)
   const analyser = new AnalyserNode(audioContext, { fftSize: 1024 })
@@ -85,3 +90,77 @@ fastForward10.addEventListener('click', changeSliver(+10))
 fastForward44.addEventListener('click', changeSliver(+44))
 
 recordButton.addEventListener('click', onRecord)
+
+const toRgb = ([r, g, b]) => `rgb(${r * 255}, ${g * 255}, ${b * 255})`
+
+const colourMap = CM.getColourMap('CMRmap').map(toRgb)
+
+// const drawWaterfallChart = (chartId, audioBuffer, sliverCount) => {
+
+//   const sliverIndices = R.range(0, sliverCount)
+//   const sliverLabels = sliverIndices.map(index => `Sliver${index}`)
+
+//   const frequencyBinIndices = R.range(0, colourMap.length)
+//   const frequencyBinLabels = frequencyBinIndices.map(index => `FrequencyBin${index}`)
+
+//   const datasets = frequencyBinLabels.map((frequencyBinLabel, index) => ({
+//     label: frequencyBinLabel,
+//     data: Array(sliverCount).fill(1),
+//     backgroundColor: colourMap[index]
+//   }))
+
+//   const config = {
+//     type: 'bar',
+//     data: {
+//       labels: sliverLabels,
+//       datasets
+//     },
+//     options: {
+//       events: [],
+//       animation: {
+//         duration: 0
+//       },
+//       legend: {
+//         display: false
+//       },
+//       scales: {
+//         xAxes: [{
+//           stacked: true,
+//           barPercentage: 1.0,
+//           categoryPercentage: 1.0
+//         }],
+//         yAxes: [{
+//           stacked: true,
+//           ticks: {
+//             min: 0,
+//             max: frequencyBinIndices.length
+//           }
+//         }]
+//       }
+//     }
+//   }
+
+//   const chart = document.getElementById(chartId)
+//   new Chart(chart, config)
+// }
+
+const drawWaterfallChart = (chartId, audioBuffer, sliverCount) => {
+  const chart = document.getElementById(chartId)
+  const ctx = chart.getContext('2d')
+  const cw = chart.clientWidth
+  const ch = chart.clientHeight
+  const binCount = 512
+  const w = cw / sliverCount
+  const h = ch / binCount
+  const sliverIndices = R.range(0, sliverCount)
+  sliverIndices.forEach(async sliverIndex => {
+    const { frequencyData } = await U.getSliverData(audioBuffer, sliverIndex)
+    frequencyData.forEach((binValue, binIndex) => {
+      // Since frequencyData is a Uint8Array, bin values are 0-255
+      // so we can use these values to index directly into the colour map
+      // which has a length of 256.
+      ctx.fillStyle = colourMap[binValue]
+      ctx.fillRect(sliverIndex * w, ch - binIndex * h, w, -h)
+    })
+  })
+}

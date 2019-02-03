@@ -117,7 +117,7 @@ const U = {};
     })
   }
 
-  const visualiseSliver = async (inputBuffer, sliverIndex, timeDomainChartId, frequencyChartId) => {
+  const getSliverData = async (inputBuffer, sliverIndex) => {
     const options = {
       numberOfChannels: inputBuffer.numberOfChannels,
       length: Math.ceil(inputBuffer.numberOfChannels * inputBuffer.sampleRate * SLIVER_SIZE),
@@ -136,6 +136,14 @@ const U = {};
     const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
     analyserNode.getByteTimeDomainData(timeDomainData)
     analyserNode.getByteFrequencyData(frequencyData)
+    return {
+      timeDomainData,
+      frequencyData
+    }
+  }
+
+  const visualiseSliver = async (inputBuffer, sliverIndex, timeDomainChartId, frequencyChartId) => {
+    const { timeDomainData, frequencyData } = await getSliverData(inputBuffer, sliverIndex)
     drawChart(timeDomainChartId, timeDomainData)
     drawChart(frequencyChartId, frequencyData)
   }
@@ -152,6 +160,7 @@ const U = {};
   exports.delay = delay
   exports.drawChart = drawChart
   exports.copySliver = copySliver
+  exports.getSliverData = getSliverData
   exports.visualiseSliver = visualiseSliver
   exports.SLIVER_SIZE = SLIVER_SIZE
 })(U)
