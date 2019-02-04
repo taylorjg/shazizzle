@@ -142,10 +142,10 @@ const U = {};
     }
   }
 
-  const visualiseSliver = async (inputBuffer, sliverIndex, timeDomainChartId, frequencyChartId) => {
+  const visualiseSliver = async (inputBuffer, sliverIndex, timeDomainChartId, fftChartId) => {
     const { timeDomainData, frequencyData } = await getSliverData(inputBuffer, sliverIndex)
     drawChart(timeDomainChartId, timeDomainData)
-    drawChart(frequencyChartId, frequencyData)
+    drawChart(fftChartId, frequencyData)
   }
 
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms))

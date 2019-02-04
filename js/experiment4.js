@@ -9,6 +9,8 @@ const fastForward44 = document.getElementById('fastForward44')
 const currentSliverLabel = document.getElementById('currentSliverLabel')
 const maxSliverLabel = document.getElementById('maxSliverLabel')
 
+const RECORDING_DURATION = 2000
+
 let currentSliver = 0
 let maxSliver = 0
 let audioBuffer = null
@@ -42,7 +44,7 @@ const onRecord = async () => {
   }
   startLiveVisualisation(mediaRecorder, mediaStream)
   mediaRecorder.start()
-  await U.delay(2000)
+  await U.delay(RECORDING_DURATION)
   mediaRecorder.stop()
 }
 
@@ -79,7 +81,7 @@ const changeSliver = adjustment => () => {
   updateControls()
   currentSliverLabel.innerText = `${currentSliver + 1}`
   maxSliverLabel.innerText = `${maxSliver}`
-  U.visualiseSliver(audioBuffer, currentSliver, 'chart1', 'chart2')
+  U.visualiseSliver(audioBuffer, currentSliver, 'timeDomainChart', 'fftChart')
 }
 
 fastBackward44.addEventListener('click', changeSliver(-44))

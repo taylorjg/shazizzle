@@ -3,11 +3,20 @@
   flex-direction: column;
 }
 
+.chart-container {
+  margin: 10px;
+}
+
 @media (min-width: 768px) {
+
   #charts {
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-end;
+  }
+
+  .chart-container {
+    width: 100%;
   }
 }
 
@@ -19,19 +28,11 @@
   margin-left: 10px;
 }
 
-.chart-container {
-  margin: 10px;
-  width: 100%;
-}
-
 canvas {
   background-color: aliceblue;
   width: 100%;
 }
 
 .waterfall-plot {
-  /* margin-top: 20px;
-  margin-bottom: 20px;
-  margin-left: 10px; */
   height: 512px;
 }
