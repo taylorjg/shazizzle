@@ -64,7 +64,7 @@ const U = {};
   const upperBound = xs => Math.ceil(findBound(xs, R.gt))
   const lowerBound = xs => Math.floor(findBound(xs, R.lt))
 
-  const drawChart = (elementId, data) => {
+  const drawChart = (elementId, data, yBounds = null) => {
     const indices = R.range(0, data.length)
     const config = {
       type: 'line',
@@ -90,8 +90,8 @@ const U = {};
         scales: {
           yAxes: [{
             ticks: {
-              min: lowerBound(data),
-              max: upperBound(data)
+              min: yBounds ? yBounds.min : lowerBound(data),
+              max: yBounds ? yBounds.max : upperBound(data)
             }
           }]
         }
@@ -144,8 +144,9 @@ const U = {};
 
   const visualiseSliver = async (inputBuffer, sliverIndex, timeDomainChartId, fftChartId) => {
     const { timeDomainData, frequencyData } = await getSliverData(inputBuffer, sliverIndex)
-    drawChart(timeDomainChartId, timeDomainData)
-    drawChart(fftChartId, frequencyData)
+    const yBounds = { min: 0, max: 255 }
+    drawChart(timeDomainChartId, timeDomainData, yBounds)
+    drawChart(fftChartId, frequencyData, yBounds)
   }
 
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms))

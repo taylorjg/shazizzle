@@ -22,6 +22,13 @@ const onRecord = async () => {
   const mediaRecorder = new MediaRecorder(mediaStream)
   const chunks = []
   mediaRecorder.ondataavailable = e => chunks.push(e.data)
+  mediaRecorder.onstart = () => {
+    mediaStream.getTracks().forEach(track => {
+      const settings = track.getSettings()
+      console.log(`track settings: ${JSON.stringify(settings, null, 2)}`)
+    })
+    startLiveVisualisation(mediaRecorder, mediaStream)
+  }
   mediaRecorder.onstop = async () => {
     const blob = new Blob(chunks)
     const url = URL.createObjectURL(blob)
@@ -42,7 +49,6 @@ const onRecord = async () => {
       URL.revokeObjectURL(url)
     }
   }
-  startLiveVisualisation(mediaRecorder, mediaStream)
   mediaRecorder.start()
   await U.delay(RECORDING_DURATION)
   mediaRecorder.stop()
@@ -58,8 +64,9 @@ const startLiveVisualisation = (mediaRecorder, mediaStream) => {
   const draw = () => {
     analyser.getByteTimeDomainData(timeDomainData)
     analyser.getByteFrequencyData(frequencyData)
-    U.drawChart('timeDomainChart', timeDomainData)
-    U.drawChart('fftChart', frequencyData)
+    const yBounds = { min: 0, max: 255 }
+    U.drawChart('timeDomainChart', timeDomainData, yBounds)
+    U.drawChart('fftChart', frequencyData, yBounds)
     if (mediaRecorder.state === 'recording') {
       requestAnimationFrame(draw)
     }
