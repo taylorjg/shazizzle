@@ -93,7 +93,8 @@ const U = {};
           yAxes: [{
             ticks: {
               min: yBounds ? yBounds.min : lowerBound(data),
-              max: yBounds ? yBounds.max : upperBound(data)
+              max: yBounds ? yBounds.max : upperBound(data),
+              stepSize: yBounds ? yBounds.stepSize : undefined
             }
           }]
         }
@@ -146,7 +147,7 @@ const U = {};
 
   const visualiseSliver = async (inputBuffer, sliverIndex, timeDomainChartId, fftChartId) => {
     const { timeDomainData, frequencyData } = await getSliverData(inputBuffer, sliverIndex)
-    const yBounds = { min: 0, max: 255 }
+    const yBounds = { min: 0, max: 255, stepSize: 32 }
     drawChart(timeDomainChartId, timeDomainData, yBounds)
     drawChart(fftChartId, frequencyData, yBounds)
   }

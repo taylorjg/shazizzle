@@ -83,16 +83,18 @@ const startLiveVisualisation = (mediaRecorder, mediaStream) => {
   source.connect(analyser)
   const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
   const frequencyData = new Uint8Array(analyser.frequencyBinCount)
+  const yBounds = { min: 0, max: 255, stepSize: 32 }
+
   const draw = () => {
     analyser.getByteTimeDomainData(timeDomainData)
     analyser.getByteFrequencyData(frequencyData)
-    const yBounds = { min: 0, max: 255 }
     U.drawChart('timeDomainChart', timeDomainData, yBounds)
     U.drawChart('fftChart', frequencyData, yBounds)
     if (mediaRecorder.state === 'recording') {
       requestAnimationFrame(draw)
     }
   }
+
   requestAnimationFrame(draw)
 }
 
