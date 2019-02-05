@@ -1,3 +1,7 @@
+#durationControls {
+  margin: 10px;
+}
+
 #charts {
   display: flex;
   flex-direction: column;
@@ -5,6 +9,13 @@
 
 .chart-container {
   margin: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+
+.chart-title {
+  align-self: center;
 }
 
 @media (min-width: 768px) {

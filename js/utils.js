@@ -3,6 +3,8 @@ const U = {};
 (function (exports) {
 
   const SLIVER_SIZE = 1 / 44
+  const SAMPLE_RATE = 44100
+  const FFT_SIZE = 1024
 
   const createCheckboxes = (parentId, name, values) => {
     const parent = document.getElementById(parentId)
@@ -127,7 +129,7 @@ const U = {};
     copySliver(inputBuffer, sliverBuffer, sliverIndex)
     const audioContext = new OfflineAudioContext(options)
     const sourceNode = new AudioBufferSourceNode(audioContext, { buffer: sliverBuffer })
-    const analyserNode = new AnalyserNode(audioContext, { fftSize: 1024 })
+    const analyserNode = new AnalyserNode(audioContext, { fftSize: FFT_SIZE })
     sourceNode.connect(audioContext.destination)
     sourceNode.connect(analyserNode)
     sourceNode.start()
@@ -164,4 +166,6 @@ const U = {};
   exports.getSliverData = getSliverData
   exports.visualiseSliver = visualiseSliver
   exports.SLIVER_SIZE = SLIVER_SIZE
+  exports.SAMPLE_RATE = SAMPLE_RATE
+  exports.FFT_SIZE = FFT_SIZE
 })(U)

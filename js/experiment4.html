@@ -10,12 +10,19 @@
 
 <body>
     <div class="container">
+        <div id="durationControls">
+            <fieldset id="durations">
+                <legend>Duration (seconds)</legend>
+            </fieldset>
+        </div>
         <button class="btn btn-xs btn-danger" id="record">Record</button>
         <div id="charts">
             <span class="chart-container">
+                <span class="chart-title">Time Domain</span>
                 <canvas id="timeDomainChart"></canvas>
             </span>
             <span class="chart-container">
+                <span class="chart-title">FFT</span>
                 <canvas id="fftChart"></canvas>
             </span>
         </div>
@@ -48,6 +55,7 @@
         </div>
         <div id="charts">
             <span class="chart-container">
+                <span class="chart-title">Waterfall Plot</span>
                 <canvas class="waterfall-plot" id="waterfallPlot"></canvas>
             </span>
         </div>

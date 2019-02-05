@@ -1,3 +1,23 @@
+let currentDuration = 5
+let currentSliver = 0
+let maxSliver = 0
+let mediaTrackSettings = null
+let audioBuffer = null
+
+const durationValues = [1, 2, 5, 10, 15]
+
+const durationRadioButtons = U.createRadioButtons(
+  'durations',
+  'duration',
+  durationValues)
+
+const onDurationChange = () => {
+  currentDuration = U.getCheckedRadioButton(durationRadioButtons)
+}
+
+U.setCheckedRadioButton(durationRadioButtons, currentDuration)
+U.buttonsOnChange(durationRadioButtons, onDurationChange)
+
 const recordButton = document.getElementById('record')
 const controlPanel = document.getElementById('controlPanel')
 const fastBackward44 = document.getElementById('fastBackward44')
@@ -9,26 +29,27 @@ const fastForward44 = document.getElementById('fastForward44')
 const currentSliverLabel = document.getElementById('currentSliverLabel')
 const maxSliverLabel = document.getElementById('maxSliverLabel')
 
-const RECORDING_DURATION = 2000
-
-let currentSliver = 0
-let maxSliver = 0
-let audioBuffer = null
-
 const onRecord = async () => {
   recordButton.disabled = true
   controlPanel.style.display = 'none'
-  const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+  const constraints = {
+    audio: {
+      sampleRate: {
+        exact: U.SAMPLE_RATE
+      }
+    }
+  }
+  const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
+  const track = R.head(mediaStream.getTracks())
+  await track.applyConstraints(constraints)
+  mediaTrackSettings = track.getSettings()
+  console.log(`mediaTrackSettings: ${JSON.stringify(mediaTrackSettings, null, 2)}`)
+  const capabilities = track.getCapabilities();
+  console.log(`capabilities: ${JSON.stringify(capabilities, null, 2)}`)
   const mediaRecorder = new MediaRecorder(mediaStream)
   const chunks = []
   mediaRecorder.ondataavailable = e => chunks.push(e.data)
-  mediaRecorder.onstart = () => {
-    mediaStream.getTracks().forEach(track => {
-      const settings = track.getSettings()
-      console.log(`track settings: ${JSON.stringify(settings, null, 2)}`)
-    })
-    startLiveVisualisation(mediaRecorder, mediaStream)
-  }
+  mediaRecorder.onstart = () => startLiveVisualisation(mediaRecorder, mediaStream)
   mediaRecorder.onstop = async () => {
     const blob = new Blob(chunks)
     const url = URL.createObjectURL(blob)
@@ -36,8 +57,9 @@ const onRecord = async () => {
       const config = { responseType: 'arraybuffer' }
       const response = await axios.get(url, config)
       const data = response.data
-      const audioContext = new OfflineAudioContext({ length: 44100, sampleRate: 44100 })
+      const audioContext = new OfflineAudioContext({ length: 1, sampleRate: mediaTrackSettings.sampleRate })
       audioBuffer = await audioContext.decodeAudioData(data)
+      console.dir(audioBuffer)
       currentSliver = 0
       maxSliver = Math.ceil(audioBuffer.duration / U.SLIVER_SIZE)
       changeSliver(0)()
@@ -50,14 +72,14 @@ const onRecord = async () => {
     }
   }
   mediaRecorder.start()
-  await U.delay(RECORDING_DURATION)
+  await U.delay(currentDuration * 1000)
   mediaRecorder.stop()
 }
 
 const startLiveVisualisation = (mediaRecorder, mediaStream) => {
   const audioContext = new AudioContext()
   const source = audioContext.createMediaStreamSource(mediaStream)
-  const analyser = new AnalyserNode(audioContext, { fftSize: 1024 })
+  const analyser = new AnalyserNode(audioContext, { fftSize: U.FFT_SIZE })
   source.connect(analyser)
   const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
   const frequencyData = new Uint8Array(analyser.frequencyBinCount)
@@ -111,12 +133,12 @@ const drawWaterfallPlot = (chartId, audioBuffer, sliverCount) => {
   const ch = chart.clientHeight
   chart.width = cw
   chart.height = ch
-  const binCount = 512
   const w = cw / sliverCount
-  const h = ch / binCount
   const sliverIndices = R.range(0, sliverCount)
   sliverIndices.forEach(async sliverIndex => {
     const { frequencyData } = await U.getSliverData(audioBuffer, sliverIndex)
+    const binCount = frequencyData.length
+    const h = ch / binCount
     frequencyData.forEach((binValue, binIndex) => {
       // Since frequencyData is a Uint8Array and the colour map has 256 entries,
       // we can use bin values to index directly into the colour map.
