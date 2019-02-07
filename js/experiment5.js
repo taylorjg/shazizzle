@@ -6,6 +6,8 @@ let audioBuffer = null
 
 const durationValues = [1, 2, 5, 10, 15]
 
+const SCRIPT_PROCESSOR_BUFFER_SIZE = 1024
+
 const durationRadioButtons = U.createRadioButtons(
   'durations',
   'duration',
@@ -32,6 +34,8 @@ const sliverSlider = document.getElementById('sliverSlider')
 
 const onRecord = async () => {
 
+  initialiseWaterfallPlot('waterfallPlot1')
+  initialiseWaterfallPlot('waterfallPlot2')
   updateRecordingState(true)
 
   const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -46,7 +50,14 @@ const onRecord = async () => {
   mediaRecorder.ondataavailable = e => chunks.push(e.data)
 
   mediaRecorder.onstart = () => {
-    startLiveVisualisation(mediaRecorder, mediaStream)
+    createLiveAnalysisObservable(mediaRecorder, mediaStream)
+
+    const chart = document.getElementById('waterfallPlot2')
+    const ctx = chart.getContext('2d')
+    const cw = chart.clientWidth
+    const ch = chart.clientHeight
+    const waterfallPlotContext = { ctx, cw, ch }
+    createMediaStreamObservable(mediaRecorder, mediaStream, onNext, waterfallPlotContext)
   }
 
   mediaRecorder.onstop = async () => {
@@ -64,7 +75,7 @@ const onRecord = async () => {
       sliverSlider.max = maxSliver - 1
       setCurrentSliver(0)()
       updateRecordingState(false)
-      drawWaterfallPlot('waterfallPlot', audioBuffer, maxSliver)
+      drawWaterfallPlot('waterfallPlot1', audioBuffer, maxSliver)
     } finally {
       URL.revokeObjectURL(url)
       mediaStream && mediaStream.getTracks().forEach(track => track.stop())
@@ -76,7 +87,62 @@ const onRecord = async () => {
   mediaRecorder.stop()
 }
 
-const startLiveVisualisation = (mediaRecorder, mediaStream) => {
+const onNext = (audioBuffer, index, waterfallPlotContext) => {
+  // console.log(`[onNext] sliverCount: index: ${index}`)
+  drawIncrementalWaterfallPlot('waterfallPlot2', audioBuffer, index, waterfallPlotContext)
+}
+
+const initialiseWaterfallPlot = chartId => {
+  const chart = document.getElementById(chartId)
+  const cw = chart.clientWidth
+  const ch = chart.clientHeight
+  chart.width = cw
+  chart.height = ch
+}
+
+const drawIncrementalWaterfallPlot = async (chartId, audioBuffer, index, waterfallPlotContext) => {
+  // const chart = document.getElementById(chartId)
+  // const ctx = chart.getContext('2d')
+  // const cw = chart.clientWidth
+  // const ch = chart.clientHeight
+  const ctx = waterfallPlotContext.ctx
+  const cw = waterfallPlotContext.cw
+  const ch = waterfallPlotContext.ch
+
+  // const sliverCount = currentDuration / U.SLIVER_DURATION
+  const sliverCount = (audioBuffer.sampleRate / SCRIPT_PROCESSOR_BUFFER_SIZE) * currentDuration
+  console.log(`[drawIncrementalWaterfallPlot] sliverCount: ${sliverCount}; index: ${index}`)
+  const w = cw / sliverCount
+  const { frequencyData } = await U.getSliverData(audioBuffer, 0)
+  const binCount = frequencyData.length
+  const h = ch / binCount
+
+  frequencyData.forEach((binValue, binIndex) => {
+    // Since frequencyData is a Uint8Array and the colour map has 256 entries,
+    // we can use bin values to index directly into the colour map.
+    ctx.fillStyle = colourMap[binValue]
+    ctx.fillRect(index * w, ch - binIndex * h, w, -h)
+  })
+}
+
+// TODO: create a hot Observable<AudioBuffer>
+const createMediaStreamObservable = (mediaRecorder, mediaStream, onNext, context) => {
+  const audioContext = new AudioContext()
+  const source = audioContext.createMediaStreamSource(mediaStream)
+
+  const scriptProcessor = audioContext.createScriptProcessor(SCRIPT_PROCESSOR_BUFFER_SIZE, 1, 1)
+  let index = 0
+  scriptProcessor.onaudioprocess = e => onNext(e.inputBuffer, index++, context)
+  source.connect(scriptProcessor)
+  scriptProcessor.connect(audioContext.destination)
+
+  mediaRecorder.addEventListener('stop', () => {
+    audioContext.close()
+  })
+}
+
+// TODO: create a hot Observable<{timeDomainData, frequencyData}>
+const createLiveAnalysisObservable = (mediaRecorder, mediaStream) => {
   const audioContext = new AudioContext()
   const source = audioContext.createMediaStreamSource(mediaStream)
 
@@ -156,8 +222,7 @@ const drawWaterfallPlot = (chartId, audioBuffer, sliverCount) => {
   const ctx = chart.getContext('2d')
   const cw = chart.clientWidth
   const ch = chart.clientHeight
-  chart.width = cw
-  chart.height = ch
+
   const w = cw / sliverCount
   const sliverIndices = R.range(0, sliverCount)
   sliverIndices.forEach(async sliverIndex => {

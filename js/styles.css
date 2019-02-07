@@ -39,6 +39,10 @@
   margin-left: 10px;
 }
 
+#controlPanel2 {
+  margin: 10px;
+}
+
 canvas {
   background-color: aliceblue;
   width: 100%;
