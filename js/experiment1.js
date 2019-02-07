@@ -76,7 +76,7 @@ const drawCharts = async (sampleRate, fftSize, gain, frequencies) => {
   gainNode.connect(audioContext.destination)
   const analyserNode = new AnalyserNode(audioContext, { fftSize })
   gainNode.connect(analyserNode)
-  oscillators.forEach(startOscillator(DURATION - U.SLIVER_SIZE))
+  oscillators.forEach(startOscillator(DURATION - U.SLIVER_DURATION))
   oscillators.forEach(stopOscillator(DURATION))
   const audioBuffer = await audioContext.startRendering()
   const channelData = audioBuffer.getChannelData(0)

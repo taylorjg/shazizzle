@@ -2,7 +2,7 @@ const U = {};
 
 (function (exports) {
 
-  const SLIVER_SIZE = 1 / 44
+  const SLIVER_DURATION = 1 / 44
   const SAMPLE_RATE = 44100
   const FFT_SIZE = 1024
 
@@ -106,8 +106,8 @@ const U = {};
   }
 
   const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
-    const srcDataStartIndex = Math.floor(srcBuffer.sampleRate * sliverIndex * SLIVER_SIZE)
-    const srcDataEndIndex = Math.floor(srcBuffer.sampleRate * (sliverIndex + 1) * SLIVER_SIZE)
+    const srcDataStartIndex = Math.floor(srcBuffer.sampleRate * sliverIndex * SLIVER_DURATION)
+    const srcDataEndIndex = Math.floor(srcBuffer.sampleRate * (sliverIndex + 1) * SLIVER_DURATION)
     const srcDataRange = R.range(srcDataStartIndex, srcDataEndIndex)
     const channelRange = R.range(0, srcBuffer.numberOfChannels)
     channelRange.forEach(channelIndex => {
@@ -123,7 +123,7 @@ const U = {};
   const getSliverData = async (inputBuffer, sliverIndex) => {
     const options = {
       numberOfChannels: inputBuffer.numberOfChannels,
-      length: Math.ceil(inputBuffer.numberOfChannels * inputBuffer.sampleRate * SLIVER_SIZE),
+      length: Math.ceil(inputBuffer.numberOfChannels * inputBuffer.sampleRate * SLIVER_DURATION),
       sampleRate: inputBuffer.sampleRate
     }
     const sliverBuffer = new AudioBuffer(options)
@@ -166,7 +166,7 @@ const U = {};
   exports.copySliver = copySliver
   exports.getSliverData = getSliverData
   exports.visualiseSliver = visualiseSliver
-  exports.SLIVER_SIZE = SLIVER_SIZE
+  exports.SLIVER_DURATION = SLIVER_DURATION
   exports.SAMPLE_RATE = SAMPLE_RATE
   exports.FFT_SIZE = FFT_SIZE
 })(U)
