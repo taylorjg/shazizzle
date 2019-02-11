@@ -46,7 +46,9 @@ const onRecord = async () => {
   mediaRecorder.ondataavailable = e => chunks.push(e.data)
 
   mediaRecorder.onstart = () => {
-    startLiveVisualisation(mediaRecorder, mediaStream)
+    const liveVisualisationObservable = createLiveVisualisationObservable(mediaRecorder, mediaStream)
+    liveVisualisationObservable.subscribe(liveChartingObserver)
+    // liveVisualisationObservable.subscribe(throbbingCircleObserver)
   }
 
   mediaRecorder.onstop = async () => {
@@ -76,35 +78,83 @@ const onRecord = async () => {
   mediaRecorder.stop()
 }
 
-const startLiveVisualisation = (mediaRecorder, mediaStream) => {
+const liveChartingObserver = {
+  next: value => {
+    const yBounds = { min: 0, max: 255, stepSize: 32 }
+    U.drawChart('timeDomainChart', value.timeDomainData, yBounds)
+    U.drawChart('fftChart', value.frequencyData, yBounds)
+  },
+  error: error => {
+    console.log(`[throbbingCircleObserver#error] error: ${error}`)
+  },
+  complete: () => {
+    console.log(`[throbbingCircleObserver#complete]`)
+  }
+}
+
+// const throbbingCircleObserver = {
+//   next: value => {
+//     console.log(`[throbbingCircleObserver#next] value.timeDomainData.length: ${value.timeDomainData.length}; value.frequencyData.length: ${value.frequencyData.length}`)
+//   },
+//   error: error => {
+//     console.log(`[throbbingCircleObserver#error] error: ${error}`)
+//   },
+//   complete: () => {
+//     console.log(`[throbbingCircleObserver#complete]`)
+//   }
+// }
+
+// TODO: move into the utils module
+const createLiveVisualisationObservable = (mediaRecorder, mediaStream) => {
+
+  const observers = []
+
+  const addObserver = observer => {
+    observers.push(observer)
+  }
+
+  const removeObserver = observer => {
+    const index = observers.findIndex(value => value === observer)
+    index >= 0 && observers.splice(index, 1)
+  }
+
   const audioContext = new AudioContext()
   const source = audioContext.createMediaStreamSource(mediaStream)
 
   const analyser = new AnalyserNode(audioContext, { fftSize: U.FFT_SIZE })
   source.connect(analyser)
-  const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
-  const frequencyData = new Uint8Array(analyser.frequencyBinCount)
 
   let keepVisualising = true
 
-  const draw = () => {
+  const rafCallback = () => {
+
+    const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
+    const frequencyData = new Uint8Array(analyser.frequencyBinCount)
+
     analyser.getByteTimeDomainData(timeDomainData)
     analyser.getByteFrequencyData(frequencyData)
 
-    const yBounds = { min: 0, max: 255, stepSize: 32 }
-    U.drawChart('timeDomainChart', timeDomainData, yBounds)
-    U.drawChart('fftChart', frequencyData, yBounds)
+    observers.forEach(observer => observer.next({
+      timeDomainData,
+      frequencyData
+    }))
 
     if (keepVisualising) {
-      requestAnimationFrame(draw)
+      requestAnimationFrame(rafCallback)
     }
   }
 
   mediaRecorder.addEventListener('stop', () => {
     keepVisualising = false
+    observers.forEach(observer => observer.complete())
   })
 
-  requestAnimationFrame(draw)
+  requestAnimationFrame(rafCallback)
+
+  return new rxjs.Observable(observer => {
+    addObserver(observer)
+    return () => removeObserver(observer)
+  })
 }
 
 const updateRecordingState = inProgress => {
