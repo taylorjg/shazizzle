@@ -1,3 +1,36 @@
+hamsters.init()
+
+// const hamstersTestPromise = async numThreads => {
+//   try {
+//     const params = {
+//       array: Uint8Array.from([1, 2, 3, 4]),
+//       threads: numThreads,
+//       aggregate: numThreads > 1,
+//       dataType: 'Uint8'
+//     }
+//     console.log(`[hamstersTestPromise] params: ${JSON.stringify(params)}`)
+//     const results = await hamsters.promise(params, function () {
+//       rtn.data = params.array.map(n => n * 4)
+//     })
+//     console.log(`[hamstersTestPromise] results: ${JSON.stringify(results)}`)
+//     if (numThreads === 1) {
+//       console.log(`[hamstersTestPromise] results: ${JSON.stringify(Array.from(results.data[0].values()))}`)
+//     } else {
+//       console.log(`[hamstersTestPromise] results: ${JSON.stringify(Array.from(results.data.values()))}`)
+//     }
+//   } catch (error) {
+//     console.log(`[hamstersTestPromise] error: ${error}`)
+//   }
+// }
+
+// const hamstersTests = async () => {
+//   await hamstersTestPromise(1)
+//   await hamstersTestPromise(2)
+//   await hamstersTestPromise(4)
+// }
+
+// hamstersTests()
+
 let currentDuration = 5
 let currentSliver = 0
 let maxSliver = 0
@@ -43,6 +76,8 @@ const onRecord = async () => {
   const track = R.head(mediaStream.getTracks())
   mediaTrackSettings = track.getSettings()
   console.log(`mediaTrackSettings: ${JSON.stringify(mediaTrackSettings, null, 2)}`)
+  const sliverCount = (mediaTrackSettings.sampleRate / SCRIPT_PROCESSOR_BUFFER_SIZE) * currentDuration
+  console.log(`sliverCount: ${sliverCount}`)
 
   const chunks = []
   const mediaRecorder = new MediaRecorder(mediaStream)
@@ -87,9 +122,48 @@ const onRecord = async () => {
   mediaRecorder.stop()
 }
 
-const onNext = (audioBuffer, index, waterfallPlotContext) => {
-  // console.log(`[onNext] sliverCount: index: ${index}`)
-  drawIncrementalWaterfallPlot('waterfallPlot2', audioBuffer, index, waterfallPlotContext)
+function webWorkerGetFrequencyData() {
+  const channelData = params.array
+  console.log(`[webWorkerGetFFT] channelData.length: ${channelData.length}`)
+  rtn.data = Uint8Array.from([1, 2, 3, 4])
+
+  // const options = {
+  //   numberOfChannels: inputBuffer.numberOfChannels,
+  //   length: Math.ceil(inputBuffer.numberOfChannels * inputBuffer.sampleRate * SLIVER_DURATION),
+  //   sampleRate: inputBuffer.sampleRate
+  // }
+  // const sliverBuffer = new AudioBuffer(options)
+  // copySliver(inputBuffer, sliverBuffer, sliverIndex)
+  // const audioContext = new OfflineAudioContext(options)
+  // const sourceNode = new AudioBufferSourceNode(audioContext, { buffer: sliverBuffer })
+  // const analyserNode = new AnalyserNode(audioContext, { fftSize: FFT_SIZE })
+  // sourceNode.connect(audioContext.destination)
+  // sourceNode.connect(analyserNode)
+  // sourceNode.start()
+  // await audioContext.startRendering()
+  // const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
+  // analyserNode.getByteFrequencyData(frequencyData)
+}
+
+const onNext = async (audioBuffer, index, waterfallPlotContext) => {
+  console.log(`[onNext] sliverCount: index: ${index}`)
+
+  // drawIncrementalWaterfallPlot('waterfallPlot2', audioBuffer, index, waterfallPlotContext)
+
+  // TODO:
+  // - get channel data from audioBuffer
+  // - use hamsters.js to run FFT of the channel data
+  // - https://stackoverflow.com/questions/21957824/manually-put-pcm-data-into-audiobuffer
+  // - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray/set
+  // - await the FFT results
+  // - plot the FFT results
+
+  const channelData = audioBuffer.getChannelData(0)
+  const params = {
+    array: channelData
+  }
+  const { data: frequencyData } = await hamsters.promise(params, webWorkerGetFrequencyData)
+  console.log(`[onNext] frequencyData: ${JSON.stringify(Array.from(frequencyData[0].values()))}`)
 }
 
 const initialiseWaterfallPlot = chartId => {
