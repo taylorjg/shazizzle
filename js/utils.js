@@ -152,6 +152,58 @@ const U = {};
     drawChart(fftChartId, frequencyData, yBounds)
   }
 
+  const createLiveVisualisationObservable = (mediaRecorder, mediaStream) => {
+
+    const observers = []
+
+    const addObserver = observer => {
+      observers.push(observer)
+    }
+
+    const removeObserver = observer => {
+      const index = observers.findIndex(value => value === observer)
+      index >= 0 && observers.splice(index, 1)
+    }
+
+    const audioContext = new AudioContext()
+    const source = audioContext.createMediaStreamSource(mediaStream)
+
+    const analyser = new AnalyserNode(audioContext, { fftSize: U.FFT_SIZE })
+    source.connect(analyser)
+
+    let keepVisualising = true
+
+    const rafCallback = () => {
+
+      const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
+      const frequencyData = new Uint8Array(analyser.frequencyBinCount)
+
+      analyser.getByteTimeDomainData(timeDomainData)
+      analyser.getByteFrequencyData(frequencyData)
+
+      observers.forEach(observer => observer.next({
+        timeDomainData,
+        frequencyData
+      }))
+
+      if (keepVisualising) {
+        requestAnimationFrame(rafCallback)
+      }
+    }
+
+    mediaRecorder.addEventListener('stop', () => {
+      keepVisualising = false
+      observers.forEach(observer => observer.complete())
+    })
+
+    requestAnimationFrame(rafCallback)
+
+    return new rxjs.Observable(observer => {
+      addObserver(observer)
+      return () => removeObserver(observer)
+    })
+  }
+
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
   exports.createCheckboxes = createCheckboxes
@@ -166,6 +218,7 @@ const U = {};
   exports.copySliver = copySliver
   exports.getSliverData = getSliverData
   exports.visualiseSliver = visualiseSliver
+  exports.createLiveVisualisationObservable = createLiveVisualisationObservable
   exports.SLIVER_DURATION = SLIVER_DURATION
   exports.SAMPLE_RATE = SAMPLE_RATE
   exports.FFT_SIZE = FFT_SIZE
