@@ -80,9 +80,8 @@ const onRecord = async () => {
 
 const liveChartingObserver = {
   next: value => {
-    const yBounds = { min: 0, max: 255, stepSize: 32 }
-    U.drawChart('timeDomainChart', value.timeDomainData, yBounds)
-    U.drawChart('fftChart', value.frequencyData, yBounds)
+    U.drawTimeDomainChart('timeDomainChart', value.timeDomainData)
+    U.drawFFTChart('fftChart', value.frequencyData, value.sampleRate)
   }
 }
 

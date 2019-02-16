@@ -65,19 +65,65 @@ const U = {};
   const findBound = (xs, f) => xs.reduce((acc, x) => f(x, acc) ? x : acc)
   const upperBound = xs => Math.ceil(findBound(xs, R.gt))
   const lowerBound = xs => Math.floor(findBound(xs, R.lt))
+  const formatFrequency = f => f >= Number.isInteger(f) ? f : f.toFixed(1)
+  const formatFrequencyTick = f => `${formatFrequency(f)}${f >= 1000 ? 'k' : ''}`
+  const formatFrequencyTickWithHz = f => `${formatFrequencyTick(f)}Hz`
 
-  const drawChart = (elementId, data, yBounds = null) => {
-    const indices = R.range(0, data.length)
+  const drawTimeDomainChart = (canvasId, data) => {
+    const yAxis = {
+      ticks: {
+        min: 0,
+        max: 255,
+        stepSize: 32
+      }
+    }
+    drawChartInternal(canvasId, data, null, yAxis)
+  }
+
+  const drawFFTChart = (canvasId, data, sampleRate) => {
+    const maxHz = sampleRate / 2
+    const binCount = data.length
+    const NO_TICK = null
+    const xAxis = {
+      labels: R.map(R.inc, R.range(0, binCount)),
+      ticks: {
+        autoSkip: false,
+        callback: bin => bin % 16 === 0
+          ? bin / binCount * maxHz
+          : NO_TICK
+      }
+    }
+    const yAxis = {
+      ticks: {
+        min: 0,
+        max: 255,
+        stepSize: 32
+      }
+    }
+    drawChartInternal(canvasId, data, xAxis, yAxis)
+  }
+
+  const drawChart = (canvasId, data) => {
+    const yAxis = {
+      ticks: {
+        min: lowerBound(data),
+        max: upperBound(data)
+      }
+    }
+    drawChartInternal(canvasId, data, null, yAxis)
+  }
+
+  const drawChartInternal = (canvasId, data, xAxis, yAxis) => {
     const config = {
       type: 'line',
       data: {
-        labels: indices,
+        labels: R.range(0, data.length),
         datasets: [{
+          data,
           borderColor: 'orange',
           borderWidth: 0.5,
           pointStyle: 'line',
           radius: 1,
-          data,
           fill: false,
         }]
       },
@@ -90,19 +136,14 @@ const U = {};
           display: false
         },
         scales: {
-          yAxes: [{
-            ticks: {
-              min: yBounds ? yBounds.min : lowerBound(data),
-              max: yBounds ? yBounds.max : upperBound(data),
-              stepSize: yBounds ? yBounds.stepSize : undefined
-            }
-          }]
+          xAxes: xAxis ? [xAxis] : [],
+          yAxes: yAxis ? [yAxis] : []
         }
       }
     }
 
-    const chart = document.getElementById(elementId)
-    new Chart(chart, config)
+    const canvas = document.getElementById(canvasId)
+    new Chart(canvas, config)
   }
 
   const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
@@ -147,12 +188,14 @@ const U = {};
 
   const visualiseSliver = async (inputBuffer, sliverIndex, timeDomainChartId, fftChartId) => {
     const { timeDomainData, frequencyData } = await getSliverData(inputBuffer, sliverIndex)
-    const yBounds = { min: 0, max: 255, stepSize: 32 }
-    drawChart(timeDomainChartId, timeDomainData, yBounds)
-    drawChart(fftChartId, frequencyData, yBounds)
+    drawTimeDomainChart(timeDomainChartId, timeDomainData)
+    drawFFTChart(fftChartId, frequencyData, inputBuffer.sampleRate)
   }
 
   const createLiveVisualisationObservable = (mediaRecorder, mediaStream) => {
+
+    const track = R.head(mediaStream.getTracks())
+    const sampleRate = track.getSettings().sampleRate
 
     const observers = []
 
@@ -182,6 +225,7 @@ const U = {};
       analyser.getByteFrequencyData(frequencyData)
 
       observers.forEach(observer => observer.next({
+        sampleRate,
         timeDomainData,
         frequencyData
       }))
@@ -215,6 +259,8 @@ const U = {};
   exports.buttonsOnChange = buttonsOnChange
   exports.delay = delay
   exports.drawChart = drawChart
+  exports.drawTimeDomainChart = drawTimeDomainChart
+  exports.drawFFTChart = drawFFTChart
   exports.copySliver = copySliver
   exports.getSliverData = getSliverData
   exports.visualiseSliver = visualiseSliver
