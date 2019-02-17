@@ -76,15 +76,25 @@ const U = {};
       : null
 
   const drawTimeDomainChart = (canvasId, data) => {
+    const xAxis = {
+      type: 'category',
+      labels: R.range(0, data.length + 1),
+      ticks: {
+        fontSize: 8,
+        autoSkip: false,
+        callback: x => x % 16 === 0 ? x : null
+      }
+    }
     const yAxis = {
       type: 'linear',
       ticks: {
+        fontSize: 8,
         min: 0,
         max: 255,
         stepSize: 32
       }
     }
-    drawChartInternal(canvasId, data, null, yAxis)
+    drawChartInternal(canvasId, data, xAxis, yAxis)
   }
 
   const drawFFTChart = (canvasId, data, sampleRate) => {
@@ -93,6 +103,7 @@ const U = {};
       type: 'category',
       labels: R.range(0, binCount + 1),
       ticks: {
+        fontSize: 8,
         autoSkip: false,
         callback: categoryTickCallbackFrequency(sampleRate, binCount)
       }
@@ -100,6 +111,7 @@ const U = {};
     const yAxis = {
       type: 'linear',
       ticks: {
+        fontSize: 8,
         min: 0,
         max: 255,
         stepSize: 32
@@ -164,23 +176,28 @@ const U = {};
 
     const xAxis = {
       type: 'category',
-      labels: R.range(0, audioBuffer.duration * 10),
+      scaleLabel: {
+        display: true,
+        labelString: 'Time (s)'
+      },
+      labels: R.range(0, audioBuffer.duration * 2),
       ticks: {
         fontSize: 8,
         autoSkip: false,
-        callback: (_, index) => `${index / 10}`
+        callback: (_, index) => `${index / 2}`
       }
     }
 
-    const binCount = data[0].length
-    const labels = R.reverse(R.range(0, binCount + 1))
     const yAxis = {
       type: 'category',
-      labels,
+      scaleLabel: {
+        display: true,
+        labelString: 'Frequency (kHz)'
+      },
+      labels: R.reverse(R.range(0, 1 + audioBuffer.sampleRate / 2 / 1000)),
       ticks: {
         fontSize: 8,
         autoSkip: false,
-        callback: U.categoryTickCallbackFrequency(audioBuffer.sampleRate, binCount)
       }
     }
 
@@ -325,7 +342,6 @@ const U = {};
   exports.drawTimeDomainChart = drawTimeDomainChart
   exports.drawFFTChart = drawFFTChart
   exports.drawSpectrogram = drawSpectrogram
-  exports.categoryTickCallbackFrequency = categoryTickCallbackFrequency
   exports.copySliver = copySliver
   exports.getSliverData = getSliverData
   exports.visualiseSliver = visualiseSliver
