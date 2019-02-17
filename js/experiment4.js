@@ -32,7 +32,7 @@ const sliverSlider = document.getElementById('sliverSlider')
 
 const onRecord = async () => {
 
-  updateRecordingState(true)
+  updateRecordingState(RECORDING)
 
   const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
 
@@ -48,26 +48,31 @@ const onRecord = async () => {
   mediaRecorder.onstart = () => {
     const liveVisualisationObservable = U.createLiveVisualisationObservable(mediaRecorder, mediaStream)
     liveVisualisationObservable.subscribe(liveChartingObserver)
-    // liveVisualisationObservable.subscribe(throbbingCircleObserver)
   }
 
   mediaRecorder.onstop = async () => {
+    // TODO: add a utils function to convert chunks => audioBuffer
+    // U.decodeChunks() ?
     const blob = new Blob(chunks)
     const url = URL.createObjectURL(blob)
     try {
       const config = { responseType: 'arraybuffer' }
       const response = await axios.get(url, config)
       const data = response.data
-      const audioContext = new OfflineAudioContext({ length: 1, sampleRate: mediaTrackSettings.sampleRate })
+      const options = {
+        length: 1,
+        sampleRate: mediaTrackSettings.sampleRate
+      }
+      const audioContext = new OfflineAudioContext(options)
       audioBuffer = await audioContext.decodeAudioData(data)
       currentSliver = 0
-      maxSliver = Math.ceil(audioBuffer.duration / U.SLIVER_DURATION)
+      maxSliver = Math.floor(audioBuffer.duration / U.SLIVER_DURATION)
       sliverSlider.min = 0
       sliverSlider.max = maxSliver - 1
       setCurrentSliver(0)()
-      updateRecordingState(false)
-      drawSpectrogram('spectrogram', audioBuffer)
+      U.drawSpectrogram('spectrogram', audioBuffer)
     } finally {
+      updateRecordingState(NOT_RECORDING)
       URL.revokeObjectURL(url)
       mediaStream && mediaStream.getTracks().forEach(track => track.stop())
     }
@@ -85,15 +90,13 @@ const liveChartingObserver = {
   }
 }
 
-// const throbbingCircleObserver = {
-//   next: value => {
-//   }
-// }
+const RECORDING = Symbol('RECORDING')
+const NOT_RECORDING = Symbol('NOT_RECORDING')
 
-const updateRecordingState = inProgress => {
-  recordButton.disabled = inProgress
-  controlPanel1.style.display = inProgress ? 'none' : 'block'
-  controlPanel2.style.display = inProgress ? 'none' : 'block'
+const updateRecordingState = state => {
+  recordButton.disabled = state === RECORDING
+  controlPanel1.style.display = state === RECORDING ? 'none' : 'block'
+  controlPanel2.style.display = state === RECORDING ? 'none' : 'block'
 }
 
 const updateSliverControlsState = () => {
@@ -125,52 +128,9 @@ stepBackward.addEventListener('click', setCurrentSliver(-1))
 stepForward.addEventListener('click', setCurrentSliver(+1))
 fastForward10.addEventListener('click', setCurrentSliver(+10))
 fastForward44.addEventListener('click', setCurrentSliver(+44))
+
 sliverSlider.addEventListener('click', onSliverSliderChange)
+// TODO: use RxJS's debounceTime ?
 sliverSlider.addEventListener('input', onSliverSliderChange)
 
 recordButton.addEventListener('click', onRecord)
-
-const drawSpectrogram = async (canvasId, audioBuffer) => {
-
-  const sliverCount = Math.floor(audioBuffer.duration / U.SLIVER_DURATION)
-  const sliverIndices = R.range(0, sliverCount)
-  const promises = sliverIndices.map(async sliverIndex => {
-    const { frequencyData } = await U.getSliverData(audioBuffer, sliverIndex)
-    return frequencyData
-  })
-  const data = await Promise.all(promises)
-
-  const binCount = data[0].length
-  const labels = R.reverse(R.range(0, binCount + 1))
-  const yAxis = {
-    type: 'category',
-    labels,
-    ticks: {
-      autoSkip: false,
-      callback: U.categoryTickCallbackFrequency(audioBuffer.sampleRate, binCount)
-    }
-  }
-
-  const config = {
-    type: 'spectrogram',
-    data: {
-      labels: sliverIndices,
-      datasets: [{ data }]
-    },
-    options: {
-      events: [],
-      animation: {
-        duration: 0
-      },
-      legend: {
-        display: false
-      },
-      scales: {
-        yAxes: [yAxis]
-      }
-    }
-  }
-
-  const canvas = document.getElementById(canvasId)
-  new Chart(canvas, config)
-}
