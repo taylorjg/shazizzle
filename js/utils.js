@@ -66,11 +66,17 @@ const U = {};
   const upperBound = xs => Math.ceil(findBound(xs, R.gt))
   const lowerBound = xs => Math.floor(findBound(xs, R.lt))
   const formatFrequency = f => f >= Number.isInteger(f) ? f : f.toFixed(1)
-  const formatFrequencyTick = f => `${formatFrequency(f)}${f >= 1000 ? 'k' : ''}`
+  const formatFrequencyTick = f => `${formatFrequency(f)}${f >= 1000 ? ' k' : ' '}`
   const formatFrequencyTickWithHz = f => `${formatFrequencyTick(f)}Hz`
+
+  const categoryTickCallbackFrequency = (sampleRate, binCount) => bin =>
+    bin % 16 === 0
+      ? formatFrequencyTickWithHz(bin / binCount * sampleRate / 2)
+      : null
 
   const drawTimeDomainChart = (canvasId, data) => {
     const yAxis = {
+      type: 'linear',
       ticks: {
         min: 0,
         max: 255,
@@ -81,19 +87,17 @@ const U = {};
   }
 
   const drawFFTChart = (canvasId, data, sampleRate) => {
-    const maxHz = sampleRate / 2
     const binCount = data.length
-    const NO_TICK = null
     const xAxis = {
-      labels: R.map(R.inc, R.range(0, binCount)),
+      type: 'category',
+      labels: R.range(0, binCount + 1),
       ticks: {
         autoSkip: false,
-        callback: bin => bin % 16 === 0
-          ? bin / binCount * maxHz
-          : NO_TICK
+        callback: categoryTickCallbackFrequency(sampleRate, binCount)
       }
     }
     const yAxis = {
+      type: 'linear',
       ticks: {
         min: 0,
         max: 255,
@@ -105,6 +109,7 @@ const U = {};
 
   const drawChart = (canvasId, data) => {
     const yAxis = {
+      type: 'linear',
       ticks: {
         min: lowerBound(data),
         max: upperBound(data)
@@ -261,6 +266,7 @@ const U = {};
   exports.drawChart = drawChart
   exports.drawTimeDomainChart = drawTimeDomainChart
   exports.drawFFTChart = drawFFTChart
+  exports.categoryTickCallbackFrequency = categoryTickCallbackFrequency
   exports.copySliver = copySliver
   exports.getSliverData = getSliverData
   exports.visualiseSliver = visualiseSliver

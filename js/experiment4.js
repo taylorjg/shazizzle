@@ -66,7 +66,7 @@ const onRecord = async () => {
       sliverSlider.max = maxSliver - 1
       setCurrentSliver(0)()
       updateRecordingState(false)
-      drawWaterfallPlot('waterfallPlot', audioBuffer, maxSliver)
+      drawSpectrogram('spectrogram', audioBuffer)
     } finally {
       URL.revokeObjectURL(url)
       mediaStream && mediaStream.getTracks().forEach(track => track.stop())
@@ -130,28 +130,47 @@ sliverSlider.addEventListener('input', onSliverSliderChange)
 
 recordButton.addEventListener('click', onRecord)
 
-const toRgb = ([r, g, b]) => `rgb(${r * 255}, ${g * 255}, ${b * 255})`
+const drawSpectrogram = async (canvasId, audioBuffer) => {
 
-const colourMap = CM.getColourMap('CMRmap').map(toRgb)
-
-const drawWaterfallPlot = (chartId, audioBuffer, sliverCount) => {
-  const chart = document.getElementById(chartId)
-  const ctx = chart.getContext('2d')
-  const cw = chart.clientWidth
-  const ch = chart.clientHeight
-  chart.width = cw
-  chart.height = ch
-  const w = cw / sliverCount
+  const sliverCount = Math.floor(audioBuffer.duration / U.SLIVER_DURATION)
   const sliverIndices = R.range(0, sliverCount)
-  sliverIndices.forEach(async sliverIndex => {
+  const promises = sliverIndices.map(async sliverIndex => {
     const { frequencyData } = await U.getSliverData(audioBuffer, sliverIndex)
-    const binCount = frequencyData.length
-    const h = ch / binCount
-    frequencyData.forEach((binValue, binIndex) => {
-      // Since frequencyData is a Uint8Array and the colour map has 256 entries,
-      // we can use bin values to index directly into the colour map.
-      ctx.fillStyle = colourMap[binValue]
-      ctx.fillRect(sliverIndex * w, ch - binIndex * h, w, -h)
-    })
+    return frequencyData
   })
+  const data = await Promise.all(promises)
+
+  const binCount = data[0].length
+  const labels = R.reverse(R.range(0, binCount + 1))
+  const yAxis = {
+    type: 'category',
+    labels,
+    ticks: {
+      autoSkip: false,
+      callback: U.categoryTickCallbackFrequency(audioBuffer.sampleRate, binCount)
+    }
+  }
+
+  const config = {
+    type: 'spectrogram',
+    data: {
+      labels: sliverIndices,
+      datasets: [{ data }]
+    },
+    options: {
+      events: [],
+      animation: {
+        duration: 0
+      },
+      legend: {
+        display: false
+      },
+      scales: {
+        yAxes: [yAxis]
+      }
+    }
+  }
+
+  const canvas = document.getElementById(canvasId)
+  new Chart(canvas, config)
 }

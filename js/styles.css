@@ -51,3 +51,7 @@ canvas {
 .waterfall-plot {
   height: 512px;
 }
+
+.spectrogram {
+  height: 512px;
+}
