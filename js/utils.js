@@ -65,7 +65,7 @@ const U = {};
   const findBound = (xs, f) => xs.reduce((acc, x) => f(x, acc) ? x : acc)
   const upperBound = xs => Math.ceil(findBound(xs, R.gt))
   const lowerBound = xs => Math.floor(findBound(xs, R.lt))
-  
+
   const formatFrequency = f => f >= Number.isInteger(f) ? f : f.toFixed(1)
   const formatFrequencyTick = f => `${formatFrequency(f)} ${f >= 1000 ? 'k' : ''}`
   const formatFrequencyTickWithHz = f => `${formatFrequencyTick(f)}Hz`
@@ -162,12 +162,23 @@ const U = {};
     })
     const data = await Promise.all(promises)
 
+    const xAxis = {
+      type: 'category',
+      labels: R.range(0, audioBuffer.duration * 10),
+      ticks: {
+        fontSize: 8,
+        autoSkip: false,
+        callback: (_, index) => `${index / 10}`
+      }
+    }
+
     const binCount = data[0].length
     const labels = R.reverse(R.range(0, binCount + 1))
     const yAxis = {
       type: 'category',
       labels,
       ticks: {
+        fontSize: 8,
         autoSkip: false,
         callback: U.categoryTickCallbackFrequency(audioBuffer.sampleRate, binCount)
       }
@@ -188,6 +199,7 @@ const U = {};
           display: false
         },
         scales: {
+          xAxes: [xAxis],
           yAxes: [yAxis]
         }
       }

@@ -38,7 +38,6 @@ const onRecord = async () => {
 
   const track = R.head(mediaStream.getTracks())
   mediaTrackSettings = track.getSettings()
-  console.log(`mediaTrackSettings: ${JSON.stringify(mediaTrackSettings, null, 2)}`)
 
   const chunks = []
   const mediaRecorder = new MediaRecorder(mediaStream)
