@@ -226,6 +226,25 @@ const U = {};
     new Chart(canvas, config)
   }
 
+  const decodeChunks = async (chunks, sampleRate) => {
+    const blob = new Blob(chunks)
+    const url = URL.createObjectURL(blob)
+    try {
+      const config = { responseType: 'arraybuffer' }
+      const response = await axios.get(url, config)
+      const data = response.data
+      const options = {
+        length: 1,
+        sampleRate
+      }
+      const audioContext = new OfflineAudioContext(options)
+      audioBuffer = await audioContext.decodeAudioData(data)
+      return audioBuffer
+    } finally {
+      URL.revokeObjectURL(url)
+    }
+  }
+
   const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
     const srcDataStartIndex = Math.floor(srcBuffer.sampleRate * sliverIndex * SLIVER_DURATION)
     const srcDataEndIndex = Math.floor(srcBuffer.sampleRate * (sliverIndex + 1) * SLIVER_DURATION)
@@ -342,6 +361,7 @@ const U = {};
   exports.drawTimeDomainChart = drawTimeDomainChart
   exports.drawFFTChart = drawFFTChart
   exports.drawSpectrogram = drawSpectrogram
+  exports.decodeChunks = decodeChunks
   exports.copySliver = copySliver
   exports.getSliverData = getSliverData
   exports.visualiseSliver = visualiseSliver
