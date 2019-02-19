@@ -22,17 +22,11 @@ const UW = {};
   }
 
   const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
-    const srcDataStartIndex = Math.floor(srcBuffer.sampleRate * sliverIndex * C.SLIVER_DURATION)
-    const srcDataEndIndex = Math.floor(srcBuffer.sampleRate * (sliverIndex + 1) * C.SLIVER_DURATION)
-    const srcDataRange = R.range(srcDataStartIndex, srcDataEndIndex)
-    const channelRange = R.range(0, srcBuffer.numberOfChannels)
-    channelRange.forEach(channelIndex => {
-      const srcChannelData = srcBuffer.getChannelData(channelIndex)
+    const startOffset = Math.floor(srcBuffer.sampleRate * sliverIndex * C.SLIVER_DURATION)
+    const channelIndices = R.range(0, srcBuffer.numberOfChannels)
+    channelIndices.forEach(channelIndex => {
       const dstChannelData = dstBuffer.getChannelData(channelIndex)
-      srcDataRange.forEach(srcDataIndex => {
-        const dstDataIndex = srcDataIndex - srcDataStartIndex
-        dstChannelData[dstDataIndex] = srcChannelData[srcDataIndex]
-      })
+      srcBuffer.copyFromChannel(dstChannelData, channelIndex, startOffset)
     })
   }
 
