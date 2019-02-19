@@ -8,55 +8,55 @@ let currentFftSize = 1024
 let currentGain = 0.25
 let currentFrequencies = [440, 1000, 2000]
 
-const sampleRateRadioButtons = U.createRadioButtons(
+const sampleRateRadioButtons = UH.createRadioButtons(
   'sampleRates',
   'sampleRate',
   sampleRateValues)
 
-const fftSizeRadioButtons = U.createRadioButtons(
+const fftSizeRadioButtons = UH.createRadioButtons(
   'fftSizes',
   'fftSize',
   fftSizeValues)
 
-const gainRadioButtons = U.createRadioButtons(
+const gainRadioButtons = UH.createRadioButtons(
   'gains',
   'gain',
   gainValues)
 
-const frequencyCheckboxes = U.createCheckboxes(
+const frequencyCheckboxes = UH.createCheckboxes(
   'frequencies',
   'frequency',
   frequencyValues)
 
 const onSampleRateChange = () => {
-  currentSampleRate = U.getCheckedRadioButton(sampleRateRadioButtons)
+  currentSampleRate = UH.getCheckedRadioButton(sampleRateRadioButtons)
   drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
 }
 
 const onFFtSizeChange = () => {
-  currentFftSize = U.getCheckedRadioButton(fftSizeRadioButtons)
+  currentFftSize = UH.getCheckedRadioButton(fftSizeRadioButtons)
   drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
 }
 
 const onGainChange = () => {
-  currentGain = U.getCheckedRadioButton(gainRadioButtons)
+  currentGain = UH.getCheckedRadioButton(gainRadioButtons)
   drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
 }
 
 const onFrequencyChange = () => {
-  currentFrequencies = U.getCheckedCheckboxes(frequencyCheckboxes)
+  currentFrequencies = UH.getCheckedCheckboxes(frequencyCheckboxes)
   drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)
 }
 
-U.setCheckedRadioButton(sampleRateRadioButtons, currentSampleRate)
-U.setCheckedRadioButton(fftSizeRadioButtons, currentFftSize)
-U.setCheckedRadioButton(gainRadioButtons, currentGain)
-U.setCheckedCheckboxes(frequencyCheckboxes, currentFrequencies)
+UH.setCheckedRadioButton(sampleRateRadioButtons, currentSampleRate)
+UH.setCheckedRadioButton(fftSizeRadioButtons, currentFftSize)
+UH.setCheckedRadioButton(gainRadioButtons, currentGain)
+UH.setCheckedCheckboxes(frequencyCheckboxes, currentFrequencies)
 
-U.buttonsOnChange(sampleRateRadioButtons, onSampleRateChange)
-U.buttonsOnChange(fftSizeRadioButtons, onFFtSizeChange)
-U.buttonsOnChange(gainRadioButtons, onGainChange)
-U.buttonsOnChange(frequencyCheckboxes, onFrequencyChange)
+UH.buttonsOnChange(sampleRateRadioButtons, onSampleRateChange)
+UH.buttonsOnChange(fftSizeRadioButtons, onFFtSizeChange)
+UH.buttonsOnChange(gainRadioButtons, onGainChange)
+UH.buttonsOnChange(frequencyCheckboxes, onFrequencyChange)
 
 const makeOscillatorNode = (audioContext, gainNode) => frequency => {
   const oscillatorNode = new OscillatorNode(audioContext, { frequency })
@@ -84,10 +84,10 @@ const drawCharts = async (sampleRate, fftSize, gain, frequencies) => {
   const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
   analyserNode.getByteTimeDomainData(timeDomainData)
   analyserNode.getByteFrequencyData(frequencyData)
-  U.drawChart('chart1', channelData)
-  U.drawChart('chart2', timeDomainData)
-  U.drawChart('chart3', frequencyData)
-  U.visualiseSliver(audioBuffer, 12, 'chart4', 'chart5')
+  UC.drawChart('chart1', channelData)
+  UC.drawChart('chart2', timeDomainData)
+  UC.drawChart('chart3', frequencyData)
+  UW.visualiseSliver(audioBuffer, 12, 'chart4', 'chart5')
 }
 
 drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)

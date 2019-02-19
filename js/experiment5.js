@@ -41,17 +41,17 @@ const durationValues = [1, 2, 5, 10, 15]
 
 const SCRIPT_PROCESSOR_BUFFER_SIZE = 1024
 
-const durationRadioButtons = U.createRadioButtons(
+const durationRadioButtons = UH.createRadioButtons(
   'durations',
   'duration',
   durationValues)
 
 const onDurationChange = () => {
-  currentDuration = U.getCheckedRadioButton(durationRadioButtons)
+  currentDuration = UH.getCheckedRadioButton(durationRadioButtons)
 }
 
-U.setCheckedRadioButton(durationRadioButtons, currentDuration)
-U.buttonsOnChange(durationRadioButtons, onDurationChange)
+UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
+UH.buttonsOnChange(durationRadioButtons, onDurationChange)
 
 const recordButton = document.getElementById('record')
 const controlPanel = document.getElementById('controlPanel')
@@ -105,7 +105,7 @@ const onRecord = async () => {
       const audioContext = new OfflineAudioContext({ length: 1, sampleRate: mediaTrackSettings.sampleRate })
       audioBuffer = await audioContext.decodeAudioData(data)
       currentSliver = 0
-      maxSliver = Math.ceil(audioBuffer.duration / U.SLIVER_DURATION)
+      maxSliver = Math.ceil(audioBuffer.duration / C.SLIVER_DURATION)
       sliverSlider.min = 0
       sliverSlider.max = maxSliver - 1
       setCurrentSliver(0)()
@@ -183,11 +183,11 @@ const drawIncrementalWaterfallPlot = async (chartId, audioBuffer, index, waterfa
   const cw = waterfallPlotContext.cw
   const ch = waterfallPlotContext.ch
 
-  // const sliverCount = currentDuration / U.SLIVER_DURATION
+  // const sliverCount = currentDuration / C.SLIVER_DURATION
   const sliverCount = (audioBuffer.sampleRate / SCRIPT_PROCESSOR_BUFFER_SIZE) * currentDuration
   console.log(`[drawIncrementalWaterfallPlot] sliverCount: ${sliverCount}; index: ${index}`)
   const w = cw / sliverCount
-  const { frequencyData } = await U.getSliverData(audioBuffer, 0)
+  const { frequencyData } = await UW.getSliverData(audioBuffer, 0)
   const binCount = frequencyData.length
   const h = ch / binCount
 
@@ -220,7 +220,7 @@ const createLiveAnalysisObservable = (mediaRecorder, mediaStream) => {
   const audioContext = new AudioContext()
   const source = audioContext.createMediaStreamSource(mediaStream)
 
-  const analyser = new AnalyserNode(audioContext, { fftSize: U.FFT_SIZE })
+  const analyser = new AnalyserNode(audioContext, { fftSize: C.FFT_SIZE })
   source.connect(analyser)
   const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
   const frequencyData = new Uint8Array(analyser.frequencyBinCount)
@@ -232,8 +232,8 @@ const createLiveAnalysisObservable = (mediaRecorder, mediaStream) => {
     analyser.getByteFrequencyData(frequencyData)
 
     const yBounds = { min: 0, max: 255, stepSize: 32 }
-    U.drawChart('timeDomainChart', timeDomainData, yBounds)
-    U.drawChart('fftChart', frequencyData, yBounds)
+    UC.drawChart('timeDomainChart', timeDomainData, yBounds)
+    UC.drawChart('fftChart', frequencyData, yBounds)
 
     if (keepVisualising) {
       requestAnimationFrame(draw)
@@ -268,7 +268,7 @@ const setCurrentSliver = adjustment => () => {
   updateSliverControlsState()
   currentSliverLabel.innerText = `${currentSliver + 1}`
   maxSliverLabel.innerText = `${maxSliver}`
-  U.visualiseSliver(audioBuffer, currentSliver, 'timeDomainChart', 'fftChart')
+  UW.visualiseSliver(audioBuffer, currentSliver, 'timeDomainChart', 'fftChart')
 }
 
 const onSliverSliderChange = e => {
@@ -300,7 +300,7 @@ const drawWaterfallPlot = (chartId, audioBuffer, sliverCount) => {
   const w = cw / sliverCount
   const sliverIndices = R.range(0, sliverCount)
   sliverIndices.forEach(async sliverIndex => {
-    const { frequencyData } = await U.getSliverData(audioBuffer, sliverIndex)
+    const { frequencyData } = await UW.getSliverData(audioBuffer, sliverIndex)
     const binCount = frequencyData.length
     const h = ch / binCount
     frequencyData.forEach((binValue, binIndex) => {
