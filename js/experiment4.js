@@ -45,7 +45,10 @@ const onRecord = async () => {
   mediaRecorder.onstop = async () => {
     const track = R.head(mediaStream.getTracks())
     const mediaTrackSettings = track.getSettings()
-    const audioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
+    const tmpAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
+    audioBuffer = tmpAudioBuffer.sampleRate > 16000
+      ? await UW.resample(tmpAudioBuffer, 16000)
+      : tmpAudioBuffer
     mediaStream && mediaStream.getTracks().forEach(track => track.stop())
     currentSliver = 0
     maxSliver = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)

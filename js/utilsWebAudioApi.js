@@ -14,7 +14,7 @@ const UW = {};
         sampleRate
       }
       const audioContext = new OfflineAudioContext(options)
-      audioBuffer = await audioContext.decodeAudioData(data)
+      const audioBuffer = await audioContext.decodeAudioData(data)
       return audioBuffer
     } finally {
       URL.revokeObjectURL(url)
@@ -117,8 +117,24 @@ const UW = {};
     })
   }
 
+  const resample = async (srcBuffer, targetSampleRate) => {
+    const options = {
+      numberOfChannels: srcBuffer.numberOfChannels,
+      length: srcBuffer.duration * srcBuffer.numberOfChannels * targetSampleRate,
+      sampleRate: targetSampleRate
+    }
+    const audioContext = new OfflineAudioContext(options)
+    const source = audioContext.createBufferSource()
+    source.buffer = srcBuffer
+    source.connect(audioContext.destination)
+    source.start()
+    const dstBuffer = await audioContext.startRendering()
+    return dstBuffer
+  }
+
   exports.decodeChunks = decodeChunks
   exports.getSliverData = getSliverData
   exports.visualiseSliver = visualiseSliver
   exports.createLiveVisualisationObservable = createLiveVisualisationObservable
+  exports.resample = resample
 })(UW)
