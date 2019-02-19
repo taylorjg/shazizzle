@@ -3,19 +3,19 @@ let currentSliver = 0
 let maxSliver = 0
 let audioBuffer = null
 
-const durationValues = [1, 2, 5, 10, 15]
+const durationValues = [5, 10, 15, 20]
 
-const durationRadioButtons = U.createRadioButtons(
+const durationRadioButtons = UH.createRadioButtons(
   'durations',
   'duration',
   durationValues)
 
 const onDurationChange = () => {
-  currentDuration = U.getCheckedRadioButton(durationRadioButtons)
+  currentDuration = UH.getCheckedRadioButton(durationRadioButtons)
 }
 
-U.setCheckedRadioButton(durationRadioButtons, currentDuration)
-U.buttonsOnChange(durationRadioButtons, onDurationChange)
+UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
+UH.buttonsOnChange(durationRadioButtons, onDurationChange)
 
 const recordButton = document.getElementById('record')
 const controlPanel = document.getElementById('controlPanel')
@@ -38,21 +38,21 @@ const onRecord = async () => {
   mediaRecorder.ondataavailable = e => chunks.push(e.data)
 
   mediaRecorder.onstart = () => {
-    const liveVisualisationObservable = U.createLiveVisualisationObservable(mediaRecorder, mediaStream)
+    const liveVisualisationObservable = UW.createLiveVisualisationObservable(mediaRecorder, mediaStream)
     liveVisualisationObservable.subscribe(liveChartingObserver)
   }
 
   mediaRecorder.onstop = async () => {
     const track = R.head(mediaStream.getTracks())
     const mediaTrackSettings = track.getSettings()
-    const audioBuffer = await U.decodeChunks(chunks, mediaTrackSettings.sampleRate)
+    const audioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
     mediaStream && mediaStream.getTracks().forEach(track => track.stop())
     currentSliver = 0
-    maxSliver = Math.floor(audioBuffer.duration / U.SLIVER_DURATION)
+    maxSliver = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)
     sliverSlider.min = 0
     sliverSlider.max = maxSliver - 1
     setCurrentSliver(0)()
-    U.drawSpectrogram('spectrogram', audioBuffer)
+    UC.drawSpectrogram('spectrogram', audioBuffer)
   }
 
   updateRecordingState(RECORDING)
@@ -64,8 +64,8 @@ const onRecord = async () => {
 
 const liveChartingObserver = {
   next: value => {
-    U.drawTimeDomainChart('timeDomainChart', value.timeDomainData)
-    U.drawFFTChart('fftChart', value.frequencyData, value.sampleRate)
+    UC.drawTimeDomainChart('timeDomainChart', value.timeDomainData)
+    UC.drawFFTChart('fftChart', value.frequencyData, value.sampleRate)
   }
 }
 
@@ -93,7 +93,7 @@ const setCurrentSliver = adjustment => () => {
   updateSliverControlsState()
   currentSliverLabel.innerText = `${currentSliver + 1}`
   maxSliverLabel.innerText = `${maxSliver}`
-  U.visualiseSliver(audioBuffer, currentSliver, 'timeDomainChart', 'fftChart')
+  UW.visualiseSliver(audioBuffer, currentSliver, 'timeDomainChart', 'fftChart')
 }
 
 const onSliverSliderChange = e => {
