@@ -16,6 +16,7 @@
 
     <script class="mocha-init">
         mocha.setup('bdd')
+        mocha.slow(2000)
         mocha.checkLeaks()
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>

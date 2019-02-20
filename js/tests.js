@@ -53,7 +53,7 @@ describe('Shazizzle Tests', () => {
       const response = await axios.get(`https://shazizzle-prep.herokuapp.com/signals/${testToneFile}`, config)
       const data = response.data
 
-      const audioContext = new OfflineAudioContext({ length: SAMPLE_RATE, sampleRate: SAMPLE_RATE })
+      const audioContext = new OfflineAudioContext({ length: FFT_SIZE * 2, sampleRate: SAMPLE_RATE })
       const audioBuffer = await audioContext.decodeAudioData(data)
 
       const source = new AudioBufferSourceNode(audioContext, { buffer: audioBuffer })
