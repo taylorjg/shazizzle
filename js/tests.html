@@ -18,6 +18,7 @@
         mocha.setup('bdd')
         mocha.slow(2000)
         mocha.checkLeaks()
+        mocha.globals(['__VUE_DEVTOOLS_TOAST__']) // <--- ???
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
     <script src="it_multiple.js"></script>
