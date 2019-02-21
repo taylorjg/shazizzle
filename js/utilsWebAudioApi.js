@@ -10,7 +10,7 @@ const UW = {};
       const response = await axios.get(url, config)
       const data = response.data
       const options = {
-        length: 1,
+        length: sampleRate,
         sampleRate
       }
       const audioContext = new OfflineAudioContext(options)
@@ -87,6 +87,7 @@ const UW = {};
 
     const rafCallback = () => {
 
+      const currentTime = audioContext.currentTime
       const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
       const frequencyData = new Uint8Array(analyser.frequencyBinCount)
 
@@ -94,9 +95,10 @@ const UW = {};
       analyser.getByteFrequencyData(frequencyData)
 
       observers.forEach(observer => observer.next({
-        sampleRate,
         timeDomainData,
-        frequencyData
+        frequencyData,
+        sampleRate,
+        currentTime
       }))
 
       if (keepVisualising) {

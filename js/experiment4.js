@@ -1,7 +1,7 @@
 let currentDuration = 5
 let currentSliver = 0
 let maxSliver = 0
-let audioBuffer = null
+let resampledAudioBuffer = null
 
 const durationValues = [5, 10, 15, 20]
 
@@ -18,16 +18,20 @@ UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
 UH.buttonsOnChange(durationRadioButtons, onDurationChange)
 
 const recordButton = document.getElementById('record')
-const controlPanel = document.getElementById('controlPanel')
-const fastBackward44 = document.getElementById('fastBackward44')
-const fastBackward10 = document.getElementById('fastBackward10')
-const stepBackward = document.getElementById('stepBackward')
-const stepForward = document.getElementById('stepForward')
-const fastForward10 = document.getElementById('fastForward10')
-const fastForward44 = document.getElementById('fastForward44')
+const progressRow = document.getElementById('progressRow')
+const progressBar = progressRow.querySelector('.progress-bar')
+const buttonsRow = document.getElementById('buttonsRow')
+const sliderRow = document.getElementById('sliderRow')
+const fastBackwardButton = document.getElementById('fastBackward')
+const stepBackwardButton = document.getElementById('stepBackward')
+const stepForwardButton = document.getElementById('stepForward')
+const fastForwardButton = document.getElementById('fastForward')
 const currentSliverLabel = document.getElementById('currentSliverLabel')
 const maxSliverLabel = document.getElementById('maxSliverLabel')
-const sliverSlider = document.getElementById('sliverSlider')
+const slider = document.getElementById('slider')
+const spectrogramRow = document.getElementById('spectrogramRow')
+const detailsRow = document.getElementById('detailsRow')
+const detailsPre = detailsRow.querySelector('pre')
 
 const onRecord = async () => {
 
@@ -39,64 +43,72 @@ const onRecord = async () => {
 
   mediaRecorder.onstart = () => {
     const liveVisualisationObservable = UW.createLiveVisualisationObservable(mediaRecorder, mediaStream)
-    liveVisualisationObservable.subscribe(liveChartingObserver)
+    liveVisualisationObservable.subscribe(makeLiveChartingObserver(mediaRecorder, currentDuration))
   }
 
   mediaRecorder.onstop = async () => {
     const track = R.head(mediaStream.getTracks())
+    track.stop()
     const mediaTrackSettings = track.getSettings()
-    const tmpAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
-    audioBuffer = tmpAudioBuffer.sampleRate > 16000
-      ? await UW.resample(tmpAudioBuffer, 16000)
-      : tmpAudioBuffer
-    mediaStream && mediaStream.getTracks().forEach(track => track.stop())
+    const decodedAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
+    resampledAudioBuffer = decodedAudioBuffer.sampleRate > 16000
+      ? await UW.resample(decodedAudioBuffer, 16000)
+      : decodedAudioBuffer
     currentSliver = 0
-    maxSliver = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)
-    sliverSlider.min = 0
-    sliverSlider.max = maxSliver - 1
+    maxSliver = Math.floor(resampledAudioBuffer.duration / C.SLIVER_DURATION)
+    slider.min = 0
+    slider.max = maxSliver - 1
     setCurrentSliver(0)()
-    UC.drawSpectrogram('spectrogram', audioBuffer)
+    UC.drawSpectrogram('spectrogram', resampledAudioBuffer)
+    showDetails(decodedAudioBuffer, resampledAudioBuffer)
+    setTimeout(updateRecordingState, 500, FINISHED_RECORDING)
   }
 
   updateRecordingState(RECORDING)
   mediaRecorder.start()
-  await U.delay(currentDuration * 1000)
-  mediaRecorder.stop()
-  updateRecordingState(NOT_RECORDING)
 }
 
-const liveChartingObserver = {
+const makeLiveChartingObserver = (mediaRecorder, duration) => ({
   next: value => {
+    if (value.currentTime % 1 < 0.5) {
+      const percent = R.clamp(0, 100, Math.round(value.currentTime / duration * 100))
+      updateProgressBar(percent)
+    }
     UC.drawTimeDomainChart('timeDomainChart', value.timeDomainData)
     UC.drawFFTChart('fftChart', value.frequencyData, value.sampleRate)
+    if (value.currentTime >= duration) {
+      mediaRecorder.stop()
+    }
   }
-}
+})
 
 const RECORDING = Symbol('RECORDING')
-const NOT_RECORDING = Symbol('NOT_RECORDING')
+const FINISHED_RECORDING = Symbol('FINISHED_RECORDING')
 
 const updateRecordingState = state => {
   recordButton.disabled = state === RECORDING
-  controlPanel1.style.display = state === RECORDING ? 'none' : 'block'
-  controlPanel2.style.display = state === RECORDING ? 'none' : 'block'
+  progressRow.style.display = state === RECORDING ? 'block' : 'none'
+  buttonsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  sliderRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  spectrogramRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  detailsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  state === RECORDING && updateProgressBar(0)
 }
 
 const updateSliverControlsState = () => {
-  fastBackward44.disabled = currentSliver < 44
-  fastBackward10.disabled = currentSliver < 10
-  stepBackward.disabled = currentSliver < 1
-  stepForward.disabled = currentSliver >= (maxSliver - 1)
-  fastForward10.disabled = currentSliver >= (maxSliver - 10)
-  fastForward44.disabled = currentSliver >= (maxSliver - 44)
+  fastBackwardButton.disabled = currentSliver < 10
+  stepBackwardButton.disabled = currentSliver < 1
+  stepForwardButton.disabled = currentSliver >= (maxSliver - 1)
+  fastForwardButton.disabled = currentSliver >= (maxSliver - 10)
 }
 
 const setCurrentSliver = adjustment => () => {
   currentSliver += adjustment
-  sliverSlider.value = currentSliver
+  slider.value = currentSliver
   updateSliverControlsState()
   currentSliverLabel.innerText = `${currentSliver + 1}`
   maxSliverLabel.innerText = `${maxSliver}`
-  UW.visualiseSliver(audioBuffer, currentSliver, 'timeDomainChart', 'fftChart')
+  UW.visualiseSliver(resampledAudioBuffer, currentSliver, 'timeDomainChart', 'fftChart')
 }
 
 const onSliverSliderChange = e => {
@@ -104,15 +116,39 @@ const onSliverSliderChange = e => {
   setCurrentSliver(0)()
 }
 
-fastBackward44.addEventListener('click', setCurrentSliver(-44))
-fastBackward10.addEventListener('click', setCurrentSliver(-10))
-stepBackward.addEventListener('click', setCurrentSliver(-1))
-stepForward.addEventListener('click', setCurrentSliver(+1))
-fastForward10.addEventListener('click', setCurrentSliver(+10))
-fastForward44.addEventListener('click', setCurrentSliver(+44))
+fastBackwardButton.addEventListener('click', setCurrentSliver(-10))
+stepBackwardButton.addEventListener('click', setCurrentSliver(-1))
+stepForwardButton.addEventListener('click', setCurrentSliver(+1))
+fastForwardButton.addEventListener('click', setCurrentSliver(+10))
 
-sliverSlider.addEventListener('click', onSliverSliderChange)
+slider.addEventListener('click', onSliverSliderChange)
 // TODO: use RxJS's debounceTime ?
-sliverSlider.addEventListener('input', onSliverSliderChange)
+slider.addEventListener('input', onSliverSliderChange)
 
 recordButton.addEventListener('click', onRecord)
+
+const updateProgressBar = percent => {
+  const currentPercent = Number(progressBar.getAttribute('aria-valuenow'))
+  if (percent !== currentPercent) {
+    progressBar.setAttribute('aria-valuenow', percent)
+    progressBar.style.width = `${percent}%`
+  }
+}
+
+const showDetails = (decodedAudioBuffer, resampledAudioBuffer) => {
+
+  const formatAudioBuffer = (label, audioBuffer) => `
+${label}:
+  duration:         ${audioBuffer.duration}
+  length:           ${audioBuffer.length}
+  numberOfChannels: ${audioBuffer.numberOfChannels}
+  sampleRate:       ${audioBuffer.sampleRate}
+`.trim()
+
+  const bufferDetails1 = formatAudioBuffer('Decoded buffer', decodedAudioBuffer)
+  const bufferDetails2 = formatAudioBuffer('Resampled buffer', resampledAudioBuffer)
+
+  detailsPre.innerHTML = decodedAudioBuffer === resampledAudioBuffer
+    ? bufferDetails1
+    : [bufferDetails1, '', bufferDetails2].join('\n')
+}

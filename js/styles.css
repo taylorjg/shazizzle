@@ -1,8 +1,12 @@
-#durationControls {
+#durationRow, #progressRow, #buttonsRow, #sliderRow, #detailsRow {
   margin: 10px;
 }
 
-#charts {
+#record {
+  margin-top: 10px;
+}
+
+.charts {
   display: flex;
   flex-direction: column;
 }
@@ -13,14 +17,13 @@
   flex-direction: column;
 }
 
-
 .chart-title {
   align-self: center;
 }
 
 @media (min-width: 768px) {
 
-  #charts {
+  .charts {
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-end;
@@ -31,25 +34,9 @@
   }
 }
 
-#record {
-  margin: 10px;
-}
-
-#controlPanel {
-  margin-left: 10px;
-}
-
-#controlPanel2 {
-  margin: 10px;
-}
-
 canvas {
   background-color: aliceblue;
   width: 100%;
-}
-
-.waterfall-plot {
-  height: 512px;
 }
 
 .spectrogram {

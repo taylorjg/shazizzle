@@ -7,17 +7,25 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .cloak {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container">
-        <div id="durationControls">
+        <div id="durationRow">
             <fieldset id="durations">
                 <legend>Duration (seconds)</legend>
             </fieldset>
+            <button class="btn btn-xs btn-danger" id="record">Record</button>
         </div>
-        <button class="btn btn-xs btn-danger" id="record">Record</button>
-        <div id="charts">
+        <div id="progressRow" class="progress cloak">
+            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div id="chartsRow" class="charts">
             <span class="chart-container">
                 <span class="chart-title">Time Domain</span>
                 <canvas id="timeDomainChart"></canvas>
@@ -27,42 +35,36 @@
                 <canvas id="fftChart"></canvas>
             </span>
         </div>
-        <div id="controlPanel1" style="display: none">
-            <button class="btn btn-default btn-xs" id="fastBackward44">
+        <div id="buttonsRow" class="cloak">
+            <button class="btn btn-default btn-xs" id="fastBackward">
                 <i class="fas fa-fast-backward"></i>
-                <sub class="mini">44</sub>
-            </button>
-            <button class="btn btn-default btn-xs" id="fastBackward10">
-                <i class="fas fa-fast-backward"></i>
-                <sub class="mini">10</sub>
+                <sub class="mini">x10</sub>
             </button>
             <button class="btn btn-default btn-xs" id="stepBackward">
                 <i class="fas fa-step-backward"></i>
-                <sub class="mini">1</sub>
+                <sub class="mini">x1</sub>
             </button>
             <button class="btn btn-default btn-xs" id="stepForward">
                 <i class="fas fa-step-forward"></i>
-                <sub class="mini">1</sub>
+                <sub class="mini">x 1</sub>
             </button>
-            <button class="btn btn-default btn-xs" id="fastForward10">
+            <button class="btn btn-default btn-xs" id="fastForward">
                 <i class="fas fa-fast-forward"></i>
-                <sub class="mini">10</sub>
-            </button>
-            <button class="btn btn-default btn-xs" id="fastForward44">
-                <i class="fas fa-fast-forward"></i>
-                <sub class="mini">44</sub>
+                <sub class="mini">x 10</sub>
             </button>
             <span id="currentSliverLabel"></span> of <span id="maxSliverLabel"></span>
         </div>
-        <div id="controlPanel2" style="display: none">
-            <label for="sliverSlider">Sliver</label>
-            <input id="sliverSlider" type="range" min="0" max="100" step="1" value="0" />
+        <div id="sliderRow" class="cloak">
+            <input id="slider" type="range" min="0" max="100" step="1" value="0" />
         </div>
-        <div id="charts">
+        <div id="spectrogramRow" class="charts cloak">
             <span class="chart-container">
                 <span class="chart-title">Spectrogram</span>
-                <canvas class="spectrogram" id="spectrogram"></canvas>
+                <canvas id="spectrogram"></canvas>
             </span>
+        </div>
+        <div id="detailsRow" class="cloak">
+            <pre></pre>
         </div>
     </div>
 
