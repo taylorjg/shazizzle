@@ -67,8 +67,8 @@ const sliverSlider = document.getElementById('sliverSlider')
 
 const onRecord = async () => {
 
-  initialiseWaterfallPlot('waterfallPlot1')
-  initialiseWaterfallPlot('waterfallPlot2')
+  initialiseSpectrogram('spectrogram1')
+  initialiseSpectrogram('spectrogram2')
   updateRecordingState(true)
 
   const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -87,12 +87,12 @@ const onRecord = async () => {
   mediaRecorder.onstart = () => {
     createLiveAnalysisObservable(mediaRecorder, mediaStream)
 
-    const chart = document.getElementById('waterfallPlot2')
+    const chart = document.getElementById('spectrogram2')
     const ctx = chart.getContext('2d')
     const cw = chart.clientWidth
     const ch = chart.clientHeight
-    const waterfallPlotContext = { ctx, cw, ch }
-    createMediaStreamObservable(mediaRecorder, mediaStream, onNext, waterfallPlotContext)
+    const spectrogramContext = { ctx, cw, ch }
+    createMediaStreamObservable(mediaRecorder, mediaStream, onNext, spectrogramContext)
   }
 
   mediaRecorder.onstop = async () => {
@@ -110,7 +110,7 @@ const onRecord = async () => {
       sliverSlider.max = maxSliver - 1
       setCurrentSliver(0)()
       updateRecordingState(false)
-      drawWaterfallPlot('waterfallPlot1', audioBuffer, maxSliver)
+      drawSpectrogram('spectrogram1', audioBuffer, maxSliver)
     } finally {
       URL.revokeObjectURL(url)
       mediaStream && mediaStream.getTracks().forEach(track => track.stop())
@@ -145,10 +145,10 @@ function webWorkerGetFrequencyData() {
   // analyserNode.getByteFrequencyData(frequencyData)
 }
 
-const onNext = async (audioBuffer, index, waterfallPlotContext) => {
+const onNext = async (audioBuffer, index, spectrogramContext) => {
   console.log(`[onNext] sliverCount: index: ${index}`)
 
-  // drawIncrementalWaterfallPlot('waterfallPlot2', audioBuffer, index, waterfallPlotContext)
+  // drawIncrementalSpectrogram('spectrogram2', audioBuffer, index, spectrogramContext)
 
   // TODO:
   // - get channel data from audioBuffer
@@ -166,7 +166,7 @@ const onNext = async (audioBuffer, index, waterfallPlotContext) => {
   console.log(`[onNext] frequencyData: ${JSON.stringify(Array.from(frequencyData[0].values()))}`)
 }
 
-const initialiseWaterfallPlot = chartId => {
+const initialiseSpectrogram = chartId => {
   const chart = document.getElementById(chartId)
   const cw = chart.clientWidth
   const ch = chart.clientHeight
@@ -174,18 +174,18 @@ const initialiseWaterfallPlot = chartId => {
   chart.height = ch
 }
 
-const drawIncrementalWaterfallPlot = async (chartId, audioBuffer, index, waterfallPlotContext) => {
+const drawIncrementalSpectrogram = async (chartId, audioBuffer, index, spectrogramContext) => {
   // const chart = document.getElementById(chartId)
   // const ctx = chart.getContext('2d')
   // const cw = chart.clientWidth
   // const ch = chart.clientHeight
-  const ctx = waterfallPlotContext.ctx
-  const cw = waterfallPlotContext.cw
-  const ch = waterfallPlotContext.ch
+  const ctx = spectrogramContext.ctx
+  const cw = spectrogramContext.cw
+  const ch = spectrogramContext.ch
 
   // const sliverCount = currentDuration / C.SLIVER_DURATION
   const sliverCount = (audioBuffer.sampleRate / SCRIPT_PROCESSOR_BUFFER_SIZE) * currentDuration
-  console.log(`[drawIncrementalWaterfallPlot] sliverCount: ${sliverCount}; index: ${index}`)
+  console.log(`[drawIncrementalSpectrogram] sliverCount: ${sliverCount}; index: ${index}`)
   const w = cw / sliverCount
   const { frequencyData } = await UW.getSliverData(audioBuffer, 0)
   const binCount = frequencyData.length
@@ -291,7 +291,7 @@ const toRgb = ([r, g, b]) => `rgb(${r * 255}, ${g * 255}, ${b * 255})`
 
 const colourMap = CM.getColourMap('CMRmap').map(toRgb)
 
-const drawWaterfallPlot = (chartId, audioBuffer, sliverCount) => {
+const drawSpectrogram = (chartId, audioBuffer, sliverCount) => {
   const chart = document.getElementById(chartId)
   const ctx = chart.getContext('2d')
   const cw = chart.clientWidth

@@ -11,7 +11,7 @@
   flex-direction: column;
 }
 
-.chart-container {
+.single-chart-container, .multi-chart-container {
   margin: 10px;
   display: flex;
   flex-direction: column;
@@ -29,7 +29,7 @@
     align-items: flex-end;
   }
 
-  .chart-container {
+  .multi-chart-container {
     width: 100%;
   }
 }

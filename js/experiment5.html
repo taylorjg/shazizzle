@@ -16,12 +16,12 @@
             </fieldset>
         </div>
         <button class="btn btn-xs btn-danger" id="record">Record</button>
-        <div id="charts">
-            <span class="chart-container">
+        <div class="charts">
+            <span class="multi-chart-container">
                 <span class="chart-title">Time Domain</span>
                 <canvas id="timeDomainChart"></canvas>
             </span>
-            <span class="chart-container">
+            <span class="multi-chart-container">
                 <span class="chart-title">FFT</span>
                 <canvas id="fftChart"></canvas>
             </span>
@@ -57,16 +57,16 @@
             <label for="sliverSlider">Sliver</label>
             <input id="sliverSlider" type="range" min="0" max="100" step="1" value="0" />
         </div>
-        <div id="charts">
-            <span class="chart-container">
-                <span class="chart-title">Waterfall Plot 2</span>
-                <canvas class="waterfall-plot" id="waterfallPlot2"></canvas>
+        <div class="charts">
+            <span class="multi-chart-container">
+                <span class="chart-title">Spectrogram 2</span>
+                <canvas id="spectrogram2"></canvas>
             </span>
         </div>
-        <div id="charts">
-            <span class="chart-container">
-                <span class="chart-title">Waterfall Plot 1</span>
-                <canvas class="waterfall-plot" id="waterfallPlot1"></canvas>
+        <div class="charts">
+            <span class="multi-chart-container">
+                <span class="chart-title">Spectrogram 1</span>
+                <canvas id="spectrogram1"></canvas>
             </span>
         </div>
     </div>
