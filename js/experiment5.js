@@ -1,3 +1,12 @@
+/* eslint-disable no-console */
+
+import { getColourMap } from './colourMaps.js'
+import * as C from './constants.js'
+import * as U from './utils.js'
+import * as UC from './utilsChart.js'
+import * as UH from './utilsHtml.js'
+import * as UW from './utilsWebAudioApi.js'
+
 hamsters.init()
 
 // const hamstersTestPromise = async numThreads => {
@@ -54,7 +63,8 @@ UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
 UH.buttonsOnChange(durationRadioButtons, onDurationChange)
 
 const recordButton = document.getElementById('record')
-const controlPanel = document.getElementById('controlPanel')
+const controlPanel1 = document.getElementById('controlPanel1')
+const controlPanel2 = document.getElementById('controlPanel2')
 const fastBackward44 = document.getElementById('fastBackward44')
 const fastBackward10 = document.getElementById('fastBackward10')
 const stepBackward = document.getElementById('stepBackward')
@@ -85,7 +95,7 @@ const onRecord = async () => {
   mediaRecorder.ondataavailable = e => chunks.push(e.data)
 
   mediaRecorder.onstart = () => {
-    createLiveAnalysisObservable(mediaRecorder, mediaStream)
+    createLiveAnalysisObservable(mediaRecorder, mediaStream, mediaTrackSettings.sampleRate)
 
     const chart = document.getElementById('spectrogram2')
     const ctx = chart.getContext('2d')
@@ -110,7 +120,7 @@ const onRecord = async () => {
       sliverSlider.max = maxSliver - 1
       setCurrentSliver(0)()
       updateRecordingState(false)
-      drawSpectrogram('spectrogram1', audioBuffer, maxSliver)
+      drawSpectrogram(audioBuffer)
     } finally {
       URL.revokeObjectURL(url)
       mediaStream && mediaStream.getTracks().forEach(track => track.stop())
@@ -123,9 +133,9 @@ const onRecord = async () => {
 }
 
 function webWorkerGetFrequencyData() {
-  const channelData = params.array
+  const channelData = params.array // eslint-disable-line
   console.log(`[webWorkerGetFFT] channelData.length: ${channelData.length}`)
-  rtn.data = Uint8Array.from([1, 2, 3, 4])
+  rtn.data = Uint8Array.from([1, 2, 3, 4]) // eslint-disable-line
 
   // const options = {
   //   numberOfChannels: inputBuffer.numberOfChannels,
@@ -174,6 +184,9 @@ const initialiseSpectrogram = chartId => {
   chart.height = ch
 }
 
+const toRgb = ([r, g, b]) => `rgb(${r * 255}, ${g * 255}, ${b * 255})`
+const colourMap = getColourMap('CMRmap').map(toRgb)
+
 const drawIncrementalSpectrogram = async (chartId, audioBuffer, index, spectrogramContext) => {
   // const chart = document.getElementById(chartId)
   // const ctx = chart.getContext('2d')
@@ -216,7 +229,7 @@ const createMediaStreamObservable = (mediaRecorder, mediaStream, onNext, context
 }
 
 // TODO: create a hot Observable<{timeDomainData, frequencyData}>
-const createLiveAnalysisObservable = (mediaRecorder, mediaStream) => {
+const createLiveAnalysisObservable = (mediaRecorder, mediaStream, sampleRate) => {
   const audioContext = new AudioContext()
   const source = audioContext.createMediaStreamSource(mediaStream)
 
@@ -231,9 +244,8 @@ const createLiveAnalysisObservable = (mediaRecorder, mediaStream) => {
     analyser.getByteTimeDomainData(timeDomainData)
     analyser.getByteFrequencyData(frequencyData)
 
-    const yBounds = { min: 0, max: 255, stepSize: 32 }
-    UC.drawChart('timeDomainChart', timeDomainData, yBounds)
-    UC.drawChart('fftChart', frequencyData, yBounds)
+    UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
+    UC.drawFFTChart('fftChart', frequencyData, sampleRate)
 
     if (keepVisualising) {
       requestAnimationFrame(draw)
@@ -262,13 +274,15 @@ const updateSliverControlsState = () => {
   fastForward44.disabled = currentSliver >= (maxSliver - 44)
 }
 
-const setCurrentSliver = adjustment => () => {
+const setCurrentSliver = adjustment => async () => {
   currentSliver += adjustment
   sliverSlider.value = currentSliver
   updateSliverControlsState()
   currentSliverLabel.innerText = `${currentSliver + 1}`
   maxSliverLabel.innerText = `${maxSliver}`
-  UW.visualiseSliver(audioBuffer, currentSliver, 'timeDomainChart', 'fftChart')
+  const { timeDomainData, frequencyData } = await UW.getSliverData(audioBuffer, currentSliver)
+  UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
+  UC.drawFFTChart('fftChart', frequencyData, audioBuffer.sampleRate)
 }
 
 const onSliverSliderChange = e => {
@@ -287,27 +301,13 @@ sliverSlider.addEventListener('input', onSliverSliderChange)
 
 recordButton.addEventListener('click', onRecord)
 
-const toRgb = ([r, g, b]) => `rgb(${r * 255}, ${g * 255}, ${b * 255})`
-
-const colourMap = CM.getColourMap('CMRmap').map(toRgb)
-
-const drawSpectrogram = (chartId, audioBuffer, sliverCount) => {
-  const chart = document.getElementById(chartId)
-  const ctx = chart.getContext('2d')
-  const cw = chart.clientWidth
-  const ch = chart.clientHeight
-
-  const w = cw / sliverCount
+const drawSpectrogram = async audioBuffer => {
+  const sliverCount = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)
   const sliverIndices = R.range(0, sliverCount)
-  sliverIndices.forEach(async sliverIndex => {
+  const promises = sliverIndices.map(async sliverIndex => {
     const { frequencyData } = await UW.getSliverData(audioBuffer, sliverIndex)
-    const binCount = frequencyData.length
-    const h = ch / binCount
-    frequencyData.forEach((binValue, binIndex) => {
-      // Since frequencyData is a Uint8Array and the colour map has 256 entries,
-      // we can use bin values to index directly into the colour map.
-      ctx.fillStyle = colourMap[binValue]
-      ctx.fillRect(sliverIndex * w, ch - binIndex * h, w, -h)
-    })
+    return frequencyData
   })
+  const data = await Promise.all(promises)
+  UC.drawSpectrogram('spectrogram1', data, audioBuffer.duration, audioBuffer.sampleRate)
 }

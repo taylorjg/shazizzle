@@ -1,10 +1,6 @@
 // https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_cm.py
 
-const CMD = {};
-
-(function (exports) {
-
-  const gnuplotPaletteFunctions = [
+const gnuplotPaletteFunctions = [
     /* 0  */ x => 0,
     /* 1  */ x => 0.5,
     /* 2  */ x => 1,
@@ -42,128 +38,125 @@ const CMD = {};
     /* 34 */ x => 2 * x,
     /* 35 */ x => 2 * x - 0.5,
     /* 36 */ x => 2 * x - 1
+]
+
+const JET_DATA = {
+  usesFuncs: false,
+  red: [
+    [0, 0, 0],
+    [0.35, 0, 0],
+    [0.66, 1, 1],
+    [0.89, 1, 1],
+    [1, 0.5, 0.5]
+  ],
+  green: [
+    [0, 0, 0],
+    [0.125, 0, 0],
+    [0.375, 1, 1],
+    [0.64, 1, 1],
+    [0.91, 0, 0],
+    [1, 0, 0]
+  ],
+  blue: [
+    [0, 0.5, 0.5],
+    [0.11, 1, 1],
+    [0.34, 1, 1],
+    [0.65, 0, 0],
+    [1, 0, 0]
   ]
+}
 
-  const JET_DATA = {
-    usesFuncs: false,
-    red: [
-      [0, 0, 0],
-      [0.35, 0, 0],
-      [0.66, 1, 1],
-      [0.89, 1, 1],
-      [1, 0.5, 0.5]
-    ],
-    green: [
-      [0, 0, 0],
-      [0.125, 0, 0],
-      [0.375, 1, 1],
-      [0.64, 1, 1],
-      [0.91, 0, 0],
-      [1, 0, 0]
-    ],
-    blue: [
-      [0, 0.5, 0.5],
-      [0.11, 1, 1],
-      [0.34, 1, 1],
-      [0.65, 0, 0],
-      [1, 0, 0]
-    ]
-  }
+const GIST_STERN_DATA = {
+  usesFuncs: false,
+  red: [
+    [0, 0, 0],
+    [0.0547, 1, 1],
+    [0.250, 0.027, 0.250],
+    [1, 1, 1]
+  ],
+  green: [
+    [0, 0, 0],
+    [1, 0, 0]
+  ],
+  blue: [
+    [0, 0, 0],
+    [0.5, 1, 1],
+    [0.735, 0, 0],
+    [1, 0, 0]
+  ]
+}
 
-  const GIST_STERN_DATA = {
-    usesFuncs: false,
-    red: [
-      [0, 0, 0],
-      [0.0547, 1, 1],
-      [0.250, 0.027, 0.250],
-      [1, 1, 1]
-    ],
-    green: [
-      [0, 0, 0],
-      [1, 0, 0]
-    ],
-    blue: [
-      [0, 0, 0],
-      [0.5, 1, 1],
-      [0.735, 0, 0],
-      [1, 0, 0]
-    ]
-  }
+const CMRMAP_DATA = {
+  usesFuncs: false,
+  red: [
+    [0.000, 0.00, 0.00],
+    [0.125, 0.15, 0.15],
+    [0.250, 0.30, 0.30],
+    [0.375, 0.60, 0.60],
+    [0.500, 1.00, 1.00],
+    [0.625, 0.90, 0.90],
+    [0.750, 0.90, 0.90],
+    [0.875, 0.90, 0.90],
+    [1.000, 1.00, 1.00]
+  ],
+  green: [
+    [0.000, 0.00, 0.00],
+    [0.125, 0.15, 0.15],
+    [0.250, 0.15, 0.15],
+    [0.375, 0.20, 0.20],
+    [0.500, 0.25, 0.25],
+    [0.625, 0.50, 0.50],
+    [0.750, 0.75, 0.75],
+    [0.875, 0.90, 0.90],
+    [1.000, 1.00, 1.00]
+  ],
+  blue: [
+    [0.000, 0.00, 0.00],
+    [0.125, 0.50, 0.50],
+    [0.250, 0.75, 0.75],
+    [0.375, 0.50, 0.50],
+    [0.500, 0.15, 0.15],
+    [0.625, 0.00, 0.00],
+    [0.750, 0.10, 0.10],
+    [0.875, 0.50, 0.50],
+    [1.000, 1.00, 1.00]
+  ]
+}
 
-  const CMRMAP_DATA = {
-    usesFuncs: false,
-    red: [
-      [0.000, 0.00, 0.00],
-      [0.125, 0.15, 0.15],
-      [0.250, 0.30, 0.30],
-      [0.375, 0.60, 0.60],
-      [0.500, 1.00, 1.00],
-      [0.625, 0.90, 0.90],
-      [0.750, 0.90, 0.90],
-      [0.875, 0.90, 0.90],
-      [1.000, 1.00, 1.00]
-    ],
-    green: [
-      [0.000, 0.00, 0.00],
-      [0.125, 0.15, 0.15],
-      [0.250, 0.15, 0.15],
-      [0.375, 0.20, 0.20],
-      [0.500, 0.25, 0.25],
-      [0.625, 0.50, 0.50],
-      [0.750, 0.75, 0.75],
-      [0.875, 0.90, 0.90],
-      [1.000, 1.00, 1.00]
-    ],
-    blue: [
-      [0.000, 0.00, 0.00],
-      [0.125, 0.50, 0.50],
-      [0.250, 0.75, 0.75],
-      [0.375, 0.50, 0.50],
-      [0.500, 0.15, 0.15],
-      [0.625, 0.00, 0.00],
-      [0.750, 0.10, 0.10],
-      [0.875, 0.50, 0.50],
-      [1.000, 1.00, 1.00]
-    ]
-  }
+const OCEAN_DATA = {
+  usesFuncs: true,
+  red: gnuplotPaletteFunctions[23],
+  green: gnuplotPaletteFunctions[28],
+  blue: gnuplotPaletteFunctions[3]
+}
 
-  const OCEAN_DATA = {
-    usesFuncs: true,
-    red: gnuplotPaletteFunctions[23],
-    green: gnuplotPaletteFunctions[28],
-    blue: gnuplotPaletteFunctions[3]
-  }
+const RAINBOW_DATA = {
+  usesFuncs: true,
+  red: gnuplotPaletteFunctions[33],
+  green: gnuplotPaletteFunctions[13],
+  blue: gnuplotPaletteFunctions[10]
+}
 
-  const RAINBOW_DATA = {
-    usesFuncs: true,
-    red: gnuplotPaletteFunctions[33],
-    green: gnuplotPaletteFunctions[13],
-    blue: gnuplotPaletteFunctions[10]
-  }
+const GNUPLOT_DATA = {
+  usesFuncs: true,
+  red: gnuplotPaletteFunctions[7],
+  green: gnuplotPaletteFunctions[5],
+  blue: gnuplotPaletteFunctions[15]
+}
 
-  const GNUPLOT_DATA = {
-    usesFuncs: true,
-    red: gnuplotPaletteFunctions[7],
-    green: gnuplotPaletteFunctions[5],
-    blue: gnuplotPaletteFunctions[15]
-  }
+const GNUPLOT2_DATA = {
+  usesFuncs: true,
+  red: gnuplotPaletteFunctions[30],
+  green: gnuplotPaletteFunctions[31],
+  blue: gnuplotPaletteFunctions[32]
+}
 
-  const GNUPLOT2_DATA = {
-    usesFuncs: true,
-    red: gnuplotPaletteFunctions[30],
-    green: gnuplotPaletteFunctions[31],
-    blue: gnuplotPaletteFunctions[32]
-  }
-
-  const colourMapDictionary = {
-    'jet': JET_DATA,
-    'gist_stern': GIST_STERN_DATA,
-    'CMRmap': CMRMAP_DATA,
-    'ocean': OCEAN_DATA,
-    'rainbow': RAINBOW_DATA,
-    'gnuplot': GNUPLOT_DATA,
-    'gnuplot2': GNUPLOT2_DATA
-  }
-
-  exports.colourMapDictionary = colourMapDictionary
-})(CMD)
+export const colourMapDictionary = {
+  'jet': JET_DATA,
+  'gist_stern': GIST_STERN_DATA,
+  'CMRmap': CMRMAP_DATA,
+  'ocean': OCEAN_DATA,
+  'rainbow': RAINBOW_DATA,
+  'gnuplot': GNUPLOT_DATA,
+  'gnuplot2': GNUPLOT2_DATA
+}

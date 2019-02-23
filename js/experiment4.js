@@ -1,3 +1,8 @@
+import * as C from './constants.js'
+import * as UC from './utilsChart.js'
+import * as UH from './utilsHtml.js'
+import * as UW from './utilsWebAudioApi.js'
+
 let currentDuration = 5
 let currentSliver = 0
 let maxSliver = 0
@@ -59,12 +64,12 @@ const onRecord = async () => {
     slider.min = 0
     slider.max = maxSliver - 1
     setCurrentSliver(0)()
-    UC.drawSpectrogram('spectrogram', resampledAudioBuffer)
+    drawSpectrogram(resampledAudioBuffer)
     showDetails(decodedAudioBuffer, resampledAudioBuffer)
-    setTimeout(updateRecordingState, 500, FINISHED_RECORDING)
+    setTimeout(updateUiState, 500, FINISHED_RECORDING)
   }
 
-  updateRecordingState(RECORDING)
+  updateUiState(RECORDING)
   mediaRecorder.start()
 }
 
@@ -82,10 +87,21 @@ const makeLiveChartingObserver = (mediaRecorder, duration) => ({
   }
 })
 
+const drawSpectrogram = async audioBuffer => {
+  const sliverCount = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)
+  const sliverIndices = R.range(0, sliverCount)
+  const promises = sliverIndices.map(async sliverIndex => {
+    const { frequencyData } = await UW.getSliverData(audioBuffer, sliverIndex)
+    return frequencyData
+  })
+  const data = await Promise.all(promises)
+  UC.drawSpectrogram('spectrogram', data, audioBuffer.duration, audioBuffer.sampleRate)
+}
+
 const RECORDING = Symbol('RECORDING')
 const FINISHED_RECORDING = Symbol('FINISHED_RECORDING')
 
-const updateRecordingState = state => {
+const updateUiState = state => {
   recordButton.disabled = state === RECORDING
   progressRow.style.display = state === RECORDING ? 'block' : 'none'
   buttonsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
@@ -102,13 +118,15 @@ const updateSliverControlsState = () => {
   fastForwardButton.disabled = currentSliver >= (maxSliver - 10)
 }
 
-const setCurrentSliver = adjustment => () => {
+const setCurrentSliver = adjustment => async () => {
   currentSliver += adjustment
   slider.value = currentSliver
   updateSliverControlsState()
   currentSliverLabel.innerText = `${currentSliver + 1}`
   maxSliverLabel.innerText = `${maxSliver}`
-  UW.visualiseSliver(resampledAudioBuffer, currentSliver, 'timeDomainChart', 'fftChart')
+  const { timeDomainData, frequencyData } = await UW.getSliverData(resampledAudioBuffer, currentSliver)
+  UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
+  UC.drawFFTChart('fftChart', frequencyData, resampledAudioBuffer.sampleRate)
 }
 
 const onSliverSliderChange = e => {

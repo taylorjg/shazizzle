@@ -1,3 +1,7 @@
+import * as C from './constants.js'
+import * as UH from './utilsHtml.js'
+import * as UC from './utilsChart.js'
+
 const sampleRateValues = [4096, 8192, 16384, 32768, 44100, 1024 * 44]
 const fftSizeValues = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
 const gainValues = [0.125, 0.25, 0.5, 0.75, 1.0]
