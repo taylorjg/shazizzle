@@ -19,13 +19,13 @@
         mocha.slow(5000)
         mocha.timeout(5000)
         mocha.checkLeaks()
-        mocha.globals(['__VUE_DEVTOOLS_TOAST__']) // <--- ???
+        mocha.globals(['__VUE_DEVTOOLS_TOAST__'])
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
-    <script src="it_multiple.js"></script>
-    <script src="tests.js"></script>
+    <script type="module" src="tests.js"></script>
     <script class="mocha-exec">
-        mocha.run()
+        const onload = () => mocha.run()
+        window.onload = onload
     </script>
 </body>
 

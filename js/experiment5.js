@@ -170,8 +170,7 @@ function webWorkerGetFrequencyData() {
 
 const onNext = async (audioBuffer, index, spectrogramContext) => {
   console.log(`[onNext] sliverCount: index: ${index}`)
-
-  // drawIncrementalSpectrogram('spectrogram2', audioBuffer, index, spectrogramContext)
+  drawIncrementalSpectrogram('spectrogram2', audioBuffer, index, spectrogramContext)
 
   // TODO:
   // - get channel data from audioBuffer

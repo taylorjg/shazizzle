@@ -1,5 +1,7 @@
 /* eslint-env mocha */
-/* global chai:false, it_multiple:false */
+/* global chai:false */
+
+import { it_multiple } from './it_multiple.js'
 
 describe('Shazizzle Tests', () => {
 

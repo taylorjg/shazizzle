@@ -4,7 +4,7 @@ const isArray = Array.isArray || function (obj) {
   return Object.prototype.toString.call(obj) === '[object Array]'
 }
 
-window.it_multiple = (testCases, description, fn) => {
+export const it_multiple = (testCases, description, fn) => {
 
   const numTests = testCases.length
   const formattedTestCount = ` (${numTests} ${numTests === 1 ? 'test' : 'tests'})`
