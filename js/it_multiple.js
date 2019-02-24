@@ -1,8 +1,10 @@
+/* eslint-env mocha */
+
 const isArray = Array.isArray || function (obj) {
   return Object.prototype.toString.call(obj) === '[object Array]'
 }
 
-it_multiple = (testCases, description, fn) => {
+window.it_multiple = (testCases, description, fn) => {
 
   const numTests = testCases.length
   const formattedTestCount = ` (${numTests} ${numTests === 1 ? 'test' : 'tests'})`

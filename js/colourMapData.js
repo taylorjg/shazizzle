@@ -1,9 +1,9 @@
 // https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_cm.py
 
 const gnuplotPaletteFunctions = [
-    /* 0  */ x => 0,
-    /* 1  */ x => 0.5,
-    /* 2  */ x => 1,
+    /* 0  */ () => 0,
+    /* 1  */ () => 0.5,
+    /* 2  */ () => 1,
     /* 3  */ x => x,
     /* 4  */ x => Math.pow(x, 2),
     /* 5  */ x => Math.pow(x, 3),

@@ -2,6 +2,7 @@ import * as C from './constants.js'
 import * as UC from './utilsChart.js'
 import * as UH from './utilsHtml.js'
 import * as UW from './utilsWebAudioApi.js'
+import * as F from './fingerprinting.js'
 
 let currentDuration = 5
 let currentSliver = 0
@@ -65,8 +66,13 @@ const onRecord = async () => {
     slider.max = maxSliver - 1
     setCurrentSliver(0)()
     drawSpectrogram(resampledAudioBuffer)
+
     showDetails(decodedAudioBuffer, resampledAudioBuffer)
     setTimeout(updateUiState, 500, FINISHED_RECORDING)
+
+    const prominentFrequencies = await F.getProminentFrequencies(resampledAudioBuffer)
+    /* eslint-disable-next-line */
+    console.dir(prominentFrequencies)
   }
 
   updateUiState(RECORDING)

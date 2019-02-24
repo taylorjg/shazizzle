@@ -1,8 +1,8 @@
+/* global hamsters */
 /* eslint-disable no-console */
 
 import { getColourMap } from './colourMaps.js'
 import * as C from './constants.js'
-import * as U from './utils.js'
 import * as UC from './utilsChart.js'
 import * as UH from './utilsHtml.js'
 import * as UW from './utilsWebAudioApi.js'
@@ -95,7 +95,8 @@ const onRecord = async () => {
   mediaRecorder.ondataavailable = e => chunks.push(e.data)
 
   mediaRecorder.onstart = () => {
-    createLiveAnalysisObservable(mediaRecorder, mediaStream, mediaTrackSettings.sampleRate)
+    const liveVisualisationObservable = UW.createLiveVisualisationObservable(mediaRecorder, mediaStream)
+    liveVisualisationObservable.subscribe(makeLiveChartingObserver(mediaRecorder, currentDuration))
 
     const chart = document.getElementById('spectrogram2')
     const ctx = chart.getContext('2d')
@@ -128,9 +129,21 @@ const onRecord = async () => {
   }
 
   mediaRecorder.start()
-  await U.delay(currentDuration * 1000)
-  mediaRecorder.stop()
 }
+
+const makeLiveChartingObserver = (mediaRecorder, duration) => ({
+  next: value => {
+    // if (value.currentTime % 1 < 0.5) {
+    //   const percent = R.clamp(0, 100, Math.round(value.currentTime / duration * 100))
+    //   updateProgressBar(percent)
+    // }
+    UC.drawTimeDomainChart('timeDomainChart', value.timeDomainData)
+    UC.drawFFTChart('fftChart', value.frequencyData, value.sampleRate)
+    if (value.currentTime >= duration) {
+      mediaRecorder.stop()
+    }
+  }
+})
 
 function webWorkerGetFrequencyData() {
   const channelData = params.array // eslint-disable-line
@@ -226,37 +239,6 @@ const createMediaStreamObservable = (mediaRecorder, mediaStream, onNext, context
   mediaRecorder.addEventListener('stop', () => {
     audioContext.close()
   })
-}
-
-// TODO: create a hot Observable<{timeDomainData, frequencyData}>
-const createLiveAnalysisObservable = (mediaRecorder, mediaStream, sampleRate) => {
-  const audioContext = new AudioContext()
-  const source = audioContext.createMediaStreamSource(mediaStream)
-
-  const analyser = new AnalyserNode(audioContext, { fftSize: C.FFT_SIZE })
-  source.connect(analyser)
-  const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
-  const frequencyData = new Uint8Array(analyser.frequencyBinCount)
-
-  let keepVisualising = true
-
-  const draw = () => {
-    analyser.getByteTimeDomainData(timeDomainData)
-    analyser.getByteFrequencyData(frequencyData)
-
-    UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
-    UC.drawFFTChart('fftChart', frequencyData, sampleRate)
-
-    if (keepVisualising) {
-      requestAnimationFrame(draw)
-    }
-  }
-
-  mediaRecorder.addEventListener('stop', () => {
-    keepVisualising = false
-  })
-
-  requestAnimationFrame(draw)
 }
 
 const updateRecordingState = inProgress => {

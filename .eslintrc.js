@@ -1,8 +1,7 @@
 module.exports = {
     "env": {
         "browser": true,
-        "es6": true,
-        "node": true
+        "es6": true
     },
     "extends": "eslint:recommended",
     "globals": {
@@ -11,8 +10,7 @@ module.exports = {
         "Chart": "readonly",
         "R": "readonly",
         "axios": "readonly",
-        "rxjs": "readonly",
-        "hamsters": "readonly"
+        "rxjs": "readonly"
     },
     "parserOptions": {
         "ecmaVersion": 2018,

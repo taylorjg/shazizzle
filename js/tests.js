@@ -1,3 +1,6 @@
+/* eslint-env mocha */
+/* global chai:false, it_multiple:false */
+
 describe('Shazizzle Tests', () => {
 
   const findTopBins = frequencyData => {

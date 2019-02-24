@@ -17,8 +17,7 @@ export const getColourMap = name => {
     case 'monochrome':
       return MONOCHROME_COLOUR_MAP
     default:
-      console.error(`ERROR: unknown colour map name, '${name}'.`)
-      return MONOCHROME_COLOUR_MAP
+      throw new (`ERROR: unknown colour map name, '${name}'.`)
   }
 }
 
