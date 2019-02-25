@@ -1,3 +1,7 @@
+/* eslint-disable no-console */
+
+import * as C from './constants.js'
+
 const findBound = (xs, f) => xs.reduce((acc, x) => f(x, acc) ? x : acc)
 const upperBound = xs => Math.ceil(findBound(xs, R.gt))
 const lowerBound = xs => Math.floor(findBound(xs, R.lt))
@@ -134,6 +138,59 @@ export const drawSpectrogram = async (canvasId, data, duration, sampleRate) => {
     data: {
       labels: R.range(0, data.length),
       datasets: [{ data }]
+    },
+    options: {
+      events: [],
+      animation: {
+        duration: 0
+      },
+      legend: {
+        display: false
+      },
+      scales: {
+        xAxes: [xAxis],
+        yAxes: [yAxis]
+      }
+    }
+  }
+
+  const canvas = document.getElementById(canvasId)
+  new Chart(canvas, config)
+}
+
+export const drawConstellation = (canvasId, dataset, duration, sampleRate) => {
+
+  const xAxis = {
+    type: 'category',
+    scaleLabel: {
+      display: true,
+      labelString: 'Time (s)'
+    },
+    labels: R.range(0, duration * 2),
+    ticks: {
+      fontSize: 8,
+      autoSkip: false,
+      callback: (_, index) => `${index / 2}`
+    }
+  }
+
+  const yAxis = {
+    type: 'category',
+    scaleLabel: {
+      display: true,
+      labelString: 'Frequency (kHz)'
+    },
+    labels: R.reverse(R.range(0, 1 + sampleRate / 2 / 1000)),
+    ticks: {
+      fontSize: 8,
+      autoSkip: false,
+    }
+  }
+
+  const config = {
+    type: 'constellation',
+    data: {
+      datasets: [dataset]
     },
     options: {
       events: [],

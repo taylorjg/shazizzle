@@ -1,4 +1,5 @@
 import * as C from './constants.js'
+import * as U from './utils.js'
 import * as UC from './utilsChart.js'
 import * as UH from './utilsHtml.js'
 import * as UW from './utilsWebAudioApi.js'
@@ -36,6 +37,7 @@ const currentSliverLabel = document.getElementById('currentSliverLabel')
 const maxSliverLabel = document.getElementById('maxSliverLabel')
 const slider = document.getElementById('slider')
 const spectrogramRow = document.getElementById('spectrogramRow')
+const constellationRow = document.getElementById('constellationRow')
 const detailsRow = document.getElementById('detailsRow')
 const detailsPre = detailsRow.querySelector('pre')
 
@@ -66,13 +68,9 @@ const onRecord = async () => {
     slider.max = maxSliver - 1
     setCurrentSliver(0)()
     drawSpectrogram(resampledAudioBuffer)
-
+    drawConstellation(resampledAudioBuffer)
     showDetails(decodedAudioBuffer, resampledAudioBuffer)
-    setTimeout(updateUiState, 500, FINISHED_RECORDING)
-
-    const prominentFrequencies = await F.getProminentFrequencies(resampledAudioBuffer)
-    /* eslint-disable-next-line */
-    console.dir(prominentFrequencies)
+    U.defer(500, updateUiState, FINISHED_RECORDING)
   }
 
   updateUiState(RECORDING)
@@ -87,7 +85,7 @@ const makeLiveChartingObserver = (mediaRecorder, duration) => ({
     }
     UC.drawTimeDomainChart('timeDomainChart', value.timeDomainData)
     UC.drawFFTChart('fftChart', value.frequencyData, value.sampleRate)
-    if (value.currentTime >= duration) {
+    if (value.currentTime >= (duration + 0.1)) {
       mediaRecorder.stop()
     }
   }
@@ -104,6 +102,23 @@ const drawSpectrogram = async audioBuffer => {
   UC.drawSpectrogram('spectrogram', data, audioBuffer.duration, audioBuffer.sampleRate)
 }
 
+const drawConstellation = async audioBuffer => {
+  const prominentFrequencies = await F.getProminentFrequencies(audioBuffer)
+  const data = R.flatten(prominentFrequencies.map((binIndices, sliverIndex) => {
+    const filtered = binIndices.filter(binIndex => binIndex >= 0)
+    return filtered.map(binIndex => ({
+      x: sliverIndex,
+      y: binIndex
+    }))
+  }))
+  const dataset = {
+    data,
+    xAxisIndices: R.range(0, prominentFrequencies.length),
+    yAxisIndices: R.range(0, C.FFT_SIZE / 2)
+  }
+  UC.drawConstellation('constellation', dataset, audioBuffer.duration, audioBuffer.sampleRate)
+}
+
 const RECORDING = Symbol('RECORDING')
 const FINISHED_RECORDING = Symbol('FINISHED_RECORDING')
 
@@ -113,6 +128,7 @@ const updateUiState = state => {
   buttonsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   sliderRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   spectrogramRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  constellationRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   detailsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   state === RECORDING && updateProgressBar(0)
 }
