@@ -5,8 +5,15 @@ const findTopBin = frequencyData => ([lb, ub]) => {
   const binValues = Array.from(frequencyData).slice(lb, ub)
   const zipped = binValues.map((binValue, index) => ({ binValue, index }))
   const sorted = zipped.sort((a, b) => b.binValue - a.binValue)
-  const top = R.head(sorted)
-  return top.binValue >= 20 ? lb + top.index : -1
+  return R.head(sorted)
+}
+
+const findTopBins = (binBands, frequencyData) => {
+  const allTopBins = binBands.map(findTopBin(frequencyData))
+  const sum = allTopBins.reduce((acc, { binValue }) => acc + binValue, 0)
+  const mean = sum / allTopBins.length
+  const binValuesAboveMean = allTopBins.filter(({ binValue }) => binValue >= mean)
+  return binValuesAboveMean.map(({ index }) => index)
 }
 
 export const getProminentFrequencies = async audioBuffer => {
@@ -21,8 +28,7 @@ export const getProminentFrequencies = async audioBuffer => {
 
   const promises = sliverIndices.map(async sliverIndex => {
     const { frequencyData } = await UW.getSliverData(audioBuffer, sliverIndex)
-    const topBinIndices = binBands.map(findTopBin(frequencyData))
-    return topBinIndices
+    return findTopBins(binBands, frequencyData)
   })
 
   return await Promise.all(promises)

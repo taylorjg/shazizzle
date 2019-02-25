@@ -137,7 +137,10 @@ export const drawSpectrogram = async (canvasId, data, duration, sampleRate) => {
     type: 'spectrogram',
     data: {
       labels: R.range(0, data.length),
-      datasets: [{ data }]
+      datasets: [{
+        data,
+        fill: false
+      }]
     },
     options: {
       events: [],
@@ -190,7 +193,10 @@ export const drawConstellation = (canvasId, dataset, duration, sampleRate) => {
   const config = {
     type: 'constellation',
     data: {
-      datasets: [dataset]
+      datasets: [{
+        ...dataset,
+        fill: false
+      }]
     },
     options: {
       events: [],
