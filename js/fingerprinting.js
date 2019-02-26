@@ -1,19 +1,24 @@
 import * as C from './constants.js'
+import * as U from './utils.js'
 import * as UW from './utilsWebAudioApi.js'
 
-const findTopBin = frequencyData => ([lb, ub]) => {
-  const binValues = Array.from(frequencyData).slice(lb, ub)
-  const zipped = binValues.map((binValue, index) => ({ binValue, index }))
-  const sorted = zipped.sort((a, b) => b.binValue - a.binValue)
+const findTopBinPairInBand = frequencyData => ([lb, ub]) => {
+  const array = Array.from(frequencyData)
+  const zipped = U.zipWithIndex(array)
+  const sliced = zipped.slice(lb, ub)
+  const sorted = sliced.sort(([binValue1], [binValue2]) => binValue2 - binValue1)
   return R.head(sorted)
 }
 
-const findTopBins = (binBands, frequencyData) => {
-  const allTopBins = binBands.map(findTopBin(frequencyData))
-  const sum = allTopBins.reduce((acc, { binValue }) => acc + binValue, 0)
-  const mean = sum / allTopBins.length
-  const binValuesAboveMean = allTopBins.filter(({ binValue }) => binValue >= mean)
-  return binValuesAboveMean.map(({ index }) => index)
+const MIN_BIN_VALUE = 10
+
+const findTopBinIndices = (frequencyData, binBands) => {
+  const topBinsPairs = binBands.map(findTopBinPairInBand(frequencyData))
+  const sumBinValues = topBinsPairs.reduce((acc, [binValue]) => acc + binValue, 0)
+  const meanBinValue = sumBinValues / topBinsPairs.length
+  const threshold = Math.max(meanBinValue, MIN_BIN_VALUE)
+  const filteredBinPairs = topBinsPairs.filter(([binValue]) => binValue >= threshold)
+  return filteredBinPairs.map(U.snd)
 }
 
 export const getProminentFrequencies = async audioBuffer => {
@@ -28,7 +33,7 @@ export const getProminentFrequencies = async audioBuffer => {
 
   const promises = sliverIndices.map(async sliverIndex => {
     const { frequencyData } = await UW.getSliverData(audioBuffer, sliverIndex)
-    return findTopBins(binBands, frequencyData)
+    return findTopBinIndices(frequencyData, binBands)
   })
 
   return await Promise.all(promises)
