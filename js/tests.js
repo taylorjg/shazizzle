@@ -23,7 +23,7 @@ describe('Shazizzle Tests', () => {
       10000,
       18000
     ],
-    'FFT identifies correct single frequency from an OscillatorNode',
+    'FFT identifies correct frequency from single OscillatorNode',
     async frequency => {
       const CHANNELS = 1
       const DURATION = 1
@@ -130,8 +130,35 @@ describe('Shazizzle Tests', () => {
       source.stop(DURATION)
       const audioBuffer = await audioContext.startRendering()
       const numFrequenciesPerBin = SAMPLE_RATE / 2 / (C.FFT_SIZE / 2)
-      const topBinIndex = Math.round(frequency / numFrequenciesPerBin)
+      const expectedTopBinIndex = Math.round(frequency / numFrequenciesPerBin)
       const prominentFrequencies = await F.getProminentFrequencies(audioBuffer)
-      prominentFrequencies.forEach(pf => chai.expect(pf).to.include(topBinIndex))
+      prominentFrequencies.forEach(pf => chai.expect(pf).to.include(expectedTopBinIndex))
+    })
+
+  it_multiple(
+    [
+      [440, 1000],
+      [1000, 2000],
+      [80, 440, 1000],
+      [80, 440, 1000, 2500]
+    ],
+    'F.getProminentFrequencies tests (multiple frequencies)',
+    async (...frequencies) => {
+      const CHANNELS = 1
+      const DURATION = 1
+      const SAMPLE_RATE = 44100
+      const audioContext = new OfflineAudioContext(CHANNELS, CHANNELS * DURATION * SAMPLE_RATE, SAMPLE_RATE)
+      const sources = frequencies.map(frequency => new OscillatorNode(audioContext, { frequency }))
+      sources.map(source => source.connect(audioContext.destination))
+      sources.map(source => source.start())
+      sources.map(source => source.stop(DURATION))
+      const audioBuffer = await audioContext.startRendering()
+      const numFrequenciesPerBin = SAMPLE_RATE / 2 / (C.FFT_SIZE / 2)
+      const expectedTopBinIndices = frequencies.map(frequency => Math.round(frequency / numFrequenciesPerBin))
+      const prominentFrequencies = await F.getProminentFrequencies(audioBuffer)
+      prominentFrequencies.forEach(pf => {
+        expectedTopBinIndices.forEach(expectedTopBinIndex =>
+          chai.expect(pf).to.include(expectedTopBinIndex))
+      })
     })
 })
