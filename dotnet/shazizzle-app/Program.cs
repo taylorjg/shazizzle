@@ -7,8 +7,9 @@ namespace ShazizzleApp
     {
         static void Main(string[] args)
         {
-            Analyser.analysePcmFile(440, "../js/signals/440.pcm");
-            Analyser.analyseGenerated(440);
+            // Analyser.AnalysePcmFile(440, "../js/signals/440.pcm");
+            // Analyser.AnalyseGenerated(440);
+            Fingerprinting.GetProminentFrequencies("../js/signals/tune.pcm");
         }
     }
 }

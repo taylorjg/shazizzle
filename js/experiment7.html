@@ -1,0 +1,58 @@
+<html>
+
+<head>
+    <title>Experiment 7</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div id="chartsRow" class="charts">
+            <span class="multi-chart-container">
+                <span class="chart-title">Time Domain</span>
+                <canvas id="timeDomainChart"></canvas>
+            </span>
+            <span class="multi-chart-container">
+                <span class="chart-title">FFT</span>
+                <canvas id="fftChart"></canvas>
+            </span>
+        </div>
+        <div id="buttonsRow">
+            <button class="btn btn-default btn-xs" id="fastBackward">
+                <i class="fas fa-fast-backward"></i>
+                <sub class="mini">x10</sub>
+            </button>
+            <button class="btn btn-default btn-xs" id="stepBackward">
+                <i class="fas fa-step-backward"></i>
+                <sub class="mini">x1</sub>
+            </button>
+            <button class="btn btn-default btn-xs" id="stepForward">
+                <i class="fas fa-step-forward"></i>
+                <sub class="mini">x 1</sub>
+            </button>
+            <button class="btn btn-default btn-xs" id="fastForward">
+                <i class="fas fa-fast-forward"></i>
+                <sub class="mini">x 10</sub>
+            </button>
+            <span id="currentSliverLabel"></span> of <span id="maxSliverLabel"></span>
+        </div>
+        <div id="sliderRow">
+            <input id="slider" type="range" min="0" max="100" step="1" value="0" />
+        </div>
+        <pre id="prominentFrequencies"></pre>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.4.0/rxjs.umd.min.js"></script>
+    <script type="module" src="spectrogram.js"></script>
+    <script type="module" src="constellation.js"></script>
+    <script type="module" src="experiment7.js"></script>
+</body>
+
+</html>
