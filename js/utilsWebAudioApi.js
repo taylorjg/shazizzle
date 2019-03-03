@@ -31,7 +31,7 @@ const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
 export const getSliverData = async (inputBuffer, sliverIndex) => {
   const options = {
     numberOfChannels: inputBuffer.numberOfChannels,
-    length: Math.ceil(inputBuffer.numberOfChannels * inputBuffer.sampleRate * C.SLIVER_DURATION),
+    length: Math.ceil(inputBuffer.sampleRate * C.SLIVER_DURATION),
     sampleRate: inputBuffer.sampleRate
   }
   const sliverBuffer = new AudioBuffer(options)
