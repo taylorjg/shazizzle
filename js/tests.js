@@ -113,6 +113,41 @@ describe('Shazizzle Tests', () => {
 
   it_multiple(
     [
+      [440, 1000],
+      [2, 1500],
+      [1000, 4000]
+    ],
+    'UW.steroToMono correctly combines left and right channels',
+    async (constant1, constant2) => {
+      const options = {
+        numberOfChannels: 2,
+        length: 1024,
+        sampleRate: 44100
+      }
+      const steroBuffer = new AudioBuffer(options)
+      const steroChannelData0 = steroBuffer.getChannelData(0)
+      const steroChannelData1 = steroBuffer.getChannelData(1)
+      steroChannelData0.fill(constant1)
+      steroChannelData1.fill(constant2)
+
+      const monoBuffer = await UW.steroToMono(steroBuffer)
+
+      chai.expect(monoBuffer.numberOfChannels).to.equal(1)
+      chai.expect(monoBuffer.duration).to.equal(steroBuffer.duration)
+      chai.expect(monoBuffer.sampleRate).to.equal(steroBuffer.sampleRate)
+      const monoChannelData0 = monoBuffer.getChannelData(0)
+      // https://developer.mozilla.org/en-US/docs/Web/API/AudioNode/channelInterpretation
+      //   Down-mix from stereo to mono.
+      //   Both input channels (L and R) are equally combined to produce the unique output channel (M).
+      //   output.M = 0.5 * (input.L + input.R)
+      const expectedValue = 0.5 * (constant1 + constant2)
+      monoChannelData0.forEach(actualValue => {
+        chai.expect(actualValue).to.equal(expectedValue)
+      })
+    })
+
+  it_multiple(
+    [
       440,
       1000,
       2500,

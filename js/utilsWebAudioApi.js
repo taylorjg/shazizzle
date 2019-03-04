@@ -130,3 +130,19 @@ export const resample = async (srcBuffer, targetSampleRate) => {
   const dstBuffer = await audioContext.startRendering()
   return dstBuffer
 }
+
+export const steroToMono = async srcBuffer => {
+  if (srcBuffer.numberOfChannels === 1) return srcBuffer
+  const options = {
+    numberOfChannels: 1,
+    length: srcBuffer.length,
+    sampleRate: srcBuffer.sampleRate
+  }
+  const audioContext = new OfflineAudioContext(options)
+  const source = audioContext.createBufferSource()
+  source.buffer = srcBuffer
+  source.connect(audioContext.destination)
+  source.start()
+  const dstBuffer = await audioContext.startRendering()
+  return dstBuffer
+}
