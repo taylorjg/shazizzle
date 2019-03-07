@@ -10,14 +10,15 @@ const findTopBinPairInBand = frequencyData => ([lb, ub]) => {
   return R.head(sorted)
 }
 
-const MIN_BIN_VALUE = 10
+// const MIN_BIN_VALUE = 10
 
 const findTopBinIndices = (frequencyData, binBands) => {
   const topBinsPairs = binBands.map(findTopBinPairInBand(frequencyData))
   const sumBinValues = topBinsPairs.reduce((acc, [binValue]) => acc + binValue, 0)
   const meanBinValue = sumBinValues / topBinsPairs.length
-  const threshold = Math.max(meanBinValue, MIN_BIN_VALUE)
-  const filteredBinPairs = topBinsPairs.filter(([binValue]) => binValue >= threshold)
+  // const threshold = Math.max(meanBinValue, MIN_BIN_VALUE)
+  // const filteredBinPairs = topBinsPairs.filter(([binValue]) => binValue >= threshold)
+  const filteredBinPairs = topBinsPairs.filter(([binValue]) => binValue >= meanBinValue)
   return filteredBinPairs.map(U.snd)
 }
 
@@ -32,7 +33,7 @@ export const getProminentFrequencies = async audioBuffer => {
   const sliverIndices = R.range(0, sliverCount)
 
   const promises = sliverIndices.map(async sliverIndex => {
-    const { frequencyData } = await UW.getSliverData(audioBuffer, sliverIndex)
+    const { frequencyData } = await UW.getSliverData2(audioBuffer, sliverIndex)
     return findTopBinIndices(frequencyData, binBands)
   })
 

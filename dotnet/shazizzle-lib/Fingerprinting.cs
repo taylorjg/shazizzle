@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
 using Newtonsoft.Json;
@@ -23,7 +24,7 @@ namespace ShazizzleLib
             1600,
             8000
         };
-        private const int MIN_BIN_VALUE = 0;
+        // private const int MIN_BIN_VALUE = 0;
 
         public static void GetProminentFrequencies(string path)
         {
@@ -52,22 +53,63 @@ namespace ShazizzleLib
                 $"[{index}]: {String.Join(",", pf.Select(f => f.ToString()))}")));
         }
 
-        private static float[] Analyse(byte[] sliver)
+        public static void GetProminentFrequencies2(string path)
+        {
+            var values = JsonConvert.DeserializeObject<double[]>(File.ReadAllText(path));
+            Console.WriteLine($"values.Length: {values.Length}");
+            var duration = values.Length / SAMPLE_RATE;
+            Console.WriteLine($"duration: {duration}");
+            var sliverCount = (int)Math.Floor(duration / SLIVER_DURATION);
+            Console.WriteLine($"sliverCount: {sliverCount}");
+
+            var sliverlength = (int)Math.Floor(SAMPLE_RATE * SLIVER_DURATION);
+            var binsPerSliver = Enumerable.Range(0, sliverCount)
+                .Select(index => values.Skip(index * sliverlength).Take(sliverlength).ToArray())
+                .Select(Analyse).ToArray();
+
+            var maxFrequency = SAMPLE_RATE / 2;
+            var binCount = FFT_SIZE / 2;
+            var binSize = maxFrequency / binCount;
+            var binBands = FREQUENCY_BANDS
+                .Select(f => (int)Math.Round((double)f / binSize))
+                .Pairwise();
+            Console.WriteLine(JsonConvert.SerializeObject(binBands));
+
+            // var pfs = binsPerSliver.Take(20).Select(bins => FindTopBinIndices(bins, binBands));
+            var pfs = binsPerSliver.Select(bins => FindTopBinIndices(bins, binBands));
+            Console.WriteLine(String.Join(Environment.NewLine, pfs.Select((pf, index) =>
+                $"[{index}]: {String.Join(",", pf.Select(f => f.ToString()))}")));
+        }
+
+        private static double[] Analyse(byte[] sliver)
         {
             var extra = sliver.Length - FFT_SIZE;
-            var bytes = sliver.Skip(extra);
-            var samples = bytes.Select(by => new Complex32(by, 0)).ToArray();
+            var values = sliver.Skip(extra);
+            var samples = values.Select(value => new Complex(value, 0)).ToArray();
+            return Analyse(samples);
+        }
+
+        private static double[] Analyse(double[] sliver)
+        {
+            var extra = sliver.Length - FFT_SIZE;
+            var values = sliver.Skip(extra);
+            var samples = values.Select(value => new Complex(value, 0)).ToArray();
+            return Analyse(samples);
+        }
+
+        private static double[] Analyse(Complex[] samples)
+        {
             Fourier.Forward(samples);
             var results = samples.Select(result => result.Magnitude).Take(FFT_SIZE / 2).ToArray();
             // The first result always looks massive and skews everything else so force it to 0.
             // TODO: figure out why
             // - something to do with the ffmpeg conversion from .mp3 to .pcm ?
             // - as comparison, FFT of generated sine wave looks fine
-            results[0] = 0;
+            // results[0] = 0;
             return results;
         }
 
-        private static Tuple<float, int> FindTopBinPairInBand(float[] frequencyData, Tuple<int, int> binBand)
+        private static Tuple<double, int> FindTopBinPairInBand(double[] frequencyData, Tuple<int, int> binBand)
         {
             var lb = binBand.Item1;
             var ub = binBand.Item2;
@@ -77,13 +119,14 @@ namespace ShazizzleLib
             return sorted.First();
         }
 
-        private static IEnumerable<int> FindTopBinIndices(float[] frequencyData, IEnumerable<Tuple<int, int>> binBands)
+        private static IEnumerable<int> FindTopBinIndices(double[] frequencyData, IEnumerable<Tuple<int, int>> binBands)
         {
             var topBinsPairs = binBands.Select(binBand => FindTopBinPairInBand(frequencyData, binBand));
             var meanBinValue = topBinsPairs.Average(pair => pair.Item1);
-            var threshold = Math.Max(meanBinValue, MIN_BIN_VALUE);
+            // var threshold = Math.Max(meanBinValue, MIN_BIN_VALUE);
             return topBinsPairs
-                .Where(pair => pair.Item1 >= threshold)
+                // .Where(pair => pair.Item1 >= threshold)
+                .Where(pair => pair.Item1 >= meanBinValue)
                 .Select(pair => pair.Item2);
         }
     }

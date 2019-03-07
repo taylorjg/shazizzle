@@ -9,7 +9,8 @@ namespace ShazizzleApp
         {
             // Analyser.AnalysePcmFile(440, "../js/signals/440.pcm");
             // Analyser.AnalyseGenerated(440);
-            Fingerprinting.GetProminentFrequencies("../js/signals/tune.pcm");
+            // Fingerprinting.GetProminentFrequencies("../js/signals/tune.pcm");
+            Fingerprinting.GetProminentFrequencies2("tune.json");
         }
     }
 }

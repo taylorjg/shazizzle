@@ -28,6 +28,17 @@ const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
   })
 }
 
+const copySliver2 = (srcBuffer, dstBuffer, sliverIndex) => {
+  const sliverLength = srcBuffer.sampleRate * C.SLIVER_DURATION
+  const startOffset = sliverIndex * sliverLength
+  const channelIndices = R.range(0, srcBuffer.numberOfChannels)
+  channelIndices.forEach(channelIndex => {
+    const srcChannelData = srcBuffer.getChannelData(channelIndex)
+    const slice = srcChannelData.slice(startOffset, startOffset + sliverLength - C.FFT_SIZE)
+    dstBuffer.copyToChannel(slice, 0)
+  })
+}
+
 export const getSliverData = async (inputBuffer, sliverIndex) => {
   const options = {
     numberOfChannels: inputBuffer.numberOfChannels,
@@ -36,11 +47,6 @@ export const getSliverData = async (inputBuffer, sliverIndex) => {
   }
   const sliverBuffer = new AudioBuffer(options)
   copySliver(inputBuffer, sliverBuffer, sliverIndex)
-  // TODO: figure out correct thing to do re stero => mono conversion
-  // This is mainly relevant to MP3 files
-  // (oscillator nodes = 1 channel, recording = 1 channel)
-  // I think we want sliverBuffer to have duration = C.SLIVER_DURATION, numberOfChannels = 1
-  // console.dir(sliverBuffer)
   const audioContext = new OfflineAudioContext(options)
   const sourceNode = new AudioBufferSourceNode(audioContext, { buffer: sliverBuffer })
   const analyserNode = new AnalyserNode(audioContext, { fftSize: C.FFT_SIZE })
@@ -52,6 +58,32 @@ export const getSliverData = async (inputBuffer, sliverIndex) => {
   const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
   analyserNode.getByteTimeDomainData(timeDomainData)
   analyserNode.getByteFrequencyData(frequencyData)
+  return {
+    timeDomainData,
+    frequencyData
+  }
+}
+
+export const getSliverData2 = async (inputBuffer, sliverIndex) => {
+  const options = {
+    numberOfChannels: inputBuffer.numberOfChannels,
+    length: C.FFT_SIZE,
+    sampleRate: inputBuffer.sampleRate
+  }
+  const sliverBuffer = new AudioBuffer(options)
+  copySliver2(inputBuffer, sliverBuffer, sliverIndex)
+  console.dir(sliverBuffer)
+  const audioContext = new OfflineAudioContext(options)
+  const sourceNode = new AudioBufferSourceNode(audioContext, { buffer: sliverBuffer })
+  const analyserNode = new AnalyserNode(audioContext, { fftSize: C.FFT_SIZE, smoothingTimeConstant: 0 })
+  sourceNode.connect(audioContext.destination)
+  sourceNode.connect(analyserNode)
+  sourceNode.start()
+  await audioContext.startRendering()
+  const timeDomainData = new Float32Array(analyserNode.frequencyBinCount)
+  const frequencyData = new Float32Array(analyserNode.frequencyBinCount)
+  analyserNode.getFloatTimeDomainData(timeDomainData)
+  analyserNode.getFloatFrequencyData(frequencyData)
   return {
     timeDomainData,
     frequencyData
@@ -119,7 +151,7 @@ export const createLiveVisualisationObservable = (mediaRecorder, mediaStream) =>
 export const resample = async (srcBuffer, targetSampleRate) => {
   const options = {
     numberOfChannels: srcBuffer.numberOfChannels,
-    length: srcBuffer.duration * srcBuffer.numberOfChannels * targetSampleRate,
+    length: srcBuffer.duration * targetSampleRate,
     sampleRate: targetSampleRate
   }
   const audioContext = new OfflineAudioContext(options)

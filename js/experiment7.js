@@ -20,15 +20,25 @@ const main = async () => {
   const config = { responseType: 'arraybuffer' }
   const response = await axios.get('signals/tune.mp3', config)
   const data = response.data
-  const audioContext = new OfflineAudioContext({ length: 44100, sampleRate: 44100 })
-  const audioBuffer = await audioContext.decodeAudioData(data)
-  resampledAudioBuffer = audioBuffer
-  console.dir(resampledAudioBuffer)
+  const audioContext = new OfflineAudioContext({ length: 1, sampleRate: 44100 })
+  const steroBuffer = await audioContext.decodeAudioData(data)
+  console.dir(steroBuffer)
+
+  const monoBuffer = await UW.steroToMono(steroBuffer)
+  console.dir(monoBuffer)
+
+  const samples = new Float32Array(44100 * 10)
+  monoBuffer.copyFromChannel(samples, 0)
+  window.data = JSON.stringify(Array.from(samples.slice(-44100 * 2)))
+
+  resampledAudioBuffer = monoBuffer
+
   currentSliver = 0
   maxSliver = Math.floor(resampledAudioBuffer.duration / C.SLIVER_DURATION)
   slider.min = 0
   slider.max = maxSliver - 1
   setCurrentSliver(0)()
+
   const prominentFrequencies = await F.getProminentFrequencies(resampledAudioBuffer)
   const lines = prominentFrequencies.map((pfs, index) => `[${index}]: ${JSON.stringify(pfs)}`)
   prominentFrequenciesPre.innerHTML = lines.join('\n')
