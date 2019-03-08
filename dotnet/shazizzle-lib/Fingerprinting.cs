@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
 using Newtonsoft.Json;
@@ -52,11 +53,31 @@ namespace ShazizzleLib
                 $"[{index}]: {String.Join(",", pf.Select(f => f.ToString()))}")));
         }
 
-        private static float[] Analyse(byte[] sliver)
+        public static IEnumerable<IEnumerable<int>> GetProminentFrequencies(double[] samples, int sampleRate)
+        {
+            var duration = samples.Length / sampleRate;
+            var sliverCount = (int)Math.Floor(duration / SLIVER_DURATION);
+
+            var sliverlength = (int)Math.Floor(sampleRate * SLIVER_DURATION);
+            var binsPerSliver = Enumerable.Range(0, sliverCount)
+                .Select(index => samples.Skip(index * sliverlength).Take(sliverlength).ToArray())
+                .Select(Analyse).ToArray();
+
+            var maxFrequency = SAMPLE_RATE / 2;
+            var binCount = FFT_SIZE / 2;
+            var binSize = maxFrequency / binCount;
+            var binBands = FREQUENCY_BANDS
+                .Select(f => (int)Math.Round((double)f / binSize))
+                .Pairwise();
+
+            var pfs = binsPerSliver.Take(20).Select(bins => FindTopBinIndices(bins, binBands));
+            return pfs;
+        }
+
+        private static double[] Analyse(byte[] sliver)
         {
             var extra = sliver.Length - FFT_SIZE;
-            var bytes = sliver.Skip(extra);
-            var samples = bytes.Select(by => new Complex32(by, 0)).ToArray();
+            var samples = sliver.Skip(extra).Select(sample => new Complex(sample, 0)).ToArray();
             Fourier.Forward(samples);
             var results = samples.Select(result => result.Magnitude).Take(FFT_SIZE / 2).ToArray();
             // The first result always looks massive and skews everything else so force it to 0.
@@ -67,7 +88,21 @@ namespace ShazizzleLib
             return results;
         }
 
-        private static Tuple<float, int> FindTopBinPairInBand(float[] frequencyData, Tuple<int, int> binBand)
+        private static double[] Analyse(double[] sliver)
+        {
+            var extra = sliver.Length - FFT_SIZE;
+            var samples = sliver.Skip(extra).Select(sample => new Complex(sample, 0)).ToArray();
+            Fourier.Forward(samples);
+            var results = samples.Select(result => result.Magnitude).Take(FFT_SIZE / 2).ToArray();
+            // The first result always looks massive and skews everything else so force it to 0.
+            // TODO: figure out why
+            // - something to do with the ffmpeg conversion from .mp3 to .pcm ?
+            // - as comparison, FFT of generated sine wave looks fine
+            // results[0] = 0;
+            return results;
+        }
+
+        private static Tuple<double, int> FindTopBinPairInBand(double[] frequencyData, Tuple<int, int> binBand)
         {
             var lb = binBand.Item1;
             var ub = binBand.Item2;
@@ -77,7 +112,7 @@ namespace ShazizzleLib
             return sorted.First();
         }
 
-        private static IEnumerable<int> FindTopBinIndices(float[] frequencyData, IEnumerable<Tuple<int, int>> binBands)
+        private static IEnumerable<int> FindTopBinIndices(double[] frequencyData, IEnumerable<Tuple<int, int>> binBands)
         {
             var topBinsPairs = binBands.Select(binBand => FindTopBinPairInBand(frequencyData, binBand));
             var meanBinValue = topBinsPairs.Average(pair => pair.Item1);
