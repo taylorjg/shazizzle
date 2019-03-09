@@ -18,11 +18,14 @@ const prominentFrequenciesPre = document.getElementById('prominentFrequencies')
 
 const main = async () => {
   const config = { responseType: 'arraybuffer' }
-  const response = await axios.get('signals/tune.mp3', config)
+  // const response = await axios.get('signals/tune.mp3', config)
+  const response = await axios.get('signals/private/touch-her-soft-lips.m4a', config)
   const data = response.data
   const audioContext = new OfflineAudioContext({ length: 44100, sampleRate: 44100 })
-  const audioBuffer = await audioContext.decodeAudioData(data)
-  resampledAudioBuffer = audioBuffer
+  const decodedAudioBuffer = await audioContext.decodeAudioData(data)
+  resampledAudioBuffer = decodedAudioBuffer.sampleRate > 16000
+    ? await UW.resample(decodedAudioBuffer, 16000)
+    : decodedAudioBuffer
   console.dir(resampledAudioBuffer)
   currentSliver = 0
   maxSliver = Math.floor(resampledAudioBuffer.duration / C.SLIVER_DURATION)

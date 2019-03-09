@@ -40,6 +40,8 @@ const spectrogramRow = document.getElementById('spectrogramRow')
 const constellationRow = document.getElementById('constellationRow')
 const detailsRow = document.getElementById('detailsRow')
 const detailsPre = detailsRow.querySelector('pre')
+const prominentFrequenciesRow = document.getElementById('prominentFrequenciesRow')
+const prominentFrequenciesPre = prominentFrequenciesRow.querySelector('pre')
 
 const onRecord = async () => {
 
@@ -71,6 +73,11 @@ const onRecord = async () => {
     drawConstellation(resampledAudioBuffer)
     showDetails(decodedAudioBuffer, resampledAudioBuffer)
     U.defer(500, updateUiState, FINISHED_RECORDING)
+    const prominentFrequencies = await F.getProminentFrequencies(resampledAudioBuffer)
+    const lines = prominentFrequencies.map((pfs, index) => `[${index}]: ${JSON.stringify(pfs)}`)
+    prominentFrequenciesPre.innerHTML = lines.join('\n')
+    const hashes = await F.getHashes(resampledAudioBuffer)
+    console.dir(hashes)
   }
 
   updateUiState(RECORDING)
@@ -130,6 +137,7 @@ const updateUiState = state => {
   spectrogramRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   constellationRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   detailsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  prominentFrequenciesRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   state === RECORDING && updateProgressBar(0)
 }
 

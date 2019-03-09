@@ -38,3 +38,42 @@ export const getProminentFrequencies = async audioBuffer => {
 
   return await Promise.all(promises)
 }
+
+export const getHashes = async audioBuffer => {
+
+  const TARGET_ZONE_SLIVER_GAP = 5
+  const TARGET_ZONE_NUM_POINTS = 5
+
+  const pfs = await getProminentFrequencies(audioBuffer)
+
+  const allTargetPoints = R.flatten(
+    pfs.map((bins, sliverIndex) =>
+      bins.map(bin => ({ bin, sliverIndex }))))
+
+  const getTargetZonePoints = targetZoneStartSliverIndex => {
+    const index = allTargetPoints.findIndex(targetPoint => targetPoint.sliverIndex === targetZoneStartSliverIndex)
+    if (index < 0) return []
+    return allTargetPoints.slice(index, index + TARGET_ZONE_NUM_POINTS)
+  }
+
+  const tuples = R.flatten(
+    pfs.map((bins, sliverIndex) =>
+      bins.map(anchorPoint => {
+        const targetZoneStartSliverIndex = sliverIndex + TARGET_ZONE_SLIVER_GAP
+        const targetZonePoints = getTargetZonePoints(targetZoneStartSliverIndex)
+        return targetZonePoints.map(targetPoint => {
+          const f1 = anchorPoint
+          const f2 = targetPoint.bin
+          const t1 = sliverIndex
+          const t2 = targetPoint.sliverIndex
+          const dt = t2 - t1
+          return { f1, f2, dt, t1 }
+        })
+      })
+    ))
+
+  return tuples.map(({ f1, f2, dt, t1 }) => {
+    const hash = (f1 << 20) | (f2 << 8) | dt
+    return [hash, t1]
+  })
+}
