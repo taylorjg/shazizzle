@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import * as C from './constants.js'
 import * as UC from './utilsChart.js'
 import * as UW from './utilsWebAudioApi.js'
@@ -18,7 +20,7 @@ const prominentFrequenciesPre = document.getElementById('prominentFrequencies')
 
 const main = async () => {
   const config = { responseType: 'arraybuffer' }
-  // const response = await axios.get('signals/tune.mp3', config)
+  // const response = await axios.get('signals/almost-blue.mp3', config)
   const response = await axios.get('signals/private/touch-her-soft-lips.m4a', config)
   const data = response.data
   const audioContext = new OfflineAudioContext({ length: 44100, sampleRate: 44100 })

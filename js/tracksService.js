@@ -8,18 +8,23 @@ const configureService = async uri => {
   const client = await MongoClient.connect(uri, { useNewUrlParser: true })
   console.log("[MongoClient.connect] Connected successfully to server")
   const db = client.db()
-  const tracks = db.collection('tracks')
+  const trackMetadata = db.collection('track-metadata')
+  const trackHashes = db.collection('track-hashes')
 
-  const createTrack = async (albumTitle, trackTitle, fingerprint) => {
-    console.log(`[tracksService#createTrack]\n${albumTitle}\n${trackTitle}\n${fingerprint.length}`)
-    const promise = tracks.insertOne({
+  const createTrack = async (albumTitle, trackTitle, hashes) => {
+    console.log(`[tracksService#createTrack]\n${albumTitle}\n${trackTitle}\n${hashes.length}`)
+    const trackMetadataResult = await trackMetadata.insertOne({
       albumTitle,
-      trackTitle,
-      fingerprint
+      trackTitle
     })
-    const result = await promise
-    const _id = result.insertedId
-    return { _id }
+    const trackMetadataId = trackMetadataResult.insertedId
+    const trackHashesResult = await trackHashes.insertMany(hashes.map(([tuple, t1]) => ({
+      tuple,
+      trackMetadataId,
+      t1
+    })))
+    const trackHashesIds = trackHashesResult.insertedIds
+    return { trackMetadataId, trackHashesIdsCount: Array.from(Object.keys(trackHashesIds)).length }
   }
 
   const service = {

@@ -13,7 +13,7 @@ const main = async () => {
   const app = express()
   app.use(cors())
   app.use('/', express.static(__dirname))
-  app.use(bodyParser.json())
+  app.use(bodyParser.json({ limit: '5mb' }))
   app.use('/api', await tracksApi.configureRouter(MONGODB_URI))
   app.listen(PORT, () => console.log(`Listening on port ${PORT}`))
 }

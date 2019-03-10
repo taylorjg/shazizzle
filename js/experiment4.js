@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import * as C from './constants.js'
 import * as U from './utils.js'
 import * as UC from './utilsChart.js'

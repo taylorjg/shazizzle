@@ -13,7 +13,7 @@ const configureRouter = async uri => {
       const track = await service.createTrack(
         req.body.albumTitle,
         req.body.trackTitle,
-        req.body.fingerprint
+        req.body.hashes
       )
       res.json(track)
     } catch (error) {

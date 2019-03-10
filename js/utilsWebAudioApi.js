@@ -119,7 +119,7 @@ export const createLiveVisualisationObservable = (mediaRecorder, mediaStream) =>
 export const resample = async (srcBuffer, targetSampleRate) => {
   const options = {
     numberOfChannels: srcBuffer.numberOfChannels,
-    length: srcBuffer.duration * srcBuffer.numberOfChannels * targetSampleRate,
+    length: srcBuffer.duration * targetSampleRate,
     sampleRate: targetSampleRate
   }
   const audioContext = new OfflineAudioContext(options)
