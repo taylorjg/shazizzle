@@ -80,6 +80,8 @@ const onRecord = async () => {
     prominentFrequenciesPre.innerHTML = lines.join('\n')
     const hashes = await F.getHashes(resampledAudioBuffer)
     console.dir(hashes)
+    const matchResponse = await axios.post('/api/match', hashes)
+    console.dir(matchResponse)
   }
 
   updateUiState(RECORDING)

@@ -2,28 +2,25 @@
 /* eslint-disable no-console */
 
 const express = require('express')
-const configureService = require('./tracksService')
+const configureService = require('./matchService')
 
 const configureRouter = db => {
 
   const service = configureService(db)
 
-  const createTrack = async (req, res) => {
+  const match = async (req, res) => {
     try {
-      const track = await service.createTrack(
-        req.body.albumTitle,
-        req.body.trackTitle,
-        req.body.hashes
-      )
-      res.json(track)
+      const hashes = req.body
+      const result = await service.match(hashes)
+      res.json(result)
     } catch (error) {
-      console.log(`[tracksApi#createTrack] ${error}`)
+      console.log(`[matchApi#match] ${error}`)
       res.status(500).send(error.message || 'Internal Server Error')
     }
   }
 
   const router = express.Router()
-  router.post('/tracks', createTrack)
+  router.post('/match', match)
 
   return router
 }

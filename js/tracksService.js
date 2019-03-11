@@ -1,13 +1,8 @@
 /* eslint-env node */
 /* eslint-disable no-console */
 
-const MongoClient = require('mongodb').MongoClient
+const configureService = db => {
 
-const configureService = async uri => {
-
-  const client = await MongoClient.connect(uri, { useNewUrlParser: true })
-  console.log("[MongoClient.connect] Connected successfully to server")
-  const db = client.db()
   const trackMetadata = db.collection('track-metadata')
   const trackHashes = db.collection('track-hashes')
 
