@@ -2,6 +2,8 @@
 /* eslint-disable no-console */
 
 const R = require('ramda')
+const ObjectID = require('mongodb').ObjectID
+const moment = require('moment')
 
 const configureService = db => {
 
@@ -19,18 +21,25 @@ const configureService = db => {
     const resolved = await Promise.all(promises)
     const flattened = R.chain(({ records, t1Sample }) => records.map(record => ({ record, t1Sample })), resolved)
     const grouped = R.groupBy(({ record }) => record.trackMetadataId.toString(), flattened)
-    Array.from(Object.entries(grouped)).forEach(([key, value]) => {
-      console.log(`key: ${key}; value.length: ${value.length}`)
-      const grouped = R.groupBy(({ record, t1Sample }) => record.t1 - t1Sample, value)
+    const bests = Array.from(Object.entries(grouped)).map(([trackMetadataId, records]) => {
+      const grouped = R.groupBy(({ record, t1Sample }) => record.t1 - t1Sample, records)
       const sorted = R.pipe(
         R.toPairs,
         R.map(([k, v]) => [k, v.length]),
         R.sort(R.descend(([, v]) => v)),
         R.take(5)
       )(grouped)
-      console.dir(sorted)
+      const head = R.head(sorted)
+      return {
+        trackMetadataId,
+        seconds: Number(head[0]) / 20,
+        count: head[1]
+      }
     })
-    return null
+    const best = R.head(bests.sort(R.descend(obj => obj.count)))
+    const track = await trackMetadata.findOne({ _id: new ObjectID(best.trackMetadataId) })
+    console.log(`track: ${JSON.stringify(track)}; seconds: ${moment.utc(best.seconds * 1000).format('m:ss')}`)
+    return track
   }
 
   const service = {

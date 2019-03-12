@@ -19,18 +19,28 @@ const slider = document.getElementById('slider')
 
 const TRACKS = [
   {
+    url: 'signals/almost-blue.mp3',
+    albumTitle: 'Jo & Jon',
+    trackTitle: 'Almost Blue'
+  },
+  {
     url: 'signals/private/touch-her-soft-lips.m4a',
     albumTitle: 'Walton: Henry V - A Musical Scenario after Shakespeare',
     trackTitle: 'Henry V: IV. Interlude: Touch Her Soft Lips and Part'
   },
   {
-    url: 'signals/almost-blue.mp3',
-    albumTitle: 'Jo & Jon',
-    trackTitle: 'Almost Blue'
+    url: 'signals/private/caro-mio-ben.m4a',
+    albumTitle: `Cecilia Bartoli - Arie Antiche: Se tu m'ami`,
+    trackTitle: 'Caro mio ben'
+  },
+  {
+    url: 'signals/private/morgen.m4a',
+    albumTitle: 'Strauss: Vier letzte Lieder, Die Nacht, Allerseelen',
+    trackTitle: 'Morgen, Op. 27, No. 4'
   }
 ]
 
-const TRACK = TRACKS[1]
+const TRACK = TRACKS[3]
 
 const main = async () => {
   const config = { responseType: 'arraybuffer' }
