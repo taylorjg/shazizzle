@@ -27,6 +27,10 @@ This repo contains various experiments to help:
     * Call out to ffmpeg to convert the track from an mp3/m4a file to pcm
     * Calculate the fingerprint data
     * Store the fingerprint data and track metadata in the MongoDB database
+* Investigate hosting on AWS
+    * Load static resources from an Amazon S3 bucket configured for static website hosting
+    * Move the `match` web api endpoint to AWS Lambda
+    * Store the track data in Amazon DocumentDB
 
 # Test Signals
 
