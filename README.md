@@ -19,6 +19,8 @@ This repo contains various experiments to help:
 * Store more track metadata e.g. artist(s) and album artwork
 * Create a new experiment that is a copy of experiment4 but without all the charting
     * i.e. a slimmed-down test page 
+* Extend experiment4 to include visualisations of the hash matching (more charts!)
+    * see Fig 3A and Fig 3B in the original paper    
 * Add a web page to list/edit/delete the tracks in the database
 * Write a back end console tool in C# or F# to fingerprint a track and add it to the MongoDB database
     * Reconcile the FFT & fingerprint data calculated by JavaScript & `Web Audio API` vs C#/F# & `Math.NET Numerics`
