@@ -17,10 +17,10 @@ This repo contains various experiments to help:
 * ~~Copy collections from the local Docker instance of MongoDB to the Heroku instance of MongoDB~~
 * Add more tracks to the database
 * Store more track metadata e.g. artist(s) and album artwork
-* Create a new experiment that is a copy of experiment4 but without all the charting
-    * i.e. a slimmed-down test page 
+* ~~Create a new experiment that is a copy of experiment4 but without all the charting~~
+    * ~~i.e. a slimmed-down test page~~
 * Extend experiment4 to include visualisations of the hash matching (more charts!)
-    * see Fig 3A and Fig 3B in the original paper    
+    * see Fig 3A and Fig 3B in the original paper
 * Add a web page to list/edit/delete the tracks in the database
 * Write a back end console tool in C# or F# to fingerprint a track and add it to the MongoDB database
     * Reconcile the FFT & fingerprint data calculated by JavaScript & `Web Audio API` vs C#/F# & `Math.NET Numerics`
@@ -33,6 +33,13 @@ This repo contains various experiments to help:
     * Load static resources from an Amazon S3 bucket configured for static website hosting
     * Move the `match` web api endpoint to AWS Lambda
     * Store the track data in Amazon DocumentDB
+
+## Stretch Goals
+
+* Implement a React Native client
+* Implement streaming-based match
+    * Rather than capture a 5 second sample and then send it to the server for matching,
+    stream data to the server and return a match as soon as possible e.g. after 2 seconds.
 
 # Test Signals
 
