@@ -6,7 +6,7 @@
   "author": "Jonathan Taylor",
   "license": "MIT",
   "scripts": {
-    "start": "node js/server.js"
+    "start": "MONGODB_URI=mongodb://localhost:27017/shazizzle-prep node js/server"
   },
   "dependencies": {
     "body-parser": "^1.18.3",

@@ -1,6 +1,7 @@
 /* eslint-env node */
 /* eslint-disable no-console */
 
+const path = require('path')
 const express = require('express')
 const cors = require('cors')
 const bodyParser = require('body-parser')
@@ -20,10 +21,11 @@ const main = async () => {
     matchApi.configureRouter(db)
   ]
   const app = express()
+  console.dir(__dirname)
   app.use(cors())
   app.use(bodyParser.json({ limit: '5mb' }))
   app.use('/api', apiRouters)
-  app.use('/', express.static(__dirname))
+  app.use('/', express.static(path.join(__dirname, '..')))
   app.listen(PORT, () => console.log(`Listening on port ${PORT}`))
 }
 
