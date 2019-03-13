@@ -1,10 +1,10 @@
-import * as UC from './utilsChart.js'
+import * as UC from './utils/utilsChart.js'
 
 const SAMPLE_RATE = 44100
 
 const main = async () => {
   const config = { responseType: 'arraybuffer' }
-  const response = await axios.get('signals/440.pcm', config)
+  const response = await axios.get('/signals/440.pcm', config)
   const data = response.data
   const view = new Int8Array(data)
   const start = 1024 * 40

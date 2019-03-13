@@ -2,9 +2,9 @@
 /* global chai:false */
 
 import { it_multiple } from './it_multiple.js'
-import * as C from './constants.js'
-import * as UW from './utilsWebAudioApi.js'
-import * as F from './fingerprinting.js'
+import * as C from '../experiments/constants.js'
+import * as UW from '../experiments/utils/utilsWebAudioApi.js'
+import * as F from '../experiments/logic/fingerprinting.js'
 
 describe('Shazizzle Tests', () => {
 
@@ -58,7 +58,7 @@ describe('Shazizzle Tests', () => {
       const FFT_SIZE = 1024
 
       const config = { responseType: 'arraybuffer' }
-      const response = await axios.get(`https://shazizzle-prep.herokuapp.com/signals/${testToneFile}`, config)
+      const response = await axios.get(`/signals/${testToneFile}`, config)
       const data = response.data
 
       const audioContext = new OfflineAudioContext({ length: FFT_SIZE * 2, sampleRate: SAMPLE_RATE })

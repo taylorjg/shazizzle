@@ -1,6 +1,3 @@
-/* eslint-env node */
-/* eslint-disable no-console */
-
 const R = require('ramda')
 const ObjectID = require('mongodb').ObjectID
 const moment = require('moment')

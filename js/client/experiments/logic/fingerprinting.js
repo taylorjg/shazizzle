@@ -1,6 +1,6 @@
-import * as C from './constants.js'
-import * as U from './utils.js'
-import * as UW from './utilsWebAudioApi.js'
+import * as C from '../constants.js'
+import * as U from '../utils/utils.js'
+import * as UW from '../utils/utilsWebAudioApi.js'
 
 const findTopBinPairInBand = frequencyData => ([lb, ub]) => {
   const array = Array.from(frequencyData)

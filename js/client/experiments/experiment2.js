@@ -1,13 +1,13 @@
-import * as C from './constants.js'
-import * as UH from './utilsHtml.js'
-import * as UC from './utilsChart.js'
+import * as UH from './utils/utilsHtml.js'
+import * as UC from './utils/utilsChart.js'
+import * as UW from './utils/utilsWebAudioApi.js'
 
 const sampleRateValues = [4096, 8192, 16384, 32768, 44100, 1024 * 44]
 const fftSizeValues = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
 const gainValues = [0.125, 0.25, 0.5, 0.75, 1.0]
 const frequencyValues = [1, 2, 4, 6, 8, 440, 1000, 2000]
 
-let currentSampleRate = 1024 * 44
+let currentSampleRate = 44100
 let currentFftSize = 1024
 let currentGain = 0.25
 let currentFrequencies = [440, 1000, 2000]
@@ -80,7 +80,7 @@ const drawCharts = async (sampleRate, fftSize, gain, frequencies) => {
   gainNode.connect(audioContext.destination)
   const analyserNode = new AnalyserNode(audioContext, { fftSize })
   gainNode.connect(analyserNode)
-  oscillators.forEach(startOscillator(DURATION - C.SLIVER_DURATION))
+  oscillators.forEach(startOscillator(0))
   oscillators.forEach(stopOscillator(DURATION))
   const audioBuffer = await audioContext.startRendering()
   const channelData = audioBuffer.getChannelData(0)
@@ -91,6 +91,12 @@ const drawCharts = async (sampleRate, fftSize, gain, frequencies) => {
   UC.drawChart('chart1', channelData)
   UC.drawChart('chart2', timeDomainData)
   UC.drawChart('chart3', frequencyData)
+
+  {
+    const { timeDomainData, frequencyData } = await UW.getSliverData(audioBuffer, 12)
+    UC.drawTimeDomainChart('chart4', timeDomainData)
+    UC.drawFFTChart('chart5', frequencyData, audioBuffer.sampleRate)
+  }
 }
 
 drawCharts(currentSampleRate, currentFftSize, currentGain, currentFrequencies)

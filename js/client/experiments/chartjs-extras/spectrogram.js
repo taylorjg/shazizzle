@@ -1,6 +1,6 @@
 // https://en.wikipedia.org/wiki/Spectrogram
 
-import { getColourMap } from './colourMaps.js'
+import { getColourMap } from '../matplotlib-colour-maps/colourMaps.js'
 
 const toRgb = ([r, g, b]) => `rgb(${r * 255}, ${g * 255}, ${b * 255})`
 const colourMap = getColourMap('CMRmap').map(toRgb)

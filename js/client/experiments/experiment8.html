@@ -1,30 +1,16 @@
 <html>
 
 <head>
-    <title>Experiment 4</title>
+    <title>Experiment 8</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .cloak {
-            display: none;
-        }
-    </style>
 </head>
 
 <body>
     <div class="container">
-        <div id="durationRow">
-            <fieldset id="durations">
-                <legend>Duration (seconds)</legend>
-            </fieldset>
-            <button class="btn btn-xs btn-danger" id="record">Record</button>
-        </div>
-        <div id="progressRow" class="progress cloak">
-            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
         <div id="chartsRow" class="charts">
             <span class="multi-chart-container">
                 <span class="chart-title">Time Domain</span>
@@ -35,7 +21,7 @@
                 <canvas id="fftChart"></canvas>
             </span>
         </div>
-        <div id="buttonsRow" class="cloak">
+        <div id="buttonsRow">
             <button class="btn btn-default btn-xs" id="fastBackward">
                 <i class="fas fa-fast-backward"></i>
                 <sub class="mini">x10</sub>
@@ -54,26 +40,8 @@
             </button>
             <span id="currentSliverLabel"></span> of <span id="maxSliverLabel"></span>
         </div>
-        <div id="sliderRow" class="cloak">
+        <div id="sliderRow">
             <input id="slider" type="range" min="0" max="100" step="1" value="0" />
-        </div>
-        <div id="spectrogramRow" class="charts cloak">
-            <span class="single-chart-container">
-                <span class="chart-title">Spectrogram</span>
-                <canvas id="spectrogram"></canvas>
-            </span>
-        </div>
-        <div id="constellationRow" class="charts cloak">
-            <span class="single-chart-container">
-                <span class="chart-title">Constellation</span>
-                <canvas id="constellation"></canvas>
-            </span>
-        </div>
-        <div id="detailsRow" class="cloak">
-            <pre></pre>
-        </div>
-        <div id="resultsRow" class="cloak">
-            <pre id="results"></pre>
         </div>
     </div>
 
@@ -81,9 +49,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.4.0/rxjs.umd.min.js"></script>
-    <script type="module" src="spectrogram.js"></script>
-    <script type="module" src="constellation.js"></script>
-    <script type="module" src="experiment4.js"></script>
+    <script type="module" src="chartjs-extras/spectrogram.js"></script>
+    <script type="module" src="chartjs-extras/constellation.js"></script>
+    <script type="module" src="experiment8.js"></script>
 </body>
 
 </html>

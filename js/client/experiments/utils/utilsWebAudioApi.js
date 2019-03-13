@@ -1,4 +1,4 @@
-import * as C from './constants.js'
+import * as C from '../constants.js'
 
 export const decodeChunks = async (chunks, sampleRate) => {
   const blob = new Blob(chunks)

@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 
-import * as U from './utils.js'
-import * as UH from './utilsHtml.js'
-import * as UW from './utilsWebAudioApi.js'
-import * as F from './fingerprinting.js'
+import * as U from './utils/utils.js'
+import * as UH from './utils/utilsHtml.js'
+import * as UW from './utils/utilsWebAudioApi.js'
+import * as F from './logic/fingerprinting.js'
 
 let currentDuration = 5
 let resampledAudioBuffer = null

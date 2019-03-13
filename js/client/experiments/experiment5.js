@@ -1,11 +1,11 @@
 /* global hamsters */
 /* eslint-disable no-console */
 
-import { getColourMap } from './colourMaps.js'
+import { getColourMap } from './matplotlib-colour-maps/colourMaps.js'
 import * as C from './constants.js'
-import * as UC from './utilsChart.js'
-import * as UH from './utilsHtml.js'
-import * as UW from './utilsWebAudioApi.js'
+import * as UC from './utils/utilsChart.js'
+import * as UH from './utils/utilsHtml.js'
+import * as UW from './utils/utilsWebAudioApi.js'
 
 hamsters.init()
 

@@ -1,6 +1,3 @@
-/* eslint-env node */
-/* eslint-disable no-console */
-
 const express = require('express')
 const configureService = require('./tracksService')
 

@@ -1,6 +1,3 @@
-/* eslint-env node */
-/* eslint-disable no-console */
-
 const configureService = db => {
 
   const trackMetadata = db.collection('track-metadata')

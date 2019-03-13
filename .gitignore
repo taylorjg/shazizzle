@@ -2,4 +2,4 @@
 node_modules/
 obj/
 bin/
-js/signals/private/
+js/client/signals/private/

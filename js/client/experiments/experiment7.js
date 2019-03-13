@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 
 import * as C from './constants.js'
-import * as UC from './utilsChart.js'
-import * as UW from './utilsWebAudioApi.js'
-import * as F from './fingerprinting.js'
+import * as UC from './utils/utilsChart.js'
+import * as UW from './utils/utilsWebAudioApi.js'
+import * as F from './logic/fingerprinting.js'
 
 let currentSliver = 0
 let maxSliver = 0
-let audioBuffer = null
+let resampledAudioBuffer = null
 
 const fastBackwardButton = document.getElementById('fastBackward')
 const stepBackwardButton = document.getElementById('stepBackward')
@@ -16,55 +16,27 @@ const fastForwardButton = document.getElementById('fastForward')
 const currentSliverLabel = document.getElementById('currentSliverLabel')
 const maxSliverLabel = document.getElementById('maxSliverLabel')
 const slider = document.getElementById('slider')
-
-const TRACKS = [
-  {
-    url: 'signals/almost-blue.mp3',
-    albumTitle: 'Jo & Jon',
-    trackTitle: 'Almost Blue'
-  },
-  {
-    url: 'signals/private/touch-her-soft-lips.m4a',
-    albumTitle: 'Walton: Henry V - A Musical Scenario after Shakespeare',
-    trackTitle: 'Henry V: IV. Interlude: Touch Her Soft Lips and Part'
-  },
-  {
-    url: 'signals/private/caro-mio-ben.m4a',
-    albumTitle: `Cecilia Bartoli - Arie Antiche: Se tu m'ami`,
-    trackTitle: 'Caro mio ben'
-  },
-  {
-    url: 'signals/private/morgen.m4a',
-    albumTitle: 'Strauss: Vier letzte Lieder, Die Nacht, Allerseelen',
-    trackTitle: 'Morgen, Op. 27, No. 4'
-  }
-]
-
-const TRACK = TRACKS[3]
+const prominentFrequenciesPre = document.getElementById('prominentFrequencies')
 
 const main = async () => {
   const config = { responseType: 'arraybuffer' }
-  const response = await axios.get(TRACK.url, config)
+  // const response = await axios.get('/signals/almost-blue.mp3', config)
+  const response = await axios.get('/signals/private/touch-her-soft-lips.m4a', config)
   const data = response.data
   const audioContext = new OfflineAudioContext({ length: 44100, sampleRate: 44100 })
   const decodedAudioBuffer = await audioContext.decodeAudioData(data)
-  console.dir(decodedAudioBuffer)
-  const resampledAudioBuffer = await UW.resample(decodedAudioBuffer, 16000)
+  resampledAudioBuffer = decodedAudioBuffer.sampleRate > 16000
+    ? await UW.resample(decodedAudioBuffer, 16000)
+    : decodedAudioBuffer
   console.dir(resampledAudioBuffer)
-  audioBuffer = await UW.steroToMono(resampledAudioBuffer)
-  console.dir(audioBuffer)
   currentSliver = 0
-  maxSliver = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)
+  maxSliver = Math.floor(resampledAudioBuffer.duration / C.SLIVER_DURATION)
   slider.min = 0
   slider.max = maxSliver - 1
   setCurrentSliver(0)()
-  const hashes = await F.getHashes(audioBuffer)
-  const postResponse = await axios.post('/api/tracks', {
-    albumTitle: TRACK.albumTitle,
-    trackTitle: TRACK.trackTitle,
-    hashes
-  })
-  console.log(`postResponse: ${JSON.stringify(postResponse.data)}`)
+  const prominentFrequencies = await F.getProminentFrequencies(resampledAudioBuffer)
+  const lines = prominentFrequencies.map((pfs, index) => `[${index}]: ${JSON.stringify(pfs)}`)
+  prominentFrequenciesPre.innerHTML = lines.join('\n')
 }
 
 const updateSliverControlsState = () => {
@@ -80,9 +52,9 @@ const setCurrentSliver = adjustment => async () => {
   updateSliverControlsState()
   currentSliverLabel.innerText = `${currentSliver + 1}`
   maxSliverLabel.innerText = `${maxSliver}`
-  const { timeDomainData, frequencyData } = await UW.getSliverData(audioBuffer, currentSliver)
+  const { timeDomainData, frequencyData } = await UW.getSliverData(resampledAudioBuffer, currentSliver)
   UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
-  UC.drawFFTChart('fftChart', frequencyData, audioBuffer.sampleRate)
+  UC.drawFFTChart('fftChart', frequencyData, resampledAudioBuffer.sampleRate)
 }
 
 const onSliverSliderChange = e => {
