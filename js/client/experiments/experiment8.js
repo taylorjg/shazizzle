@@ -21,26 +21,34 @@ const TRACKS = [
   {
     url: '/signals/almost-blue.mp3',
     albumTitle: 'Jo & Jon',
-    trackTitle: 'Almost Blue'
+    trackTitle: 'Almost Blue',
+    artist: 'Joanna Webster, Jonathan Taylor',
+    artwork: '/artwork/placeholder.png'
   },
   {
     url: '/signals/private/touch-her-soft-lips.m4a',
     albumTitle: 'Walton: Henry V - A Musical Scenario after Shakespeare',
-    trackTitle: 'Henry V: IV. Interlude: Touch Her Soft Lips and Part'
+    trackTitle: 'Henry V: IV. Interlude: Touch Her Soft Lips and Part',
+    artist: 'Anton Lesser, Michael Sheen, RTE Concert Orchestra & Andrew Penny',
+    artwork: '/artwork/touch-her-soft-lips.jpg'
   },
   {
     url: '/signals/private/caro-mio-ben.m4a',
     albumTitle: `Cecilia Bartoli - Arie Antiche: Se tu m'ami`,
-    trackTitle: 'Caro mio ben'
+    trackTitle: 'Caro mio ben',
+    artist: 'Cecilia Bartoli, György Fischer',
+    artwork: '/artwork/caro-mio-ben.jpg'
   },
   {
     url: '/signals/private/morgen.m4a',
     albumTitle: 'Strauss: Vier letzte Lieder, Die Nacht, Allerseelen',
-    trackTitle: 'Morgen, Op. 27, No. 4'
+    trackTitle: 'Morgen, Op. 27, No. 4',
+    artist: 'Dame Kiri Te Kanawa, Sir Georg Solti',
+    artwork: '/artwork/morgen.jpg'
   }
 ]
 
-const TRACK = TRACKS[3]
+const TRACK = TRACKS[0]
 
 const main = async () => {
   const config = { responseType: 'arraybuffer' }
@@ -62,6 +70,8 @@ const main = async () => {
   const postResponse = await axios.post('/api/tracks', {
     albumTitle: TRACK.albumTitle,
     trackTitle: TRACK.trackTitle,
+    artist: TRACK.artist,
+    artwork: TRACK.artwork,
     hashes
   })
   console.log(`postResponse: ${JSON.stringify(postResponse.data)}`)

@@ -27,6 +27,7 @@ const progressRow = document.getElementById('progressRow')
 const progressBar = progressRow.querySelector('.progress-bar')
 const resultsRow = document.getElementById('resultsRow')
 const resultsPre = resultsRow.querySelector('pre')
+const resultsImg = resultsRow.querySelector('img')
 
 const onRecord = async () => {
 
@@ -53,6 +54,7 @@ const onRecord = async () => {
     const hashes = await F.getHashes(resampledAudioBuffer)
     const matchResponse = await axios.post('/api/match', hashes)
     resultsPre.innerHTML = JSON.stringify(matchResponse.data, null, 2)
+    resultsImg.src = matchResponse.data.artwork
   }
 
   updateUiState(RECORDING)

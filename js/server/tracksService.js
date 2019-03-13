@@ -3,12 +3,9 @@ const configureService = db => {
   const trackMetadata = db.collection('track-metadata')
   const trackHashes = db.collection('track-hashes')
 
-  const createTrack = async (albumTitle, trackTitle, hashes) => {
-    console.log(`[tracksService#createTrack]\n${albumTitle}\n${trackTitle}\n${hashes.length}`)
-    const trackMetadataResult = await trackMetadata.insertOne({
-      albumTitle,
-      trackTitle
-    })
+  const createTrack = async (metadata, hashes) => {
+    console.log(`[tracksService#createTrack]\n  metadata: ${JSON.stringify(metadata)}\n  hashes.length: ${hashes.length}`)
+    const trackMetadataResult = await trackMetadata.insertOne(metadata)
     const trackMetadataId = trackMetadataResult.insertedId
     const trackHashesResult = await trackHashes.insertMany(hashes.map(([tuple, t1]) => ({
       tuple,

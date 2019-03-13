@@ -1,0 +1,5 @@
+db.createCollection('track-metadata')
+db.createCollection('track-hashes')
+db.getCollectionNames()
+db['track-hashes'].createIndex({ tuple: 1 })
+db['track-hashes'].getIndexes()

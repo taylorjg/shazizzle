@@ -7,11 +7,13 @@ const configureRouter = db => {
 
   const createTrack = async (req, res) => {
     try {
-      const track = await service.createTrack(
-        req.body.albumTitle,
-        req.body.trackTitle,
-        req.body.hashes
-      )
+      const metadata = {
+        albumTitle: req.body.albumTitle,
+        trackTitle: req.body.trackTitle,
+        artist: req.body.artist,
+        artwork: req.body.artwork
+      }
+      const track = await service.createTrack(metadata, req.body.hashes)
       res.json(track)
     } catch (error) {
       console.log(`[tracksApi#createTrack] ${error}`)

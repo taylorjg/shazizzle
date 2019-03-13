@@ -21,6 +21,11 @@
   align-self: center;
 }
 
+.album-artwork {
+  width: 200px;
+  height: 200px;
+}
+
 @media (min-width: 768px) {
 
   .charts {
