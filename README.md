@@ -15,8 +15,8 @@ This repo contains various experiments to help:
 # TODO
 
 * ~~Copy collections from the local Docker instance of MongoDB to the Heroku instance of MongoDB~~
+* ~~Store more track metadata e.g. artist and album artwork~~
 * Add more tracks to the database
-* Store more track metadata e.g. artist(s) and album artwork
 * ~~Create a new experiment that is a copy of experiment4 but without all the charting~~
     * ~~i.e. a slimmed-down test page~~
 * Extend experiment4 to include visualisations of the hash matching (more charts!)

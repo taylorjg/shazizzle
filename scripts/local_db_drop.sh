@@ -5,12 +5,13 @@ set -euo pipefail
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 docker run \
-    -it \
+    --interactive \
+    --tty \
     --rm \
     --link mongodb-shazizzle-prep \
-    --volume "$DIR"/local_db_erase.js:/local_db_erase.js \
+    --volume "$DIR"/db_drop.js:/db_drop.js \
     mongo \
     mongo \
         --host mongodb-shazizzle-prep \
         shazizzle-prep \
-        /local_db_erase.js
+        /db_drop.js
