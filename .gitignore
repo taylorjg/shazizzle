@@ -3,3 +3,4 @@ node_modules/
 obj/
 bin/
 js/client/signals/private/
+**/.env

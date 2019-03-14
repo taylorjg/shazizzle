@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import * as U from './utils/utils.js'
 import * as UH from './utils/utilsHtml.js'
 import * as UW from './utils/utilsWebAudioApi.js'
@@ -25,9 +23,7 @@ UH.buttonsOnChange(durationRadioButtons, onDurationChange)
 const recordButton = document.getElementById('record')
 const progressRow = document.getElementById('progressRow')
 const progressBar = progressRow.querySelector('.progress-bar')
-const resultsRow = document.getElementById('resultsRow')
-const resultsPre = resultsRow.querySelector('pre')
-const resultsImg = resultsRow.querySelector('img')
+const albumRow = document.getElementById('albumRow')
 
 const onRecord = async () => {
 
@@ -53,8 +49,7 @@ const onRecord = async () => {
     U.defer(500, updateUiState, FINISHED_RECORDING)
     const hashes = await F.getHashes(resampledAudioBuffer)
     const matchResponse = await axios.post('/api/match', hashes)
-    resultsPre.innerHTML = JSON.stringify(matchResponse.data, null, 2)
-    resultsImg.src = matchResponse.data.artwork
+    showAlbumDetails(matchResponse.data)
   }
 
   updateUiState(RECORDING)
@@ -79,7 +74,7 @@ const FINISHED_RECORDING = Symbol('FINISHED_RECORDING')
 const updateUiState = state => {
   recordButton.disabled = state === RECORDING
   progressRow.style.display = state === RECORDING ? 'block' : 'none'
-  resultsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  albumRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   state === RECORDING && updateProgressBar(0)
 }
 
@@ -91,4 +86,17 @@ const updateProgressBar = percent => {
     progressBar.setAttribute('aria-valuenow', percent)
     progressBar.style.width = `${percent}%`
   }
+}
+
+const showAlbumDetails = album => {
+  const artwork = albumRow.querySelector('.album-artwork')
+  const trackTitle = albumRow.querySelector('.album-track-title')
+  const artist = albumRow.querySelector('.album-artist')
+  const albumTitle = albumRow.querySelector('.album-title span')
+  const sampleStartTime = albumRow.querySelector('.sample-start-time span')
+  artwork.src = album.artwork
+  trackTitle.innerHTML = album.trackTitle
+  artist.innerHTML = album.artist
+  albumTitle.innerHTML = album.albumTitle
+  sampleStartTime.innerHTML = album.time
 }

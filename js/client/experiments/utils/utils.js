@@ -6,8 +6,7 @@ export const defer = async (ms, f, ...args) => {
   return f(...args)
 }
 
-export const zipWithIndex = xs =>
-  xs.map(R.pair)
+export const zipWithIndex = xs => xs.map(R.pair)
 
 export const fst = ([a]) => a
 export const snd = ([, b]) => b
