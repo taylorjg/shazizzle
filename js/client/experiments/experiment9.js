@@ -21,6 +21,7 @@ UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
 UH.buttonsOnChange(durationRadioButtons, onDurationChange)
 
 const recordButton = document.getElementById('record')
+const matchingSpinner = document.getElementById('matchingSpinner')
 const progressRow = document.getElementById('progressRow')
 const progressBar = progressRow.querySelector('.progress-bar')
 const albumRow = document.getElementById('albumRow')
@@ -49,9 +50,17 @@ const onRecord = async () => {
       : decodedAudioBuffer
     U.defer(500, updateUiState, FINISHED_RECORDING)
     const hashes = await F.getHashes(resampledAudioBuffer)
-    const matchResponse = await axios.post('/api/match', hashes)
-    const album = matchResponse.data
-    album ? showAlbumDetails(album) : showNoMatchFound()
+    try {
+      showMatchingSpinner()
+      const matchResponse = await axios.post('/api/match', hashes)
+      const album = matchResponse.data
+      album ? showAlbumDetails(album) : showNoMatchFound()
+    } catch (error) {
+      // eslint-disable-next-line
+      console.error(`[mediaRecorder.onstop] ERROR: ${error}`)
+    } finally {
+      hideMatchingSpinner()
+    }
   }
 
   updateUiState(RECORDING)
@@ -77,6 +86,7 @@ const updateUiState = state => {
   recordButton.disabled = state === RECORDING
   progressRow.style.display = state === RECORDING ? 'block' : 'none'
   if (state === RECORDING) {
+    hideMatchingSpinner()
     noMatchFoundRow.style.display = 'none'
     albumRow.style.display = 'none'
   }
@@ -91,6 +101,14 @@ const updateProgressBar = percent => {
     progressBar.setAttribute('aria-valuenow', percent)
     progressBar.style.width = `${percent}%`
   }
+}
+
+const showMatchingSpinner = () => {
+  matchingSpinner.style.display = 'inline'
+}
+
+const hideMatchingSpinner = () => {
+  matchingSpinner.style.display = 'none'
 }
 
 const showNoMatchFound = () => {

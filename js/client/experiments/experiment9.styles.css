@@ -6,6 +6,10 @@
   margin-top: 10px;
 }
 
+#record {
+  margin-right: 3px;
+}
+
 .no-match-found {
   display: flex;
   flex-direction: column;
