@@ -3,6 +3,10 @@ const configureService = db => {
   const trackMetadata = db.collection('track-metadata')
   const trackHashes = db.collection('track-hashes')
 
+  const getTracks = () => {
+    return trackMetadata.find().toArray()
+  }
+
   const createTrack = async (metadata, hashes) => {
     console.log(`[tracksService#createTrack]\n  metadata: ${JSON.stringify(metadata)}\n  hashes.length: ${hashes.length}`)
     const trackMetadataResult = await trackMetadata.insertOne(metadata)
@@ -17,6 +21,7 @@ const configureService = db => {
   }
 
   const service = {
+    getTracks,
     createTrack
   }
 

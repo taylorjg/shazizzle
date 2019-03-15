@@ -1,0 +1,27 @@
+.container {
+  margin-top: 20px;
+}
+
+.album-artwork-cell {
+  vertical-align: middle !important;
+}
+
+.album-artwork {
+  width: 50px;
+  height: 50px;
+  border-radius: 3px;
+}
+
+.album-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.album-details-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.album-details-row-label {
+  width: 100px;
+}

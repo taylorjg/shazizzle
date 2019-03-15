@@ -5,6 +5,16 @@ const configureRouter = db => {
 
   const service = configureService(db)
 
+  const getTracks = async (_, res) => {
+    try {
+      const tracks = await service.getTracks()
+      res.json(tracks)
+    } catch (error) {
+      console.log(`[tracksApi#getTracks] ${error}`)
+      res.status(500).send(error.message || 'Internal Server Error')
+    }
+  }
+
   const createTrack = async (req, res) => {
     try {
       const metadata = {
@@ -22,6 +32,7 @@ const configureRouter = db => {
   }
 
   const router = express.Router()
+  router.get('/tracks', getTracks)
   router.post('/tracks', createTrack)
 
   return router
