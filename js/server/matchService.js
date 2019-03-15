@@ -35,6 +35,20 @@ const configureService = db => {
       }
     })
     const bestGroupOfHashes = R.head(bestGroupsOfHashes.sort(R.descend(R.prop('count'))))
+    console.log(`hashes.length: ${hashes.length}`)
+    console.dir(bestGroupsOfHashes)
+    const hashesLength = hashes.length
+    if (hashesLength < 100) {
+      console.log(`low number of sample hashes (${hashesLength}) - returning null`)
+      return null
+    }
+    const bestCount = bestGroupOfHashes ? bestGroupOfHashes.count : 0
+    const matchQuality = bestCount / hashesLength * 100
+    console.log(`match quality: ${matchQuality}%`)
+    if (matchQuality < 5) {
+      console.log(`poor match quality (${matchQuality}%) - returning null`)
+      return null
+    }
     const track = await trackMetadata.findOne({ _id: new ObjectID(bestGroupOfHashes.trackMetadataId) })
     const time = moment.utc(bestGroupOfHashes.seconds * 1000).format('m:ss')
     const result = {

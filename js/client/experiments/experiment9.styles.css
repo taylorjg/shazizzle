@@ -6,6 +6,16 @@
   margin-top: 10px;
 }
 
+.no-match-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.no-match-found p {
+  padding-top: 100px;
+}
+
 .album-details {
   display: flex;
   flex-direction: column;

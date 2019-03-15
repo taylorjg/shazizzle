@@ -24,6 +24,7 @@ const recordButton = document.getElementById('record')
 const progressRow = document.getElementById('progressRow')
 const progressBar = progressRow.querySelector('.progress-bar')
 const albumRow = document.getElementById('albumRow')
+const noMatchFoundRow = document.getElementById('noMatchFoundRow')
 
 const onRecord = async () => {
 
@@ -49,7 +50,8 @@ const onRecord = async () => {
     U.defer(500, updateUiState, FINISHED_RECORDING)
     const hashes = await F.getHashes(resampledAudioBuffer)
     const matchResponse = await axios.post('/api/match', hashes)
-    showAlbumDetails(matchResponse.data)
+    const album = matchResponse.data
+    album ? showAlbumDetails(album) : showNoMatchFound()
   }
 
   updateUiState(RECORDING)
@@ -74,7 +76,10 @@ const FINISHED_RECORDING = Symbol('FINISHED_RECORDING')
 const updateUiState = state => {
   recordButton.disabled = state === RECORDING
   progressRow.style.display = state === RECORDING ? 'block' : 'none'
-  albumRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  if (state === RECORDING) {
+    noMatchFoundRow.style.display = 'none'
+    albumRow.style.display = 'none'
+  }
   state === RECORDING && updateProgressBar(0)
 }
 
@@ -88,7 +93,14 @@ const updateProgressBar = percent => {
   }
 }
 
+const showNoMatchFound = () => {
+  noMatchFoundRow.style.display = 'block'
+  const noMatchFoundParagraph = albumRow.querySelector('.no-match-found p')
+  noMatchFoundParagraph.innerHTML = 'No match found'
+}
+
 const showAlbumDetails = album => {
+  albumRow.style.display = 'block'
   const artwork = albumRow.querySelector('.album-artwork')
   const trackTitle = albumRow.querySelector('.album-track-title')
   const artist = albumRow.querySelector('.album-artist')
