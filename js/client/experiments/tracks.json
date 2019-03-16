@@ -1,14 +1,5 @@
 [
   [
-    "/signals/almost-blue.mp3",
-    {
-      "albumTitle": "Jo & Jon",
-      "trackTitle": "Almost Blue",
-      "artist": "Joanna Webster, Jonathan Taylor",
-      "artwork": "/artwork/placeholder.png"
-    }
-  ],
-  [
     "/signals/private/touch-her-soft-lips.m4a",
     {
       "albumTitle": "Walton: Henry V - A Musical Scenario after Shakespeare",
@@ -33,6 +24,33 @@
       "trackTitle": "Morgen, Op. 27, No. 4",
       "artist": "Dame Kiri Te Kanawa, Sir Georg Solti",
       "artwork": "/artwork/morgen.jpg"
+    }
+  ],
+  [
+    "/signals/private/i-seraillets-have.m4a",
+    {
+      "albumTitle": "Stämning (feat. Eric Ericson) [22 Swedish songs]",
+      "trackTitle": "I Seraillets Have (feat. Eric Ericson)",
+      "artist": "The Real Group",
+      "artwork": "/artwork/i-seraillets-have.png"
+    }
+  ],
+  [
+    "/signals/private/hearts-ease.m4a",
+    {
+      "albumTitle": "Bridge: Piano Music, Vol. 3",
+      "trackTitle": "3 Lyrics: No. 1, Heart's Ease. Andante tranquillo – Lento",
+      "artist": "Mark Bebbington",
+      "artwork": "/artwork/hearts-ease.jpg"
+    }
+  ],
+  [
+    "/signals/private/ellis-island.m4a",
+    {
+      "albumTitle": "Minimal Piano Collection, Vol. X-XX",
+      "trackTitle": "Ellis Island for Two Pianos",
+      "artist": "Jeroen van Veen & Sandra van Veen",
+      "artwork": "/artwork/ellis-island.jpg"
     }
   ]
 ]
