@@ -9,10 +9,16 @@ const configureService = db => {
 
   const match = async hashes => {
     const promises = hashes.map(([tuple, t1Sample]) =>
-      trackHashes.find({ tuple }).toArray().then(records => ({
-        records,
-        t1Sample
-      })))
+      trackHashes.find({ tuple })
+        .project({
+          trackMetadataId: 1,
+          t1: 1,
+          _id: 0
+        })
+        .toArray().then(records => ({
+          records,
+          t1Sample
+        })))
     const resolved = await Promise.all(promises)
     const flattened = R.chain(({ records, t1Sample }) => records.map(record => ({ record, t1Sample })), resolved)
     const grouped = R.groupBy(({ record }) => record.trackMetadataId.toString(), flattened)
@@ -38,7 +44,7 @@ const configureService = db => {
     console.log(`hashes.length: ${hashes.length}`)
     console.dir(bestGroupsOfHashes)
     const hashesLength = hashes.length
-    if (hashesLength < 100) {
+    if (hashesLength < 50) {
       console.log(`low number of sample hashes (${hashesLength}) - returning null`)
       return null
     }
