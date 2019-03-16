@@ -1,6 +1,7 @@
 const R = require('ramda')
 const ObjectID = require('mongodb').ObjectID
 const moment = require('moment')
+const { performance } = require('perf_hooks')
 
 const configureService = db => {
 
@@ -19,9 +20,16 @@ const configureService = db => {
           records,
           t1Sample
         })))
+    const time1 = performance.now()
     const resolved = await Promise.all(promises)
+    const time2 = performance.now()
+    console.log(`[match] searching: ${time2 - time1}`)
     const flattened = R.chain(({ records, t1Sample }) => records.map(record => ({ record, t1Sample })), resolved)
+    const time3 = performance.now()
+    console.log(`[match] flattening: ${time3 - time2}`)
     const grouped = R.groupBy(({ record }) => record.trackMetadataId.toString(), flattened)
+    const time4 = performance.now()
+    console.log(`[match] grouping by track: ${time4 - time3}`)
     const bestGroupsOfHashes = Array.from(Object.entries(grouped)).map(([trackMetadataId, records]) => {
       const grouped = R.groupBy(({ record, t1Sample }) => {
         const t1Track = record.t1
@@ -40,6 +48,8 @@ const configureService = db => {
         count
       }
     })
+    const time5 = performance.now()
+    console.log(`[match] grouping by offset: ${time5 - time4}`)
     const bestGroupOfHashes = R.head(bestGroupsOfHashes.sort(R.descend(R.prop('count'))))
     console.log(`hashes.length: ${hashes.length}`)
     console.dir(bestGroupsOfHashes)
