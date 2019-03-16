@@ -1,5 +1,5 @@
 const express = require('express')
-const configureService = require('./tracksService')
+const configureService = require('../services/tracks')
 
 const configureRouter = db => {
 

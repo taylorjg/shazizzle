@@ -1,5 +1,5 @@
 const express = require('express')
-const configureService = require('./matchService')
+const configureService = require('../services/match')
 
 const configureRouter = db => {
 

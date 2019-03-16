@@ -1,25 +1,14 @@
 const R = require('ramda')
-const ObjectID = require('mongodb').ObjectID
 const moment = require('moment')
 const { performance } = require('perf_hooks')
 
 const configureService = db => {
 
-  const trackMetadata = db.collection('track-metadata')
-  const trackHashes = db.collection('track-hashes')
-
   const match = async hashes => {
-    const promises = hashes.map(([tuple, t1Sample]) =>
-      trackHashes.find({ tuple })
-        .project({
-          trackMetadataId: 1,
-          t1: 1,
-          _id: 0
-        })
-        .toArray().then(records => ({
-          records,
-          t1Sample
-        })))
+    const promises = hashes.map(async ([tuple, t1Sample]) => {
+      const records = await db.findTuple(tuple)
+      return { records, t1Sample }
+    })
     const time1 = performance.now()
     const resolved = await Promise.all(promises)
     const time2 = performance.now()
@@ -65,7 +54,7 @@ const configureService = db => {
       console.log(`poor match quality (${matchQuality}%) - returning null`)
       return null
     }
-    const track = await trackMetadata.findOne({ _id: new ObjectID(bestGroupOfHashes.trackMetadataId) })
+    const track = await db.findTrack(bestGroupOfHashes.trackMetadataId)
     const time = moment.utc(bestGroupOfHashes.seconds * 1000).format('m:ss')
     const result = {
       ...track,
