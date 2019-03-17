@@ -1,2 +1,2 @@
-db['track-hashes'].drop()
-db['track-metadata'].drop()
+printjson(db['track-hashes'].drop())
+printjson(db['track-metadata'].drop())

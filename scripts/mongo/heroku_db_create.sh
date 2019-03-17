@@ -7,8 +7,6 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 export $(cat "$DIR"/.env | xargs)
 
 docker run \
-    --interactive \
-    --tty \
     --rm \
     --volume "$DIR"/db_create.js:/db_create.js \
     mongo \

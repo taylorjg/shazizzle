@@ -8,7 +8,7 @@ export $(cat "$DIR"/.env | xargs)
 
 docker run \
     --rm \
-    --volume "$DIR"/db_drop.js:/db_drop.js \
+    --volume "$DIR"/db_show.js:/db_show.js \
     mongo \
     mongo \
         --host "$HEROKU_DB_HOST" \
@@ -16,4 +16,4 @@ docker run \
         --username "$HEROKU_DB_USERNAME" \
         --password "$HEROKU_DB_PASSWORD" \
         "$HEROKU_DB_DATABASE" \
-        /db_drop.js
+        /db_show.js

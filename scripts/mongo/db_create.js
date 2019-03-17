@@ -1,5 +1,3 @@
-db.createCollection('track-metadata')
-db.createCollection('track-hashes')
-db.getCollectionNames()
-db['track-hashes'].createIndex({ tuple: 1 })
-db['track-hashes'].getIndexes()
+printjson(db.createCollection('track-metadata'))
+printjson(db.createCollection('track-hashes'))
+printjson(db['track-hashes'].createIndex({ tuple: 1 }))

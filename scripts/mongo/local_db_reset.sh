@@ -5,8 +5,6 @@ set -euo pipefail
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 docker run \
-    --interactive \
-    --tty \
     --rm \
     --link mongodb-shazizzle-prep \
     --volume "$DIR"/db_reset.js:/db_reset.js \
