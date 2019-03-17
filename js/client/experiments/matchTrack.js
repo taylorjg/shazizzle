@@ -6,7 +6,7 @@ import * as F from './logic/fingerprinting.js'
 let currentDuration = 5
 let resampledAudioBuffer = null
 
-const durationValues = [5, 10, 15, 20]
+const durationValues = [1, 2, 5, 10, 15, 20]
 
 const durationRadioButtons = UH.createRadioButtons(
   'durations',

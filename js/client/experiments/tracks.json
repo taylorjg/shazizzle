@@ -52,5 +52,14 @@
       "artist": "Jeroen van Veen & Sandra van Veen",
       "artwork": "/artwork/ellis-island.jpg"
     }
+  ],
+  [
+    "/signals/private/apres-un-reve.m4a",
+    {
+      "albumTitle": "Fantasie",
+      "trackTitle": "Après un rêve",
+      "artist": "Nicola Benedetti",
+      "artwork": "/artwork/apres-un-reve.jpg"
+    }
   ]
 ]
