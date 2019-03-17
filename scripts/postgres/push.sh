@@ -20,3 +20,4 @@ echo SIGNED_URL: "$SIGNED_URL"
 heroku pg:backups:restore "$SIGNED_URL" DATABASE_URL --confirm=shazizzle-prep
 
 aws s3 rm s3://shazizzle-prep-backups/postgres.dump
+rm postgres.dump
