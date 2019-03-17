@@ -8,7 +8,8 @@ const tracksApi = require('./api/tracks')
 const matchApi = require('./api/match')
 
 // TODO: get from command line
-const dbType = 'mongo'
+// const dbType = 'mongo'
+const dbType = 'postgres'
 
 const PORT = process.env.PORT || 3002
 const MONGODB_URI = process.env.MONGODB_URI
