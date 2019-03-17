@@ -26,14 +26,14 @@ const configureService = db => {
       }, records)
       const sorted = R.pipe(
         R.toPairs,
-        R.map(([deltaTime, records]) => [deltaTime, records.length]),
+        R.map(([offset, records]) => [offset, records.length]),
         R.sort(R.descend(([, count]) => count)),
         R.take(5)
       )(grouped)
-      const [deltaTime, count] = R.head(sorted)
+      const [offset, count] = R.head(sorted)
       return {
         trackMetadataId,
-        seconds: Number(deltaTime) / 20,
+        seconds: Number(offset) / 20,
         count
       }
     })
@@ -64,8 +64,17 @@ const configureService = db => {
     return result
   }
 
+  const matchOptimised = async hashes => {
+    const time1 = performance.now()
+    const records = await db.matchOptimised(hashes)
+    const time2 = performance.now()
+    console.log(`[matchOptimised] searching: ${time2 - time1}`)
+    return records
+  }
+
   const service = {
-    match
+    match,
+    matchOptimised
   }
 
   return service

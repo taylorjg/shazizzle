@@ -8,7 +8,8 @@ const configureRouter = db => {
   const match = async (req, res) => {
     try {
       const hashes = req.body
-      const result = await service.match(hashes)
+      const fn = service.matchOptimised || service.match
+      const result = await fn(hashes)
       res.json(result)
     } catch (error) {
       console.log(`[matchApi#match] ${error}`)
