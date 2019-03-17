@@ -61,5 +61,14 @@
       "artist": "Nicola Benedetti",
       "artwork": "/artwork/apres-un-reve.jpg"
     }
+  ],
+  [
+    "/signals/private/taedet-animam-meam.m4a",
+    {
+      "albumTitle": "Victoria: Requiem (Officium defunctorum). Lobo: Versa est in luctum.",
+      "trackTitle": "Taedet animam meam: I. Taedet animam meam",
+      "artist": "The Tallis Scholars & Peter Phillips",
+      "artwork": "/artwork/taedet-animam-meam.jpg"
+    }
   ]
 ]
