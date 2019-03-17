@@ -6,11 +6,10 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 export $(cat "$DIR"/.env | xargs)
 
-docker run \
+docker exec \
     --interactive \
     --tty \
-    --rm \
-    mongo \
+    mongodb-shazizzle-prep \
     mongo \
         --host "$HEROKU_DB_HOST" \
         --port "$HEROKU_DB_PORT" \

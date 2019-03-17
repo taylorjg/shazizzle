@@ -7,7 +7,6 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 export $(cat "$DIR"/.env | xargs)
 
 docker exec \
-    --interactive \
     mongodb-shazizzle-prep \
     mongoexport \
         --db shazizzle-prep \
@@ -15,7 +14,6 @@ docker exec \
         --out track-metadata.json
 
 docker exec \
-    --interactive \
     mongodb-shazizzle-prep \
     mongoexport \
         --db shazizzle-prep \
@@ -23,7 +21,6 @@ docker exec \
         --out track-hashes.json
 
 docker exec \
-    --interactive \
     mongodb-shazizzle-prep \
     mongoimport \
         --host "$HEROKU_DB_HOST" \
@@ -36,7 +33,6 @@ docker exec \
         --file track-metadata.json
 
 docker exec \
-    --interactive \
     mongodb-shazizzle-prep \
     mongoimport \
         --host "$HEROKU_DB_HOST" \

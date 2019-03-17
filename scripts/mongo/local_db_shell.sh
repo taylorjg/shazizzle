@@ -1,13 +1,7 @@
 #!/bin/bash
 
-set -euo pipefail
-
-docker run \
+docker exec \
     --interactive \
     --tty \
-    --rm \
-    --link mongodb-shazizzle-prep \
-    mongo \
-    mongo \
-        --host mongodb-shazizzle-prep \
-        shazizzle-prep
+    mongodb-shazizzle-prep \
+    mongo shazizzle-prep
