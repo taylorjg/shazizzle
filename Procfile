@@ -1,1 +1,1 @@
-web: node js/server
+web: node js/server postgres
