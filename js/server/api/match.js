@@ -8,6 +8,7 @@ const configureRouter = db => {
   const match = async (req, res) => {
     try {
       const hashes = req.body
+      console.dir(service)
       const fn = service.matchOptimised || service.match
       const result = await fn(hashes)
       res.json(result)

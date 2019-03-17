@@ -72,9 +72,11 @@ const configureService = db => {
     return records
   }
 
+  const maybeMatchOptimised = db.matchOptimised ? { matchOptimised } : {}
+
   const service = {
     match,
-    matchOptimised
+    ...maybeMatchOptimised
   }
 
   return service

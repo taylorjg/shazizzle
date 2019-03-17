@@ -7,19 +7,27 @@ const postgresDb = require('./db/postgres')
 const tracksApi = require('./api/tracks')
 const matchApi = require('./api/match')
 
-// TODO: get from command line
-// const dbType = 'mongo'
-const dbType = 'postgres'
-
 const PORT = process.env.PORT || 3002
 const MONGODB_URI = process.env.MONGODB_URI
 const DATABASE_URL = process.env.DATABASE_URL
 
+const initDb = dbType => {
+  console.log(`[initDb] dbType: ${dbType}`)
+  switch (dbType) {
+    case 'mongo': return mongoDb(MONGODB_URI)
+    case 'postgres': return postgresDb(DATABASE_URL)
+    default:
+      console.log(`Unknown dbType, "${dbType}".`)
+      process.exit(1)
+  }
+}
+
 const main = async () => {
 
-  const db = dbType === 'mongo'
-    ? await mongoDb(MONGODB_URI)
-    : await postgresDb(DATABASE_URL)
+  const argv = process.argv
+  const argc = argv.length
+  const dbType = argc === 3 ? argv[2] : 'mongo'
+  const db = await initDb(dbType)
 
   const apiRouters = [
     tracksApi.configureRouter(db),
