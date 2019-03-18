@@ -97,7 +97,7 @@ const configureDb = async uri => {
           COUNT (track_hashes.t1 - samples.t1) >= 50
         ORDER BY count DESC
         LIMIT 1
-        `)
+      `)
     console.dir(records)
     await db.none('DROP TABLE samples')
     if (records.length === 0) {

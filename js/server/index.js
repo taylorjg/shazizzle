@@ -8,6 +8,7 @@ const tracksApi = require('./api/tracks')
 const matchApi = require('./api/match')
 
 const PORT = process.env.PORT || 3002
+const DB_TYPE = process.env.DB_TYPE || 'mongo'
 const MONGODB_URI = process.env.MONGODB_URI
 const DATABASE_URL = process.env.DATABASE_URL
 
@@ -24,10 +25,7 @@ const initDb = dbType => {
 
 const main = async () => {
 
-  const argv = process.argv
-  const argc = argv.length
-  const dbType = argc === 3 ? argv[2] : 'mongo'
-  const db = await initDb(dbType)
+  const db = await initDb(DB_TYPE)
 
   const apiRouters = [
     tracksApi.configureRouter(db),
