@@ -214,3 +214,28 @@ export const drawConstellation = (canvasId, dataset, duration, sampleRate) => {
   const canvas = document.getElementById(canvasId)
   new Chart(canvas, config)
 }
+
+export const drawScatterplot = (canvasId, data) => {
+
+  const config = {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        data,
+        pointRadius: 1
+      }]
+    },
+    options: {
+      events: [],
+      animation: {
+        duration: 0
+      },
+      legend: {
+        display: false
+      }
+    }
+  }
+
+  const canvas = document.getElementById(canvasId)
+  new Chart(canvas, config)
+}

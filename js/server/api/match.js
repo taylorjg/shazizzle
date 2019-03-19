@@ -7,9 +7,10 @@ const configureRouter = db => {
 
   const match = async (req, res) => {
     try {
+      const includeMatchingHashes = !!req.query.includeMatchingHashes
       const hashes = req.body
       const fn = service.matchOptimised || service.match
-      const result = await fn(hashes)
+      const result = await fn(hashes, includeMatchingHashes)
       res.json(result)
     } catch (error) {
       console.log(`[matchApi#match] ${error}`)

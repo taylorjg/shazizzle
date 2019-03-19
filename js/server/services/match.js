@@ -64,9 +64,9 @@ const configureService = db => {
     return result
   }
 
-  const matchOptimised = async hashes => {
+  const matchOptimised = async (hashes, includeMatchingHashes) => {
     const time1 = performance.now()
-    const records = await db.matchOptimised(hashes)
+    const records = await db.matchOptimised(hashes, includeMatchingHashes)
     const time2 = performance.now()
     console.log(`[matchOptimised] searching: ${time2 - time1}`)
     return records

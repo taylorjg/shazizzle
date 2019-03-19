@@ -1,4 +1,3 @@
-import * as UW from './utils/utilsWebAudioApi.js'
 import * as F from './logic/fingerprinting.js'
 
 const goButton = document.getElementById('goButton')
@@ -7,7 +6,6 @@ const messageArea = document.getElementById('messageArea')
 const writeMessage = message =>
   messageArea.innerText += `${messageArea.innerText.length ? '\n' : ''}${message}`
 
-const SOURCE_SAMPLE_RATE = 44100
 const TARGET_SAMPLE_RATE = 16000
 
 const fingerprintTrack = async (url, metadata) => {
@@ -20,19 +18,16 @@ const fingerprintTrack = async (url, metadata) => {
   const data = getResponse.data
 
   const options = {
-    length: SOURCE_SAMPLE_RATE,
-    sampleRate: SOURCE_SAMPLE_RATE
+    length: 1,
+    sampleRate: TARGET_SAMPLE_RATE
   }
   const audioContext = new OfflineAudioContext(options)
 
   writeMessage(`  Decoding...`)
   const decodedAudioBuffer = await audioContext.decodeAudioData(data)
 
-  writeMessage(`  Resampling...`)
-  const resampledAudioBuffer = await UW.resample(decodedAudioBuffer, TARGET_SAMPLE_RATE)
-
   writeMessage(`  Calculating hashes...`)
-  const hashes = await F.getHashes(resampledAudioBuffer)
+  const hashes = await F.getHashes(decodedAudioBuffer)
 
   writeMessage(`  Saving...`)
   await axios.post('/api/tracks', { ...metadata, hashes })

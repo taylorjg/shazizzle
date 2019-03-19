@@ -40,6 +40,8 @@ const maxSliverLabel = document.getElementById('maxSliverLabel')
 const slider = document.getElementById('slider')
 const spectrogramRow = document.getElementById('spectrogramRow')
 const constellationRow = document.getElementById('constellationRow')
+const matchScatterplotRow = document.getElementById('matchScatterplotRow')
+const matchHistogramRow = document.getElementById('matchHistogramRow')
 const detailsRow = document.getElementById('detailsRow')
 const detailsPre = detailsRow.querySelector('pre')
 const resultsRow = document.getElementById('resultsRow')
@@ -76,8 +78,22 @@ const onRecord = async () => {
     showDetails(decodedAudioBuffer, resampledAudioBuffer)
     U.defer(500, updateUiState, FINISHED_RECORDING)
     const hashes = await F.getHashes(resampledAudioBuffer)
-    const matchResponse = await axios.post('/api/match', hashes)
-    resultsPre.innerHTML = JSON.stringify(matchResponse.data, null, 2)
+    const config = {
+      params: {
+        includeMatchingHashes: 1
+      }
+    }
+    const matchResponse = await axios.post('/api/match', hashes, config)
+    if (matchResponse.data) {
+      const matchingHashes = matchResponse.data.matchingHashes
+      matchScatterplotRow.style.display = 'block'
+      matchHistogramRow.style.display = 'block'
+      resultsRow.style.display = 'block'
+      drawMatchScatterplot(matchingHashes)
+      drawMatchHistogram(matchingHashes)
+      delete matchResponse.data.matchingHashes
+      resultsPre.innerHTML = JSON.stringify(matchResponse.data, null, 2)
+    }
   }
 
   updateUiState(RECORDING)
@@ -126,6 +142,23 @@ const drawConstellation = async audioBuffer => {
   UC.drawConstellation('constellation', dataset, audioBuffer.duration, audioBuffer.sampleRate)
 }
 
+const drawMatchScatterplot = matchingHashes => {
+  const data = matchingHashes.map(record => ({
+    x: record.t1Track,
+    y: record.t1Sample
+  }))
+  UC.drawScatterplot('matchScatterplot', data)
+}
+
+const drawMatchHistogram = matchingHashes => {
+  const grouped = R.groupBy(record => record.offset, matchingHashes)
+  const data = R.toPairs(grouped).map(([offset, hashesWithSameOffset]) => ({
+    x: offset,
+    y: hashesWithSameOffset.length
+  }))
+  UC.drawScatterplot('matchHistogram', data)
+}
+
 const RECORDING = Symbol('RECORDING')
 const FINISHED_RECORDING = Symbol('FINISHED_RECORDING')
 
@@ -136,8 +169,10 @@ const updateUiState = state => {
   sliderRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   spectrogramRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   constellationRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  matchScatterplotRow.style.display = 'none'
+  matchHistogramRow.style.display = 'none'
   detailsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
-  resultsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
+  resultsRow.style.display = 'none'
   state === RECORDING && updateProgressBar(0)
 }
 

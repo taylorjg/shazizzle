@@ -65,54 +65,76 @@ const configureDb = async uri => {
       `,
       tuple)
 
-  const matchOptimised = async hashes => {
-    if (hashes.length === 0) {
-      console.log(`[postgres#matchOptimised] no hashes - returning null`)
-      return null
+  const matchOptimised = async (hashes, includeMatchingHashes) => {
+    try {
+      if (hashes.length === 0) {
+        console.log(`[postgres#matchOptimised] no hashes - returning null`)
+        return null
+      }
+      await db.none(
+        `
+          CREATE TEMPORARY TABLE samples (
+            tuple int NOT NULL,
+            t1 int NOT NULL
+          )
+        `)
+      const insertQueryPrefix = 'INSERT INTO samples (tuple, t1) VALUES'
+      const insertQueryValues = hashes.map(([tuple, t1]) => `(${tuple}, ${t1})`).join(', ')
+      const insertQuery = [insertQueryPrefix, insertQueryValues].join(' ')
+      await db.none(insertQuery)
+      const records = await db.any(
+        `
+          SELECT
+            track_hashes.track_metadata_id,
+            (track_hashes.t1 - samples.t1) AS offset,
+            COUNT (track_hashes.t1 - samples.t1) AS count
+          FROM track_hashes
+          INNER JOIN samples ON track_hashes.tuple = samples.tuple
+          GROUP BY
+            track_hashes.track_metadata_id,
+            (track_hashes.t1 - samples.t1)
+          HAVING COUNT (track_hashes.t1 - samples.t1) >= 50
+          ORDER BY count DESC
+          LIMIT 1
+        `)
+      console.dir(records)
+      if (records.length === 0) {
+        console.log(`[postgres#matchOptimised] no records - returning null`)
+        return null
+      }
+      const bestMatch = records[0]
+      if (bestMatch.count < 100) {
+        console.log(`[postgres#matchOptimised] best match has low count (${bestMatch.count}) - retuning null`)
+        return null
+      }
+      const seconds = bestMatch.offset / 20
+      const track = await findTrack(bestMatch.track_metadata_id)
+      const time = moment.utc(seconds * 1000).format('m:ss')
+      const maybeMatchingHashes = includeMatchingHashes
+        ? ({
+          matchingHashes: await db.any(
+            `
+            SELECT
+              samples.t1 AS "t1Sample",
+              track_hashes.t1 AS "t1Track",
+              (track_hashes.t1 - samples.t1) AS offset
+            FROM track_hashes
+            INNER JOIN samples ON track_hashes.tuple = samples.tuple
+            WHERE track_hashes.track_metadata_id = $1
+          `,
+            bestMatch.track_metadata_id)
+        })
+        : {}
+      console.dir(maybeMatchingHashes)
+      const result = {
+        ...track,
+        time,
+        ...maybeMatchingHashes
+      }
+      return result
+    } finally {
+      await db.none('DROP TABLE samples')
     }
-    await db.none(
-      `
-        CREATE TEMPORARY TABLE samples (
-          tuple int NOT NULL,
-          t1 int NOT NULL
-        )
-      `)
-    const insertQueryPrefix = 'INSERT INTO samples (tuple, t1) VALUES'
-    const insertQueryValues = hashes.map(([tuple, t1]) => `(${tuple}, ${t1})`).join(', ')
-    const insertQuery = [insertQueryPrefix, insertQueryValues].join(' ')
-    await db.none(insertQuery)
-    const records = await db.any(
-      `
-        SELECT
-          track_hashes.track_metadata_id,
-          (track_hashes.t1 - samples.t1) AS offset,
-          COUNT (track_hashes.t1 - samples.t1) AS count
-        FROM track_hashes
-        INNER JOIN samples
-        ON track_hashes.tuple = samples.tuple
-        GROUP BY
-          track_hashes.track_metadata_id,
-          (track_hashes.t1 - samples.t1)
-        HAVING
-          COUNT (track_hashes.t1 - samples.t1) >= 50
-        ORDER BY count DESC
-        LIMIT 1
-      `)
-    console.dir(records)
-    await db.none('DROP TABLE samples')
-    if (records.length === 0) {
-      console.log(`[postgres#matchOptimised] no records - returning null`)
-      return null
-    }
-    const bestMatch = records[0]
-    const seconds = bestMatch.offset / 20
-    const track = await findTrack(bestMatch.track_metadata_id)
-    const time = moment.utc(seconds * 1000).format('m:ss')
-    const result = {
-      ...track,
-      time
-    }
-    return result
   }
 
   return {
