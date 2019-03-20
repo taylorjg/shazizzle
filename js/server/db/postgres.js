@@ -103,7 +103,7 @@ const configureDb = async uri => {
         return null
       }
       const bestMatch = records[0]
-      if (bestMatch.count < 100) {
+      if (bestMatch.count < 50) {
         console.log(`[postgres#matchOptimised] best match has low count (${bestMatch.count}) - retuning null`)
         return null
       }
