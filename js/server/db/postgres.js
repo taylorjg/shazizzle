@@ -128,6 +128,7 @@ const configureDb = async uri => {
       console.dir(maybeMatchingHashes)
       const result = {
         ...track,
+        offset: bestMatch.offset,
         time,
         ...maybeMatchingHashes
       }

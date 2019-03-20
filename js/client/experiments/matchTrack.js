@@ -1,3 +1,4 @@
+import * as C from './constants.js'
 import * as U from './utils/utils.js'
 import * as UH from './utils/utilsHtml.js'
 import * as UW from './utils/utilsWebAudioApi.js'
@@ -45,8 +46,8 @@ const onRecord = async () => {
     track.stop()
     const mediaTrackSettings = track.getSettings()
     const decodedAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
-    resampledAudioBuffer = decodedAudioBuffer.sampleRate > 16000
-      ? await UW.resample(decodedAudioBuffer, 16000)
+    resampledAudioBuffer = decodedAudioBuffer.sampleRate > C.TARGET_SAMPLE_RATE
+      ? await UW.resample(decodedAudioBuffer, C.TARGET_SAMPLE_RATE)
       : decodedAudioBuffer
     U.defer(500, updateUiState, FINISHED_RECORDING)
     const hashes = await F.getHashes(resampledAudioBuffer)

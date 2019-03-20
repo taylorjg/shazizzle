@@ -1,3 +1,4 @@
+import * as C from './constants.js'
 import * as F from './logic/fingerprinting.js'
 
 const goButton = document.getElementById('goButton')
@@ -5,8 +6,6 @@ const messageArea = document.getElementById('messageArea')
 
 const writeMessage = message =>
   messageArea.innerText += `${messageArea.innerText.length ? '\n' : ''}${message}`
-
-const TARGET_SAMPLE_RATE = 16000
 
 const fingerprintTrack = async (url, metadata) => {
 
@@ -19,7 +18,7 @@ const fingerprintTrack = async (url, metadata) => {
 
   const options = {
     length: 1,
-    sampleRate: TARGET_SAMPLE_RATE
+    sampleRate: C.TARGET_SAMPLE_RATE
   }
   const audioContext = new OfflineAudioContext(options)
 

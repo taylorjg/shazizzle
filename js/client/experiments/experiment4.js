@@ -65,8 +65,8 @@ const onRecord = async () => {
     track.stop()
     const mediaTrackSettings = track.getSettings()
     const decodedAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
-    resampledAudioBuffer = decodedAudioBuffer.sampleRate > 16000
-      ? await UW.resample(decodedAudioBuffer, 16000)
+    resampledAudioBuffer = decodedAudioBuffer.sampleRate > C.TARGET_SAMPLE_RATE
+      ? await UW.resample(decodedAudioBuffer, C.TARGET_SAMPLE_RATE)
       : decodedAudioBuffer
     currentSliver = 0
     maxSliver = Math.floor(resampledAudioBuffer.duration / C.SLIVER_DURATION)
@@ -156,7 +156,7 @@ const drawMatchHistogram = matchingHashes => {
     x: offset,
     y: hashesWithSameOffset.length
   }))
-  UC.drawScatterplot('matchHistogram', data)
+  UC.drawScatterplot('matchHistogram', data, 2)
 }
 
 const RECORDING = Symbol('RECORDING')

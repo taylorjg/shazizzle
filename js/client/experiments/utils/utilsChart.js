@@ -215,14 +215,14 @@ export const drawConstellation = (canvasId, dataset, duration, sampleRate) => {
   new Chart(canvas, config)
 }
 
-export const drawScatterplot = (canvasId, data) => {
+export const drawScatterplot = (canvasId, data, pointRadius = 1) => {
 
   const config = {
     type: 'scatter',
     data: {
       datasets: [{
         data,
-        pointRadius: 1
+        pointRadius
       }]
     },
     options: {
