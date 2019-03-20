@@ -1,6 +1,6 @@
-import * as C from './constants.js'
-import * as UH from './utils/utilsHtml.js'
-import * as UC from './utils/utilsChart.js'
+import * as C from '../common/constants.js'
+import * as UH from '../common/utils/utilsHtml.js'
+import * as UC from '../common/utils/utilsChart.js'
 
 const sampleRateValues = [4096, 8192, 16384, 32768, 44100, 1024 * 44]
 const fftSizeValues = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768]

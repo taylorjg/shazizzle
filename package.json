@@ -6,7 +6,7 @@
   "author": "Jonathan Taylor",
   "license": "MIT",
   "scripts": {
-    "start": "MONGODB_URI=mongodb://localhost:27017/shazizzle-prep DATABASE_URL=postgres://postgres@localhost:5432/postgres node js/server"
+    "start": "MONGODB_URI=mongodb://localhost:27017/shazizzle-prep DATABASE_URL=postgres://postgres@localhost:5432/postgres DB_TYPE=postgres node js/server"
   },
   "dependencies": {
     "body-parser": "^1.18.3",

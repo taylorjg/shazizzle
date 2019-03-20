@@ -1,10 +1,7 @@
-/* eslint-env mocha */
-/* global chai:false */
-
 import { it_multiple } from './it_multiple.js'
-import * as C from '../experiments/constants.js'
-import * as UW from '../experiments/utils/utilsWebAudioApi.js'
-import * as F from '../experiments/logic/fingerprinting.js'
+import * as C from '../common/constants.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
+import * as F from '../common/logic/fingerprinting.js'
 
 describe('Shazizzle Tests', () => {
 

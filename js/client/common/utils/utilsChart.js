@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 const findBound = (xs, f) => xs.reduce((acc, x) => f(x, acc) ? x : acc)
 const upperBound = xs => Math.ceil(findBound(xs, R.gt))
 const lowerBound = xs => Math.floor(findBound(xs, R.lt))

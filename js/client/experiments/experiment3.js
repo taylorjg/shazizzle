@@ -1,5 +1,5 @@
-import * as UC from './utils/utilsChart.js'
-import * as UW from './utils/utilsWebAudioApi.js'
+import * as UC from '../common/utils/utilsChart.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
 
 const main = async () => {
   const config = { responseType: 'arraybuffer' }

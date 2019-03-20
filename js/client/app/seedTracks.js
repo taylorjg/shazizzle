@@ -1,5 +1,5 @@
-import * as C from './constants.js'
-import * as F from './logic/fingerprinting.js'
+import * as C from '../common/constants.js'
+import * as F from '../common/logic/fingerprinting.js'
 
 const goButton = document.getElementById('goButton')
 const messageArea = document.getElementById('messageArea')
@@ -38,7 +38,7 @@ const fingerprintTrack = async (url, metadata) => {
 const onGo = async () => {
   try {
     goButton.disabled = true
-    const response = await axios.get('/experiments/tracks.json')
+    const response = await axios.get('tracks.json')
     const tracks = response.data
     for (const [url, metadata] of tracks) {
       await fingerprintTrack(url, metadata)

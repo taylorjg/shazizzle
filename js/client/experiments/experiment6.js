@@ -1,4 +1,4 @@
-import * as UC from './utils/utilsChart.js'
+import * as UC from '../common/utils/utilsChart.js'
 
 const SAMPLE_RATE = 44100
 

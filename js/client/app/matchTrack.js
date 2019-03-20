@@ -1,8 +1,8 @@
-import * as C from './constants.js'
-import * as U from './utils/utils.js'
-import * as UH from './utils/utilsHtml.js'
-import * as UW from './utils/utilsWebAudioApi.js'
-import * as F from './logic/fingerprinting.js'
+import * as C from '../common/constants.js'
+import * as U from '../common/utils/utils.js'
+import * as UH from '../common/utils/utilsHtml.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
+import * as F from '../common/logic/fingerprinting.js'
 
 let currentDuration = 5
 let resampledAudioBuffer = null

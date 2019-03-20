@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 
-import * as C from './constants.js'
-import * as UC from './utils/utilsChart.js'
-import * as UW from './utils/utilsWebAudioApi.js'
-import * as F from './logic/fingerprinting.js'
+import * as C from '../common/constants.js'
+import * as UC from '../common/utils/utilsChart.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
+import * as F from '../common/logic/fingerprinting.js'
 
 let currentSliver = 0
 let maxSliver = 0
