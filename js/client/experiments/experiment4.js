@@ -88,10 +88,11 @@ const onRecord = async () => {
       const matchingHashes = matchResponse.data.matchingHashes
       matchScatterplotRow.style.display = 'block'
       matchHistogramRow.style.display = 'block'
-      resultsRow.style.display = 'block'
       drawMatchScatterplot(matchingHashes)
       drawMatchHistogram(matchingHashes)
       delete matchResponse.data.matchingHashes
+      resultsPre.innerHTML = JSON.stringify(matchResponse.data, null, 2)
+    } else {
       resultsPre.innerHTML = JSON.stringify(matchResponse.data, null, 2)
     }
   }
@@ -172,7 +173,7 @@ const updateUiState = state => {
   matchScatterplotRow.style.display = 'none'
   matchHistogramRow.style.display = 'none'
   detailsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
-  resultsRow.style.display = 'none'
+  resultsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   state === RECORDING && updateProgressBar(0)
 }
 
