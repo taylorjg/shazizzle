@@ -88,5 +88,14 @@
       "artist": "Gil Scott-Heron",
       "artwork": "/artwork/gun.jpg"
     }
+  ],
+  [
+    "/signals/private/gregors-lament.m4a",
+    {
+      "albumTitle": "Haydn: Strings Quartets Op. 71",
+      "trackTitle": "Griogal Cridhe \"Gregor’s Lament\"",
+      "artist": "Maxwell Quartet",
+      "artwork": "/artwork/gregors-lament.png"
+    }
   ]
 ]
