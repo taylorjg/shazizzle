@@ -1,42 +1,25 @@
 const tbody = document.querySelector('table tbody')
+const template = document.getElementById('tableRow')
+
+const setAttribute = (tr, selector, name, value) => {
+  const element = tr.querySelector(selector)
+  element.setAttribute(name, value)
+}
+
+const setTextContent = (tr, selector, value) => {
+  const element = tr.querySelector(selector)
+  element.textContent = value
+}
 
 const main = async () => {
   const response = await axios.get('/api/tracks')
   const albums = response.data
   albums.forEach(album => {
-    const tr = document.createElement('tr')
-
-    const tdArtwork = document.createElement('td')
-    tdArtwork.className = 'album-artwork-cell'
-    const img = document.createElement('img')
-    img.setAttribute('src', album.artwork)
-    img.className = 'album-artwork'
-    tdArtwork.appendChild(img)
-
-    const tdAlbumDetails = document.createElement('td')
-    tdAlbumDetails.setAttribute('class', 'album-details')
-
-    const details = [
-      { label: 'Album:', value: album.albumTitle },
-      { label: 'Track:', value: album.trackTitle },
-      { label: 'Artist:', value: album.artist }
-    ]
-
-    details.forEach(detail => {
-      const row = document.createElement('div')
-      row.className = 'album-details-row'
-      const label = document.createElement('span')
-      const value = document.createElement('span')
-      label.innerHTML = detail.label
-      label.className = 'album-details-row-label'
-      value.innerHTML = detail.value
-      row.appendChild(label)
-      row.appendChild(value)
-      tdAlbumDetails.appendChild(row)
-    })
-
-    tr.appendChild(tdArtwork)
-    tr.appendChild(tdAlbumDetails)
+    const tr = document.importNode(template.content, true)
+    setAttribute(tr, '.album-artwork', 'src', album.artwork)
+    setTextContent(tr, '.album-title-line + span', album.albumTitle)
+    setTextContent(tr, '.track-title-line + span', album.trackTitle)
+    setTextContent(tr, '.artist-line + span', album.artist)
     tbody.appendChild(tr)
   })
 }
