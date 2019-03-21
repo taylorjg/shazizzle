@@ -2,6 +2,10 @@
   margin-top: 20px;
 }
 
+table {
+  border-collapse: unset;
+}
+
 .album-artwork-cell {
   vertical-align: middle !important;
 }
@@ -23,5 +27,5 @@
 }
 
 .album-details-row-label {
-  width: 100px;
+  width: 8rem;
 }
