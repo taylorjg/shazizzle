@@ -16,12 +16,12 @@ This repo contains various experiments to help:
 
 * ~~Copy collections from the local Docker instance of MongoDB to the Heroku instance of MongoDB~~
 * ~~Store more track metadata e.g. artist and album artwork~~
-* Add more tracks to the database
+* ~~Add more tracks to the database~~
 * ~~Create a new experiment that is a copy of experiment4 but without all the charting~~
     * ~~i.e. a slimmed-down test page~~
-* Extend experiment4 to include visualisations of the hash matching (more charts!)
-    * see Fig 3A and Fig 3B in the original paper
-* Add a web page to list/edit/delete the tracks in the database
+* ~~Extend experiment4 to include visualisations of the hash matching (more charts!)~~
+    * ~~see Fig 3A and Fig 3B in the original paper~~
+* ~~Add a web page to list the tracks in the database~~
 * Write a back end console tool in C# or F# to fingerprint a track and add it to the MongoDB database
     * Reconcile the FFT & fingerprint data calculated by JavaScript & `Web Audio API` vs C#/F# & `Math.NET Numerics`
         * Currently, I am getting results that don't quite match
