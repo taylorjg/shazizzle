@@ -36,11 +36,6 @@ export const getSliverData = async (inputBuffer, sliverIndex) => {
   }
   const sliverBuffer = new AudioBuffer(options)
   copySliver(inputBuffer, sliverBuffer, sliverIndex)
-  // TODO: figure out correct thing to do re stero => mono conversion
-  // This is mainly relevant to MP3 files
-  // (oscillator nodes = 1 channel, recording = 1 channel)
-  // I think we want sliverBuffer to have duration = C.SLIVER_DURATION, numberOfChannels = 1
-  // console.dir(sliverBuffer)
   const audioContext = new OfflineAudioContext(options)
   const sourceNode = new AudioBufferSourceNode(audioContext, { buffer: sliverBuffer })
   const analyserNode = new AnalyserNode(audioContext, { fftSize: C.FFT_SIZE })

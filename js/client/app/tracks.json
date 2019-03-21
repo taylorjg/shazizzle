@@ -70,5 +70,23 @@
       "artist": "The Tallis Scholars & Peter Phillips",
       "artwork": "/artwork/taedet-animam-meam.jpg"
     }
+  ],
+  [
+    "/signals/private/boogie-nights.m4a",
+    {
+      "albumTitle": "Too Hot to Handle",
+      "trackTitle": "Boogie Nights",
+      "artist": "Heatwave",
+      "artwork": "/artwork/boogie-nights.jpg"
+    }
+  ],
+  [
+    "/signals/private/gun.m4a",
+    {
+      "albumTitle": "Reflections",
+      "trackTitle": "Gun",
+      "artist": "Gil Scott-Heron",
+      "artwork": "/artwork/gun.jpg"
+    }
   ]
 ]
