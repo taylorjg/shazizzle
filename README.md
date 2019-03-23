@@ -1,12 +1,17 @@
 # Shazizzle Preparation
 
-I want to create a very basic music matching app similar to [Shazam](https://www.shazam.com/).
+I ~~want to create~~ have written a very basic music matching app similar to [Shazam](https://www.shazam.com/).
 This repo contains various experiments to help:
 
 * understand some of the concepts
 * get some experience using the [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 
 # Database Tracks
+
+I have fingerprinted the tracks listed below.
+You can try it out by playing one of the following YouTube links and clicking `Record` on either
+[matchTrack.html](https://shazizzle-prep.herokuapp.com/app/matchTrack.html) or
+[experiment4.html](https://shazizzle-prep.herokuapp.com/experiments/experiment4.html).
 
 * [Walton: Henry V - A Musical Scenario after Shakespeare / Henry V: IV. Interlude: Touch Her Soft Lips and Part](https://www.youtube.com/watch?v=va_ePnLbr10)
 * [Cecilia Bartoli - Arie Antiche: Se tu m'ami / Caro mio ben](https://www.youtube.com/watch?v=1Gu8oi8eJSg)
@@ -15,13 +20,13 @@ This repo contains various experiments to help:
 * [Bridge: Piano Music, Vol. 3 / 3 Lyrics: No. 1, Heart's Ease. Andante tranquillo – Lento](https://www.youtube.com/watch?v=SlU5rdKcFZM)
 * [Minimal Piano Collection, Vol. X-XX / Ellis Island for Two Pianos](https://www.youtube.com/watch?v=XR1UR2fkiYQ)
 * [Fantasie / Après un rêve](https://www.youtube.com/watch?v=tUM7seSQorM)
-* [Victoria: Requiem (Officium defunctorum). Lobo: Versa est in luctum / Taedet animam meam: I. Taedet animam meam]()
+* [Victoria: Requiem (Officium defunctorum). Lobo: Versa est in luctum / Taedet animam meam: I. Taedet animam meam](https://www.youtube.com/watch?v=AWkoedsVtEY)
 * [Too Hot to Handle / Boogie Nights](https://www.youtube.com/watch?v=nFAuXLEa31s)
 * [Reflections / Gun](https://www.youtube.com/watch?v=wOeUpKCCSVQ)
 
 # TODO
 
-* ~~Copy collections from the local Docker instance of MongoDB to the Heroku instance of MongoDB~~
+* ~~Copy data from the local Docker database instance to the Heroku database instance~~
 * ~~Store more track metadata e.g. artist and album artwork~~
 * ~~Add more tracks to the database~~
 * ~~Create a new experiment that is a copy of experiment4 but without all the charting~~
@@ -29,17 +34,17 @@ This repo contains various experiments to help:
 * ~~Extend experiment4 to include visualisations of the hash matching (more charts!)~~
     * ~~see Fig 3A and Fig 3B in the original paper~~
 * ~~Add a web page to list the tracks in the database~~
-* Write a back end console tool in C# or F# to fingerprint a track and add it to the MongoDB database
+* Write a back end console tool in C# or F# to fingerprint a track and add it to the database
     * Reconcile the FFT & fingerprint data calculated by JavaScript & `Web Audio API` vs C#/F# & `Math.NET Numerics`
         * Currently, I am getting results that don't quite match
-        * Consequently, I am currently having to use experiment8 to fingerprint a track and store it in the database
+        * Consequently, I am currently having to use `seedTracks.html` to fingerprint a track and store it in the database
     * Call out to ffmpeg to convert the track from an mp3/m4a file to pcm
     * Calculate the fingerprint data
-    * Store the fingerprint data and track metadata in the MongoDB database
+    * Store the fingerprint data and track metadata in the database
 * Investigate hosting on AWS
     * Load static resources from an Amazon S3 bucket configured for static website hosting
     * Move the `match` web api endpoint to AWS Lambda
-    * Store the track data in Amazon DocumentDB
+    * Store the track data in Amazon RDS for PostgreSQL
 
 ## Stretch Goals
 
