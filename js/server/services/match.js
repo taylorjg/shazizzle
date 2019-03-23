@@ -68,7 +68,7 @@ const configureService = db => {
     const time1 = performance.now()
     const records = await db.matchOptimised(hashes, includeMatchingHashes)
     const time2 = performance.now()
-    console.log(`[matchOptimised] searching: ${time2 - time1}`)
+    console.log(`[matchOptimised] searching: ${time2 - time1} (# hashes: ${hashes.length})`)
     return records
   }
 

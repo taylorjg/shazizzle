@@ -12,7 +12,7 @@ let currentSliver = 0
 let maxSliver = 0
 let resampledAudioBuffer = null
 
-const durationValues = [5, 10, 15, 20]
+const durationValues = [1, 2, 5, 10, 15, 20]
 
 const durationRadioButtons = UH.createRadioButtons(
   'durations',
@@ -90,8 +90,13 @@ const onRecord = async () => {
       matchHistogramRow.style.display = 'block'
       drawMatchScatterplot(matchingHashes)
       drawMatchHistogram(matchingHashes)
-      delete matchResponse.data.matchingHashes
-      resultsPre.innerHTML = JSON.stringify(matchResponse.data, null, 2)
+      resultsPre.innerHTML = JSON.stringify(
+        R.pipe(
+          R.assoc('sampleHashesLength', hashes.length),
+          R.assoc('matchingHashesLength', matchingHashes.length),
+          R.dissoc('matchingHashes')
+        )(matchResponse.data),
+        null, 2)
     } else {
       resultsPre.innerHTML = JSON.stringify(matchResponse.data, null, 2)
     }
@@ -170,8 +175,10 @@ const updateUiState = state => {
   sliderRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   spectrogramRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   constellationRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
-  matchScatterplotRow.style.display = 'none'
-  matchHistogramRow.style.display = 'none'
+  if (state === RECORDING) {
+    matchScatterplotRow.style.display = 'none'
+    matchHistogramRow.style.display = 'none'
+  }
   detailsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   resultsRow.style.display = state === FINISHED_RECORDING ? 'block' : 'none'
   state === RECORDING && updateProgressBar(0)

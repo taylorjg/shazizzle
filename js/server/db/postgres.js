@@ -66,11 +66,11 @@ const configureDb = async uri => {
       tuple)
 
   const matchOptimised = async (hashes, includeMatchingHashes) => {
+    if (hashes.length === 0) {
+      console.log(`[postgres#matchOptimised] no hashes - returning null`)
+      return null
+    }
     try {
-      if (hashes.length === 0) {
-        console.log(`[postgres#matchOptimised] no hashes - returning null`)
-        return null
-      }
       await db.none(
         `
           CREATE TEMPORARY TABLE samples (

@@ -1,8 +1,12 @@
+import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
+
 import * as C from '../common/constants.js'
 import * as F from '../common/logic/fingerprinting.js'
 
 const goButton = document.getElementById('goButton')
 const messageArea = document.getElementById('messageArea')
+
+const clearMessages = () => messageArea.innerText = ''
 
 const writeMessage = message =>
   messageArea.innerText += `${messageArea.innerText.length ? '\n' : ''}${message}`
@@ -38,12 +42,16 @@ const fingerprintTrack = async (url, metadata) => {
 const onGo = async () => {
   try {
     goButton.disabled = true
+    hideErrorPanel()
+    clearMessages()
     const response = await axios.get('tracks.json')
     const tracks = response.data
     for (const [url, metadata] of tracks) {
       await fingerprintTrack(url, metadata)
     }
     writeMessage('All done!')
+  } catch (error) {
+    showErrorPanel(error)
   } finally {
     goButton.disabled = false
   }

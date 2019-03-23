@@ -1,3 +1,4 @@
+import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
 import * as C from '../common/constants.js'
 import * as U from '../common/utils/utils.js'
 import * as UH from '../common/utils/utilsHtml.js'
@@ -29,43 +30,49 @@ const albumRow = document.getElementById('albumRow')
 const noMatchFoundRow = document.getElementById('noMatchFoundRow')
 
 const onRecord = async () => {
+  try {
+    const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    const mediaRecorder = new MediaRecorder(mediaStream)
+    const chunks = []
 
-  const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-  const mediaRecorder = new MediaRecorder(mediaStream)
+    mediaRecorder.ondataavailable = e => chunks.push(e.data)
 
-  const chunks = []
-  mediaRecorder.ondataavailable = e => chunks.push(e.data)
-
-  mediaRecorder.onstart = () => {
-    const liveVisualisationObservable = UW.createLiveVisualisationObservable(mediaRecorder, mediaStream)
-    liveVisualisationObservable.subscribe(makeLiveChartingObserver(mediaRecorder, currentDuration))
-  }
-
-  mediaRecorder.onstop = async () => {
-    const track = R.head(mediaStream.getTracks())
-    track.stop()
-    const mediaTrackSettings = track.getSettings()
-    const decodedAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
-    resampledAudioBuffer = decodedAudioBuffer.sampleRate > C.TARGET_SAMPLE_RATE
-      ? await UW.resample(decodedAudioBuffer, C.TARGET_SAMPLE_RATE)
-      : decodedAudioBuffer
-    U.defer(500, updateUiState, FINISHED_RECORDING)
-    const hashes = await F.getHashes(resampledAudioBuffer)
-    try {
-      showMatchingSpinner()
-      const matchResponse = await axios.post('/api/match', hashes)
-      const album = matchResponse.data
-      album ? showAlbumDetails(album) : showNoMatchFound()
-    } catch (error) {
-      // eslint-disable-next-line
-      console.error(`[mediaRecorder.onstop] ERROR: ${error}`)
-    } finally {
-      hideMatchingSpinner()
+    mediaRecorder.onstart = () => {
+      try {
+        const liveVisualisationObservable = UW.createLiveVisualisationObservable(mediaRecorder, mediaStream)
+        liveVisualisationObservable.subscribe(makeLiveChartingObserver(mediaRecorder, currentDuration))
+      } catch (error) {
+        showErrorPanel(error)
+      }
     }
-  }
 
-  updateUiState(RECORDING)
-  mediaRecorder.start()
+    mediaRecorder.onstop = async () => {
+      try {
+        const track = R.head(mediaStream.getTracks())
+        track.stop()
+        const mediaTrackSettings = track.getSettings()
+        const decodedAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
+        resampledAudioBuffer = decodedAudioBuffer.sampleRate > C.TARGET_SAMPLE_RATE
+          ? await UW.resample(decodedAudioBuffer, C.TARGET_SAMPLE_RATE)
+          : decodedAudioBuffer
+        const hashes = await F.getHashes(resampledAudioBuffer)
+        showMatchingSpinner()
+        const matchResponse = await axios.post('/api/match', hashes)
+        const album = matchResponse.data
+        album ? showAlbumDetails(album) : showNoMatchFound()
+      } catch (error) {
+        showErrorPanel(error)
+      } finally {
+        hideMatchingSpinner()
+        U.defer(500, updateUiState, FINISHED_RECORDING)
+      }
+    }
+
+    updateUiState(RECORDING)
+    mediaRecorder.start()
+  } catch (error) {
+    showErrorPanel(error)
+  }
 }
 
 const makeLiveChartingObserver = (mediaRecorder, duration) => ({
@@ -84,6 +91,7 @@ const RECORDING = Symbol('RECORDING')
 const FINISHED_RECORDING = Symbol('FINISHED_RECORDING')
 
 const updateUiState = state => {
+  state === RECORDING && hideErrorPanel()
   recordButton.disabled = state === RECORDING
   progressRow.style.display = state === RECORDING ? 'block' : 'none'
   if (state === RECORDING) {
@@ -114,8 +122,6 @@ const hideMatchingSpinner = () => {
 
 const showNoMatchFound = () => {
   noMatchFoundRow.style.display = 'block'
-  const noMatchFoundParagraph = albumRow.querySelector('.no-match-found p')
-  noMatchFoundParagraph.innerHTML = 'No match found'
 }
 
 const showAlbumDetails = album => {
