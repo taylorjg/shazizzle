@@ -1,4 +1,4 @@
-# Shazizzle Preparation
+# Shazizzle
 
 I ~~want to create~~ have written a very basic music matching app similar to [Shazam](https://www.shazam.com/).
 This repo contains various experiments to help:
@@ -34,6 +34,14 @@ You can try it out by playing one of the following YouTube links and clicking `R
 * ~~Extend experiment4 to include visualisations of the hash matching (more charts!)~~
     * ~~see Fig 3A and Fig 3B in the original paper~~
 * ~~Add a web page to list the tracks in the database~~
+* Tune the app to perform better.
+Concentrate on reducing the amount of stored data whilst increasing the ability to find a match.
+Some of the settings that can be adjusted are:
+    * Sample rate (currently 16 kHz)
+    * FFT size (currently 1024)
+    * Frequency bands (currently 0-100 Hz, 100-200 Hz, 200-400 Hz, 400-800 Hz, 800-1600 Hz, 1600-8000 Hz)
+    * Number of slivers (currently 20 per second)
+    * Size of the target zone (currently 5 points)
 * Write a back end console tool in C# or F# to fingerprint a track and add it to the database
     * Reconcile the FFT & fingerprint data calculated by JavaScript & `Web Audio API` vs C#/F# & `Math.NET Numerics`
         * Currently, I am getting results that don't quite match
