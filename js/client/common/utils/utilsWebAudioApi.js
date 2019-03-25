@@ -1,6 +1,6 @@
 import * as C from '../constants.js'
 
-export const decodeChunks = async (chunks, sampleRate) => {
+export const decodeChunks = async (chunks, sampleRate = 44100) => {
   const blob = new Blob(chunks)
   const url = URL.createObjectURL(blob)
   try {

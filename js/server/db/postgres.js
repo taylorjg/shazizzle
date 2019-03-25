@@ -97,7 +97,7 @@ const configureDb = async uri => {
           ORDER BY count DESC
           LIMIT 1
         `)
-      console.dir(records)
+      // console.dir(records)
       if (records.length === 0) {
         console.log(`[postgres#matchOptimised] no records - returning null`)
         return null
