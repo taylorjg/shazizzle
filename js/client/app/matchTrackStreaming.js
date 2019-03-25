@@ -55,7 +55,9 @@ const onRecord = async () => {
     }
 
     intervalId = setInterval(() => {
-      ws.send(`Message ${++count}`)
+      if (ws.readyState === 1) {
+        ws.send(`Message ${++count}`)
+      }
     }, 500)
 
     // const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
