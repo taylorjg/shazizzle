@@ -23,9 +23,7 @@ const findTopBinIndices = (frequencyData, binBands) => {
 
 export const getProminentFrequencies = async audioBuffer => {
 
-  const maxFrequency = audioBuffer.sampleRate / 2
-  const binCount = C.FFT_SIZE / 2
-  const binSize = maxFrequency / binCount
+  const binSize = audioBuffer.sampleRate / C.FFT_SIZE
   const binBands = R.aperture(2, C.FREQUENCY_BANDS.map(f => Math.round(f / binSize)))
 
   const sliverCount = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)
