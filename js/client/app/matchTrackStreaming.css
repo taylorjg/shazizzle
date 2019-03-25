@@ -1,0 +1,53 @@
+.container {
+  margin-top: 10px;
+}
+
+.row {
+  margin-top: 10px;
+}
+
+#record {
+  margin-right: 3px;
+}
+
+.no-match-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.no-match-found p {
+  padding-top: 100px;
+}
+
+.album-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.album-artwork {
+  border-radius: 5px;
+  width: 200px;
+  height: 200px;
+}
+
+.album-track-title {
+  font-size: xx-large;
+  text-align: center;
+}
+
+.album-artist {
+  font-size: x-large;
+  text-align: center;
+}
+
+.album-title {
+  font-size: small;
+  text-align: center;
+}
+
+.sample-start-time {
+  font-size: x-small;
+  text-align: center;
+}
