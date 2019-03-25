@@ -45,7 +45,9 @@ const main = async () => {
     setTimeout(() => ws.close(), 10 * 1000)
     ws.on('message', msg => {
       console.log(`[/streamingMatch onmessage] msg: ${msg}`)
-      ws.send(msg.toUpperCase())
+      if (ws.readyState === 1) {
+        ws.send(msg.toUpperCase())
+      }
     })
     console.log(`[/streamingMatch] req: ${req}`)
   })
