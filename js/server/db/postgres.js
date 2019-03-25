@@ -125,7 +125,7 @@ const configureDb = async uri => {
             bestMatch.track_metadata_id)
         })
         : {}
-      console.dir(maybeMatchingHashes)
+      // console.dir(maybeMatchingHashes)
       const result = {
         ...track,
         offset: bestMatch.offset,

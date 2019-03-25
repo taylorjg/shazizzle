@@ -26,7 +26,7 @@ describe('Shazizzle Tests', () => {
       const DURATION = 1
       const SAMPLE_RATE = 44100
       const FFT_SIZE = 1024
-      const audioContext = new OfflineAudioContext(CHANNELS, CHANNELS * DURATION * SAMPLE_RATE, SAMPLE_RATE)
+      const audioContext = new OfflineAudioContext(CHANNELS, DURATION * SAMPLE_RATE, SAMPLE_RATE)
       const source = new OscillatorNode(audioContext, { frequency })
       const analyserNode = new AnalyserNode(audioContext, { fftSize: FFT_SIZE })
       source.connect(analyserNode)
@@ -36,8 +36,8 @@ describe('Shazizzle Tests', () => {
       await audioContext.startRendering()
       const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
       analyserNode.getByteFrequencyData(frequencyData)
-      const numFrequenciesPerBin = SAMPLE_RATE / 2 / analyserNode.frequencyBinCount
-      const topBinIndex = Math.round(frequency / numFrequenciesPerBin)
+      const binSize = SAMPLE_RATE / FFT_SIZE
+      const topBinIndex = Math.round(frequency / binSize)
       const topBins = findTopBins(frequencyData)
       chai.expect(topBins[0].index).to.equal(topBinIndex)
     })
@@ -70,8 +70,8 @@ describe('Shazizzle Tests', () => {
       const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
       analyserNode.getByteFrequencyData(frequencyData)
 
-      const numFrequenciesPerBin = SAMPLE_RATE / 2 / analyserNode.frequencyBinCount
-      const topBinIndex = Math.round(frequency / numFrequenciesPerBin)
+      const binSize = SAMPLE_RATE / FFT_SIZE
+      const topBinIndex = Math.round(frequency / binSize)
       const topBins = findTopBins(frequencyData)
       chai.expect(topBins[0].index).to.equal(topBinIndex)
     })
@@ -89,7 +89,7 @@ describe('Shazizzle Tests', () => {
       const DURATION = 1
       const SAMPLE_RATE_1 = 44100
       const SAMPLE_RATE_2 = 16000
-      const audioContext = new OfflineAudioContext(CHANNELS, CHANNELS * DURATION * SAMPLE_RATE_1, SAMPLE_RATE_1)
+      const audioContext = new OfflineAudioContext(CHANNELS, DURATION * SAMPLE_RATE_1, SAMPLE_RATE_1)
       const source = new OscillatorNode(audioContext, { frequency })
       source.connect(audioContext.destination)
       source.start()
@@ -98,10 +98,10 @@ describe('Shazizzle Tests', () => {
       const audioBuffer2 = await UW.resample(audioBuffer1, SAMPLE_RATE_2)
       const { frequencyData: frequencyData1 } = await UW.getSliverData(audioBuffer1, 10)
       const { frequencyData: frequencyData2 } = await UW.getSliverData(audioBuffer2, 10)
-      const numFrequenciesPerBin1 = SAMPLE_RATE_1 / 2 / frequencyData1.length
-      const numFrequenciesPerBin2 = SAMPLE_RATE_2 / 2 / frequencyData2.length
-      const topBinIndex1 = Math.round(frequency / numFrequenciesPerBin1)
-      const topBinIndex2 = Math.round(frequency / numFrequenciesPerBin2)
+      const binSize1 = SAMPLE_RATE_1 / C.FFT_SIZE
+      const binSize2 = SAMPLE_RATE_2 / C.FFT_SIZE
+      const topBinIndex1 = Math.round(frequency / binSize1)
+      const topBinIndex2 = Math.round(frequency / binSize2)
       const topBins1 = findTopBins(frequencyData1)
       const topBins2 = findTopBins(frequencyData2)
       chai.expect(topBins1[0].index).to.equal(topBinIndex1)
@@ -155,14 +155,14 @@ describe('Shazizzle Tests', () => {
       const CHANNELS = 1
       const DURATION = 1
       const SAMPLE_RATE = 44100
-      const audioContext = new OfflineAudioContext(CHANNELS, CHANNELS * DURATION * SAMPLE_RATE, SAMPLE_RATE)
+      const audioContext = new OfflineAudioContext(CHANNELS, DURATION * SAMPLE_RATE, SAMPLE_RATE)
       const source = new OscillatorNode(audioContext, { frequency })
       source.connect(audioContext.destination)
       source.start()
       source.stop(DURATION)
       const audioBuffer = await audioContext.startRendering()
-      const numFrequenciesPerBin = SAMPLE_RATE / 2 / (C.FFT_SIZE / 2)
-      const expectedTopBinIndex = Math.round(frequency / numFrequenciesPerBin)
+      const binSize = SAMPLE_RATE / C.FFT_SIZE
+      const expectedTopBinIndex = Math.round(frequency / binSize)
       const prominentFrequencies = await F.getProminentFrequencies(audioBuffer)
       prominentFrequencies.forEach(pf => chai.expect(pf).to.include(expectedTopBinIndex))
     })
@@ -179,14 +179,14 @@ describe('Shazizzle Tests', () => {
       const CHANNELS = 1
       const DURATION = 1
       const SAMPLE_RATE = 44100
-      const audioContext = new OfflineAudioContext(CHANNELS, CHANNELS * DURATION * SAMPLE_RATE, SAMPLE_RATE)
+      const audioContext = new OfflineAudioContext(CHANNELS, DURATION * SAMPLE_RATE, SAMPLE_RATE)
       const sources = frequencies.map(frequency => new OscillatorNode(audioContext, { frequency }))
       sources.map(source => source.connect(audioContext.destination))
       sources.map(source => source.start())
       sources.map(source => source.stop(DURATION))
       const audioBuffer = await audioContext.startRendering()
-      const numFrequenciesPerBin = SAMPLE_RATE / 2 / (C.FFT_SIZE / 2)
-      const expectedTopBinIndices = frequencies.map(frequency => Math.round(frequency / numFrequenciesPerBin))
+      const binSize = SAMPLE_RATE / C.FFT_SIZE
+      const expectedTopBinIndices = frequencies.map(frequency => Math.round(frequency / binSize))
       const prominentFrequencies = await F.getProminentFrequencies(audioBuffer)
       prominentFrequencies.forEach(pf => {
         expectedTopBinIndices.forEach(expectedTopBinIndex =>
