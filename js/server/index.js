@@ -41,15 +41,31 @@ const main = async () => {
   app.use('/api', apiRouters)
   app.use('/', express.static(path.join(__dirname, '..', 'client')))
 
-  app.ws('/streamingMatch', (ws, req) => {
+  const wsStateMap = new Map()
+
+  app.ws('/streamingMatch', ws => {
+    wsStateMap.set(ws, [])
     setTimeout(() => ws.close(), 10 * 1000)
     ws.on('message', msg => {
       console.log(`[/streamingMatch onmessage] msg: ${msg}`)
+      const wsState = wsStateMap.get(ws)
+      if (!wsState) {
+        console.log('Failed to lookup wsState!')
+        return
+      }
+      wsState.push(msg)
       if (ws.readyState === 1) {
-        ws.send(msg.toUpperCase())
+        ws.send(`# messages received: ${wsState.length}`)
       }
     })
-    console.log(`[/streamingMatch] req: ${req}`)
+    ws.on('close', () => {
+      console.log(`[/streamingMatch onclose]`)
+      wsStateMap.delete(ws)
+    })
+    ws.on('error', e => {
+      console.log(`[/streamingMatch onerror] e.message: ${e.message}`)
+      wsStateMap.delete(ws)
+    })
   })
 
   app.listen(PORT, () => console.log(`Listening on port http://localhost:${PORT}`))
