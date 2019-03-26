@@ -6,7 +6,7 @@ import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as F from '../common/logic/fingerprinting.js'
 
 let currentDuration = 5
-let resampledAudioBuffer = null
+let audioBuffer = null
 
 const durationValues = [1, 2, 5, 10, 15, 20]
 
@@ -48,14 +48,9 @@ const onRecord = async () => {
 
     mediaRecorder.onstop = async () => {
       try {
-        const track = R.head(mediaStream.getTracks())
-        track.stop()
-        const mediaTrackSettings = track.getSettings()
-        const decodedAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
-        resampledAudioBuffer = decodedAudioBuffer.sampleRate > C.TARGET_SAMPLE_RATE
-          ? await UW.resample(decodedAudioBuffer, C.TARGET_SAMPLE_RATE)
-          : decodedAudioBuffer
-        const hashes = await F.getHashes(resampledAudioBuffer)
+        mediaStream.getTracks().forEach(track => track.stop())
+        audioBuffer = await UW.decodeChunks(chunks, C.TARGET_SAMPLE_RATE)
+        const hashes = await F.getHashes(audioBuffer)
         showMatchingSpinner()
         const matchResponse = await axios.post('/api/match', hashes)
         const album = matchResponse.data

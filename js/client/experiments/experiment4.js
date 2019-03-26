@@ -61,13 +61,8 @@ const onRecord = async () => {
   }
 
   mediaRecorder.onstop = async () => {
-    const track = R.head(mediaStream.getTracks())
-    track.stop()
-    const mediaTrackSettings = track.getSettings()
-    const decodedAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
-    resampledAudioBuffer = decodedAudioBuffer.sampleRate > C.TARGET_SAMPLE_RATE
-      ? await UW.resample(decodedAudioBuffer, C.TARGET_SAMPLE_RATE)
-      : decodedAudioBuffer
+    mediaStream.getTracks().forEach(track => track.stop())
+    resampledAudioBuffer = await UW.decodeChunks(chunks, C.TARGET_SAMPLE_RATE)
     currentSliver = 0
     maxSliver = Math.floor(resampledAudioBuffer.duration / C.SLIVER_DURATION)
     slider.min = 0
@@ -75,7 +70,7 @@ const onRecord = async () => {
     setCurrentSliver(0)()
     drawSpectrogram(resampledAudioBuffer)
     drawConstellation(resampledAudioBuffer)
-    showDetails(decodedAudioBuffer, resampledAudioBuffer)
+    showDetails(resampledAudioBuffer)
     U.defer(500, updateUiState, FINISHED_RECORDING)
     const hashes = await F.getHashes(resampledAudioBuffer)
     const config = {
@@ -226,7 +221,7 @@ const updateProgressBar = percent => {
   }
 }
 
-const showDetails = (decodedAudioBuffer, resampledAudioBuffer) => {
+const showDetails = resampledAudioBuffer => {
 
   const formatAudioBuffer = (label, audioBuffer) => `
 ${label}:
@@ -236,10 +231,5 @@ ${label}:
   sampleRate:       ${audioBuffer.sampleRate}
 `.trim()
 
-  const bufferDetails1 = formatAudioBuffer('Decoded buffer', decodedAudioBuffer)
-  const bufferDetails2 = formatAudioBuffer('Resampled buffer', resampledAudioBuffer)
-
-  detailsPre.innerHTML = decodedAudioBuffer === resampledAudioBuffer
-    ? bufferDetails1
-    : [bufferDetails1, '', bufferDetails2].join('\n')
+  detailsPre.innerHTML = formatAudioBuffer('Resampled audio buffer', resampledAudioBuffer)
 }
