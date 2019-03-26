@@ -7,7 +7,7 @@ import * as UC from '../common/utils/utilsChart.js'
 import * as UH from '../common/utils/utilsHtml.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
 
-hamsters.init()
+// hamsters.init()
 
 // const hamstersTestPromise = async numThreads => {
 //   try {

@@ -48,13 +48,8 @@ const onRecord = async () => {
 
     mediaRecorder.onstop = async () => {
       try {
-        const track = R.head(mediaStream.getTracks())
-        track.stop()
-        const mediaTrackSettings = track.getSettings()
-        const decodedAudioBuffer = await UW.decodeChunks(chunks, mediaTrackSettings.sampleRate)
-        resampledAudioBuffer = decodedAudioBuffer.sampleRate > C.TARGET_SAMPLE_RATE
-          ? await UW.resample(decodedAudioBuffer, C.TARGET_SAMPLE_RATE)
-          : decodedAudioBuffer
+        mediaStream.getTracks().forEach(track => track.stop())
+        resampledAudioBuffer = await UW.decodeChunks(chunks, C.TARGET_SAMPLE_RATE)
         const hashes = await F.getHashes(resampledAudioBuffer)
         showMatchingSpinner()
         const matchResponse = await axios.post('/api/match', hashes)

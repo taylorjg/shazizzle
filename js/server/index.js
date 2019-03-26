@@ -45,7 +45,7 @@ const main = async () => {
 
   app.ws('/streamingMatch', ws => {
     wsStateMap.set(ws, [])
-    setTimeout(() => ws.close(), 10 * 1000)
+    setTimeout(() => ws.close(), 2 * 1000)
     ws.on('message', msg => {
       console.log(`[/streamingMatch onmessage] msg: ${msg}`)
       const wsState = wsStateMap.get(ws)
@@ -55,7 +55,7 @@ const main = async () => {
       }
       wsState.push(msg)
       if (ws.readyState === 1) {
-        ws.send(`# messages received: ${wsState.length}`)
+        // TODO: send matching album details here...
       }
     })
     ws.on('close', () => {
