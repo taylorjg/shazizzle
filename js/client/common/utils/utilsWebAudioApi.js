@@ -74,10 +74,7 @@ export const createMediaStreamObservable = (mediaRecorder, mediaStream) => {
   // TODO: is it ok to just pass 1 for both numberOfInputChannels and numberOfOutputChannels ?
   const scriptProcessor = audioContext.createScriptProcessor(16384, 1, 1)
   scriptProcessor.onaudioprocess = e =>
-    observers.forEach(observer => observer.next({
-      audioBuffer: e.inputBuffer,
-      currentTime: audioContext.currentTime
-    }))
+    observers.forEach(observer => observer.next(e.inputBuffer))
   source.connect(scriptProcessor)
   scriptProcessor.connect(audioContext.destination)
 

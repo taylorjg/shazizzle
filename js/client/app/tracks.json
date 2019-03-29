@@ -32,7 +32,7 @@
       "albumTitle": "Stämning (feat. Eric Ericson) [22 Swedish songs]",
       "trackTitle": "I Seraillets Have (feat. Eric Ericson)",
       "artist": "The Real Group",
-      "artwork": "/artwork/i-seraillets-have.png"
+      "artwork": "/artwork/i-seraillets-have.jpg"
     }
   ],
   [
@@ -95,7 +95,16 @@
       "albumTitle": "Haydn: Strings Quartets Op. 71",
       "trackTitle": "Griogal Cridhe \"Gregor’s Lament\"",
       "artist": "Maxwell Quartet",
-      "artwork": "/artwork/gregors-lament.png"
+      "artwork": "/artwork/gregors-lament.jpg"
+    }
+  ],
+  [
+    "/signals/private/bach-cantata.m4a",
+    {
+      "albumTitle": "Bach: Cantatas for Alto Solo",
+      "trackTitle": "Cantata No. 170, BWV 170: I. Aria \"Vergnügte Ruh! Beliebte Seelenlust!\"",
+      "artist": "Andreas Scholl, Collegium Vocale Gent & Philippe Herreweghe",
+      "artwork": "/artwork/bach-cantata.jpg"
     }
   ]
 ]

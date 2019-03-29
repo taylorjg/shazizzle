@@ -2,10 +2,11 @@
 
 import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
 import * as C from '../common/constants.js'
-import * as U from '../common/utils/utils.js'
 import * as UH from '../common/utils/utilsHtml.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as F from '../common/logic/fingerprinting.js'
+
+const { flatMap } = rxjs.operators
 
 // hamsters.init() /* eslint-disable-line no-undef */
 
@@ -99,14 +100,15 @@ const onRecord = async () => {
       hideMatchingSpinner()
     }
 
-    const observable = UW.createMediaStreamObservable(mediaRecorder, mediaStream)
+    const observable = UW.createMediaStreamObservable(mediaRecorder, mediaStream).pipe(
+      flatMap(audioBuffer => UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE))
+    )
     observable.subscribe({
-      next: async value => {
+      next: async audioBuffer => {
         try {
-          const resampledAudioBuffer = await UW.resample(value.audioBuffer, C.TARGET_SAMPLE_RATE)
-          console.dir(resampledAudioBuffer)
+          console.dir(audioBuffer)
           // TODO: we need to employ RxJS windowing/buffering because of TARGET_ZONE_SLIVER_GAP
-          const hashes = await F.getHashes(resampledAudioBuffer)
+          const hashes = await F.getHashes(audioBuffer)
           console.log(`hashes.length: ${hashes.length}`)
           // TODO: ws.send(hashes)
         } catch (error) {
