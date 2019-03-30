@@ -1,0 +1,57 @@
+#durationRow,
+#progressRow,
+#buttonsRow,
+#sliderRow,
+#detailsRow,
+#resultsRow {
+  margin: 10px;
+}
+
+#record {
+  margin-top: 10px;
+}
+
+.charts {
+  display: flex;
+  flex-direction: column;
+}
+
+.single-chart-container, .multi-chart-container {
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-title {
+  align-self: center;
+}
+
+@media (min-width: 768px) {
+
+  .charts {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .multi-chart-container {
+    width: 100%;
+  }
+}
+
+canvas {
+  background-color: aliceblue;
+  width: 100%;
+}
+
+.spectrogram {
+  height: 512px;
+}
+
+#binsRow {
+  margin-top: 20px;
+}
+
+fieldset {
+  margin-top: 10px;
+}
