@@ -53,11 +53,8 @@ const stopOscillator = when => oscillator => oscillator.stop(when)
 const drawCharts = async (frequencies, gain) => {
   const SAMPLE_RATE = 8000
   const FFT_SIZE = 1024
-  const CHANNELS = 1
-  const DURATION = 1
   const options = {
-    numberOfChannels: CHANNELS,
-    length: DURATION * SAMPLE_RATE,
+    length: SAMPLE_RATE,
     sampleRate: SAMPLE_RATE
   }
   const audioContext = new OfflineAudioContext(options)
@@ -67,7 +64,7 @@ const drawCharts = async (frequencies, gain) => {
   const analyserNode = new AnalyserNode(audioContext, { fftSize: FFT_SIZE })
   gainNode.connect(analyserNode)
   oscillators.forEach(startOscillator(0))
-  oscillators.forEach(stopOscillator(DURATION))
+  oscillators.forEach(stopOscillator(1))
   await audioContext.startRendering()
   const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
   const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
