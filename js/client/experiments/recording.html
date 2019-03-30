@@ -35,6 +35,31 @@
                 <canvas id="fftChart"></canvas>
             </span>
         </div>
+        <div id="buttonsRow" class="cloak">
+            <button class="btn btn-default btn-xs" id="fastBackward">
+                <i class="fas fa-fast-backward"></i>
+                <sub class="mini">x10</sub>
+            </button>
+            <button class="btn btn-default btn-xs" id="stepBackward">
+                <i class="fas fa-step-backward"></i>
+                <sub class="mini">x1</sub>
+            </button>
+            <button class="btn btn-default btn-xs" id="stepForward">
+                <i class="fas fa-step-forward"></i>
+                <sub class="mini">x 1</sub>
+            </button>
+            <button class="btn btn-default btn-xs" id="fastForward">
+                <i class="fas fa-fast-forward"></i>
+                <sub class="mini">x 10</sub>
+            </button>
+            <span id="currentSliverLabel"></span> of <span id="maxSliverLabel"></span>
+        </div>
+        <div id="sliderRow" class="cloak">
+            <input id="slider" type="range" min="0" max="100" step="1" value="0" />
+        </div>
+        <div id="binsRow">
+            <pre></pre>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
