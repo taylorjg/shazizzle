@@ -26,38 +26,6 @@
   align-self: center;
 }
 
-/* .album-details {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.album-artwork {
-  border-radius: 5px;
-  width: 200px;
-  height: 200px;
-}
-
-.album-track-title {
-  font-size: xx-large;
-  text-align: center;
-}
-
-.album-artist {
-  font-size: x-large;
-  text-align: center;
-}
-
-.album-title {
-  font-size: small;
-  text-align: center;
-}
-
-.sample-start-time {
-  font-size: x-small;
-  text-align: center;
-} */
-
 @media (min-width: 768px) {
 
   .charts {
@@ -78,4 +46,12 @@ canvas {
 
 .spectrogram {
   height: 512px;
+}
+
+#binsRow {
+  margin-top: 20px;
+}
+
+fieldset {
+  margin-top: 10px;
 }

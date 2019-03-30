@@ -53,6 +53,42 @@ export const getSliverData = async (inputBuffer, sliverIndex) => {
   }
 }
 
+export const createMediaStreamObservable = (mediaRecorder, mediaStream) => {
+
+  const observers = []
+
+  const addObserver = observer => {
+    observers.push(observer)
+  }
+
+  const removeObserver = observer => {
+    const index = observers.findIndex(value => value === observer)
+    index >= 0 && observers.splice(index, 1)
+  }
+
+  const options = {
+    sampleRate: C.TARGET_SAMPLE_RATE
+  }
+  const audioContext = new AudioContext(options)
+  const source = audioContext.createMediaStreamSource(mediaStream)
+  // TODO: is it ok to just pass 1 for both numberOfInputChannels and numberOfOutputChannels ?
+  const scriptProcessor = audioContext.createScriptProcessor(16384, 1, 1)
+  scriptProcessor.onaudioprocess = e =>
+    observers.forEach(observer => observer.next(e.inputBuffer))
+  source.connect(scriptProcessor)
+  scriptProcessor.connect(audioContext.destination)
+
+  mediaRecorder.addEventListener('stop', () => {
+    audioContext.close()
+    observers.forEach(observer => observer.complete())
+  })
+
+  return new rxjs.Observable(observer => {
+    addObserver(observer)
+    return () => removeObserver(observer)
+  })
+}
+
 export const createLiveVisualisationObservable = (mediaRecorder, mediaStream) => {
 
   const track = R.head(mediaStream.getTracks())

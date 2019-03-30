@@ -1,0 +1,48 @@
+<html>
+
+<head>
+    <title>Experiment: Oscillator Nodes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div id="chartsRow" class="charts">
+            <span class="multi-chart-container">
+                <span class="chart-title">Time Domain</span>
+                <canvas id="timeDomainChart"></canvas>
+            </span>
+            <span class="multi-chart-container">
+                <span class="chart-title">FFT</span>
+                <canvas id="fftChart"></canvas>
+            </span>
+        </div>
+        <div>
+            <button id="resetButton" class="btn btn-xs btn-danger">Reset</button>
+        </div>
+        <div id="frequenciesRow">
+            <fieldset id="frequencies">
+                <legend>Frequencies</legend>
+            </fieldset>
+        </div>
+        <div id="gainsRow">
+            <fieldset id="gains">
+                <legend>Gain</legend>
+            </fieldset>
+        </div>
+        <div id="binsRow">
+            <pre></pre>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+    <script type="module" src="oscillatorNodes.js"></script>
+</body>
+
+</html>

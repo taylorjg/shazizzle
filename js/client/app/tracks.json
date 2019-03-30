@@ -1,6 +1,6 @@
 [
   [
-    "/signals/private/touch-her-soft-lips.m4a",
+    "/music/touch-her-soft-lips.m4a",
     {
       "albumTitle": "Walton: Henry V - A Musical Scenario after Shakespeare",
       "trackTitle": "Henry V: IV. Interlude: Touch Her Soft Lips and Part",
@@ -9,7 +9,7 @@
     }
   ],
   [
-    "/signals/private/caro-mio-ben.m4a",
+    "/music/caro-mio-ben.m4a",
     {
       "albumTitle": "Cecilia Bartoli - Arie Antiche: Se tu m'ami",
       "trackTitle": "Caro mio ben",
@@ -18,7 +18,7 @@
     }
   ],
   [
-    "/signals/private/morgen.m4a",
+    "/music/morgen.m4a",
     {
       "albumTitle": "Strauss: Vier letzte Lieder, Die Nacht, Allerseelen",
       "trackTitle": "Morgen, Op. 27, No. 4",
@@ -27,16 +27,16 @@
     }
   ],
   [
-    "/signals/private/i-seraillets-have.m4a",
+    "/music/i-seraillets-have.m4a",
     {
       "albumTitle": "Stämning (feat. Eric Ericson) [22 Swedish songs]",
       "trackTitle": "I Seraillets Have (feat. Eric Ericson)",
       "artist": "The Real Group",
-      "artwork": "/artwork/i-seraillets-have.png"
+      "artwork": "/artwork/i-seraillets-have.jpg"
     }
   ],
   [
-    "/signals/private/hearts-ease.m4a",
+    "/music/hearts-ease.m4a",
     {
       "albumTitle": "Bridge: Piano Music, Vol. 3",
       "trackTitle": "3 Lyrics: No. 1, Heart's Ease. Andante tranquillo – Lento",
@@ -45,7 +45,7 @@
     }
   ],
   [
-    "/signals/private/ellis-island.m4a",
+    "/music/ellis-island.m4a",
     {
       "albumTitle": "Minimal Piano Collection, Vol. X-XX",
       "trackTitle": "Ellis Island for Two Pianos",
@@ -54,7 +54,7 @@
     }
   ],
   [
-    "/signals/private/apres-un-reve.m4a",
+    "/music/apres-un-reve.m4a",
     {
       "albumTitle": "Fantasie",
       "trackTitle": "Après un rêve",
@@ -63,7 +63,7 @@
     }
   ],
   [
-    "/signals/private/taedet-animam-meam.m4a",
+    "/music/taedet-animam-meam.m4a",
     {
       "albumTitle": "Victoria: Requiem (Officium defunctorum). Lobo: Versa est in luctum.",
       "trackTitle": "Taedet animam meam: I. Taedet animam meam",
@@ -72,7 +72,7 @@
     }
   ],
   [
-    "/signals/private/boogie-nights.m4a",
+    "/music/boogie-nights.m4a",
     {
       "albumTitle": "Too Hot to Handle",
       "trackTitle": "Boogie Nights",
@@ -81,7 +81,7 @@
     }
   ],
   [
-    "/signals/private/gun.m4a",
+    "/music/gun.m4a",
     {
       "albumTitle": "Reflections",
       "trackTitle": "Gun",
@@ -90,12 +90,21 @@
     }
   ],
   [
-    "/signals/private/gregors-lament.m4a",
+    "/music/gregors-lament.m4a",
     {
       "albumTitle": "Haydn: Strings Quartets Op. 71",
       "trackTitle": "Griogal Cridhe \"Gregor’s Lament\"",
       "artist": "Maxwell Quartet",
-      "artwork": "/artwork/gregors-lament.png"
+      "artwork": "/artwork/gregors-lament.jpg"
+    }
+  ],
+  [
+    "/music/bach-cantata.m4a",
+    {
+      "albumTitle": "Bach: Cantatas for Alto Solo",
+      "trackTitle": "Cantata No. 170, BWV 170: I. Aria \"Vergnügte Ruh! Beliebte Seelenlust!\"",
+      "artist": "Andreas Scholl, Collegium Vocale Gent & Philippe Herreweghe",
+      "artwork": "/artwork/bach-cantata.jpg"
     }
   ]
 ]

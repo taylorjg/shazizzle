@@ -6,6 +6,9 @@ const mongoDb = require('./db/mongo')
 const postgresDb = require('./db/postgres')
 const tracksApi = require('./api/tracks')
 const matchApi = require('./api/match')
+const app = express()
+// eslint-disable-next-line no-unused-vars
+const expressWs = require('express-ws')(app)
 
 const PORT = process.env.PORT || 3002
 const dbType = process.env.DB_TYPE || 'mongo'
@@ -33,12 +36,39 @@ const main = async () => {
     matchApi.configureRouter(db)
   ]
 
-  const app = express()
   app.use(cors())
   app.use(bodyParser.json({ limit: '5mb' }))
   app.use('/api', apiRouters)
   app.use('/', express.static(path.join(__dirname, '..', 'client')))
-  app.listen(PORT, () => console.log(`Listening on port ${PORT}`))
+
+  const wsStateMap = new Map()
+
+  app.ws('/streamingMatch', ws => {
+    wsStateMap.set(ws, [])
+    setTimeout(() => ws.close(), 2 * 1000)
+    ws.on('message', msg => {
+      console.log(`[/streamingMatch onmessage] msg: ${msg}`)
+      const wsState = wsStateMap.get(ws)
+      if (!wsState) {
+        console.log('Failed to lookup wsState!')
+        return
+      }
+      wsState.push(msg)
+      if (ws.readyState === 1) {
+        // TODO: send matching album details here...
+      }
+    })
+    ws.on('close', () => {
+      console.log(`[/streamingMatch onclose]`)
+      wsStateMap.delete(ws)
+    })
+    ws.on('error', e => {
+      console.log(`[/streamingMatch onerror] e.message: ${e.message}`)
+      wsStateMap.delete(ws)
+    })
+  })
+
+  app.listen(PORT, () => console.log(`Listening on port http://localhost:${PORT}`))
 }
 
 main()
