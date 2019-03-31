@@ -13,32 +13,11 @@ usage()
   echo -e "\t< --create | --drop | --reset | --show | --shell | --run | --start | --stop | --rm >"
 }
 
-local_create()
+local_run_sql_script()
 {
   docker exec \
     postgres-shazizzle-prep \
-    psql -U postgres -f /db_scripts/db_create.sql
-}
-
-local_drop()
-{
-  docker exec \
-    postgres-shazizzle-prep \
-    psql -U postgres -f /db_scripts/db_drop.sql
-}
-
-local_reset()
-{
-  docker exec \
-    postgres-shazizzle-prep \
-    psql -U postgres -f /db_scripts/db_reset.sql
-}
-
-local_show()
-{
-  docker exec \
-    postgres-shazizzle-prep \
-    psql -U postgres -f /db_scripts/db_show.sql
+    psql -U postgres -f "/db_scripts/$1"
 }
 
 local_shell()
@@ -76,7 +55,7 @@ local_rm()
   docker rm postgres-shazizzle-prep
 }
 
-heroku_create()
+heroku_run_sql_script()
 {
   docker exec \
     postgres-shazizzle-prep \
@@ -85,43 +64,7 @@ heroku_create()
       -h "$HEROKU_DB_HOST" \
       -p "$HEROKU_DB_PORT" \
       -d "$HEROKU_DB_DATABASE" \
-      -f /db_scripts/db_create.sql
-}
-
-heroku_drop()
-{
-  docker exec \
-    postgres-shazizzle-prep \
-    psql \
-      -U "$HEROKU_DB_USERNAME" \
-      -h "$HEROKU_DB_HOST" \
-      -p "$HEROKU_DB_PORT" \
-      -d "$HEROKU_DB_DATABASE" \
-      -f /db_scripts/db_drop.sql
-}
-
-heroku_reset()
-{
-  docker exec \
-    postgres-shazizzle-prep \
-    psql \
-      -U "$HEROKU_DB_USERNAME" \
-      -h "$HEROKU_DB_HOST" \
-      -p "$HEROKU_DB_PORT" \
-      -d "$HEROKU_DB_DATABASE" \
-      -f /db_scripts/db_reset.sql
-}
-
-heroku_show()
-{
-  docker exec \
-    postgres-shazizzle-prep \
-    psql \
-      -U "$HEROKU_DB_USERNAME" \
-      -h "$HEROKU_DB_HOST" \
-      -p "$HEROKU_DB_PORT" \
-      -d "$HEROKU_DB_DATABASE" \
-      -f /db_scripts/db_show.sql
+      -f "/db_scripts/$1"
 }
 
 heroku_shell()
@@ -140,10 +83,10 @@ heroku_shell()
 case "${1:-}" in
   --local)
     case "${2:-}" in
-      --create) local_create ;;
-      --drop) local_drop ;;
-      --reset) local_reset ;;
-      --show) local_show ;;
+      --create) local_run_sql_script db_create.sql ;;
+      --drop) local_run_sql_script db_drop.sql ;;
+      --reset) local_run_sql_script db_reset.sql ;;
+      --show) local_run_sql_script db_show.sql ;;
       --shell) local_shell ;;
       --run) local_run ;;
       --start) local_start ;;
@@ -155,10 +98,10 @@ case "${1:-}" in
 
   --heroku)
     case "${2:-}" in
-      --create) heroku_create ;;
-      --drop) heroku_drop ;;
-      --reset) heroku_reset ;;
-      --show) heroku_show ;;
+      --create) heroku_run_sql_script db_create.sql ;;
+      --drop) heroku_run_sql_script db_drop.sql ;;
+      --reset) heroku_run_sql_script db_reset.sql ;;
+      --show) heroku_run_sql_script db_show.sql ;;
       --shell) heroku_shell ;;
       *) usage; exit 1 ;;
     esac
