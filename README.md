@@ -33,6 +33,38 @@ You can try it out by playing one of the following YouTube links and clicking `R
 * [Reflections / Gun](https://www.youtube.com/watch?v=wOeUpKCCSVQ)
 * [Bach: Cantatas for Alto Solo / Cantata No. 170, BWV 170: I. Aria "Vergnügte Ruh! Beliebte Seelenlust!"](https://www.youtube.com/watch?v=nIf-2mCKLqI)
 
+# Running Locally
+
+After cloning the repo, do the following to run everything locally. This assumes that you have Node.js, npm and Docker installed.
+
+```
+# restore npm packages
+npm install
+
+# create .env file with empty env vars
+cat << 'EOF' >> scripts/postgres/.env
+HEROKU_DB_HOST=
+HEROKU_DB_PORT=
+HEROKU_DB_DATABASE=
+HEROKU_DB_USERNAME=
+HEROKU_DB_PASSWORD=
+EOF
+
+# run PostgreSQL in a Docker container
+scripts/postgres/db.sh --local --run
+
+# create database schema
+scripts/postgres/db.sh --local --create
+
+# restore the database
+scripts/postgres/local_restore.sh
+
+# start the Express server
+npm start
+```
+
+Then, open a browser to http://localhost:3002.
+
 # TODO
 
 * ~~Copy data from the local Docker database instance to the Heroku database instance~~
