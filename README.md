@@ -11,7 +11,7 @@ This repo contains various experiments to help:
 I have fingerprinted the tracks listed below.
 You can try it out by playing one of the following YouTube links and clicking `Record` on either
 [matchTrack.html](https://shazizzle-prep.herokuapp.com/app/matchTrack.html) or
-[experiment4.html](https://shazizzle-prep.herokuapp.com/experiments/experiment4.html).
+[matchTrackWithDiagnostics.html](https://shazizzle-prep.herokuapp.com/app/matchTrackWithDiagnostics.html).
 
 * [Walton: Henry V - A Musical Scenario after Shakespeare / Henry V: IV. Interlude: Touch Her Soft Lips and Part](https://www.youtube.com/watch?v=va_ePnLbr10)
 * [Cecilia Bartoli - Arie Antiche: Se tu m'ami / Caro mio ben](https://www.youtube.com/watch?v=1Gu8oi8eJSg)
@@ -23,6 +23,7 @@ You can try it out by playing one of the following YouTube links and clicking `R
 * [Victoria: Requiem (Officium defunctorum). Lobo: Versa est in luctum / Taedet animam meam: I. Taedet animam meam](https://www.youtube.com/watch?v=AWkoedsVtEY)
 * [Too Hot to Handle / Boogie Nights](https://www.youtube.com/watch?v=nFAuXLEa31s)
 * [Reflections / Gun](https://www.youtube.com/watch?v=wOeUpKCCSVQ)
+* [Bach: Cantatas for Alto Solo / Cantata No. 170, BWV 170: I. Aria "Vergnügte Ruh! Beliebte Seelenlust!"](https://www.youtube.com/watch?v=nIf-2mCKLqI)
 
 # TODO
 
