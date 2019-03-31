@@ -48,6 +48,12 @@ export const getProminentFrequencies = async audioBuffer => {
   return R.unnest(results)
 }
 
+export const getProminentFrequenciesOfSliver = async (audioBuffer, frequencyData) => {
+  const binSize = audioBuffer.sampleRate / C.FFT_SIZE
+  const binBands = R.aperture(2, C.FREQUENCY_BANDS.map(f => Math.round(f / binSize)))
+  return findTopBinIndices(frequencyData, binBands)
+}
+
 export const getHashes = async audioBuffer => {
 
   const TARGET_ZONE_SLIVER_GAP = 5

@@ -5,6 +5,7 @@ import * as U from '../common/utils/utils.js'
 import * as UC from '../common/utils/utilsChart.js'
 import * as UH from '../common/utils/utilsHtml.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
+import * as F from '../common/logic/fingerprinting.js'
 
 let currentDuration = 5
 let currentSliver = 0
@@ -60,7 +61,6 @@ const onRecord = async () => {
     slider.min = 0
     slider.max = maxSliver - 1
     setCurrentSliver(0)()
-    // showDetails(resampledAudioBuffer)
     U.defer(500, updateUiState, FINISHED_RECORDING)
   }
 
@@ -111,7 +111,7 @@ const setCurrentSliver = adjustment => async () => {
   UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
   UC.drawFFTChart('fftChart', frequencyData, audioBuffer.sampleRate)
   const binSize = C.TARGET_SAMPLE_RATE / C.FFT_SIZE
-  showBins(binSize, 5, frequencyData)
+  showBins(binSize, frequencyData)
 }
 
 const onSliverSliderChange = e => {
@@ -138,16 +138,9 @@ const updateProgressBar = percent => {
   }
 }
 
-const findTopBins = frequencyData => {
-  const binValues = Array.from(frequencyData)
-  const zipped = binValues.map((binValue, index) => ({ binValue, bin: index }))
-  return zipped.sort((a, b) => b.binValue - a.binValue)
-}
-
-const showBins = (binSize, numFrequencies, frequencyData) => {
-  const topBins = findTopBins(frequencyData)
-  const topFewBins = R.take(numFrequencies, topBins)
-  const lines = topFewBins.map(({ bin }) =>
+const showBins = async (binSize, frequencyData) => {
+  const bins = await F.getProminentFrequenciesOfSliver(audioBuffer, frequencyData)
+  const lines = bins.map(bin =>
     `bin: ${bin}; frequency range: ${bin * binSize} - ${(bin + 1) * binSize} Hz`)
   const binsPre = document.getElementById('binsRow').querySelector('pre')
   binsPre.innerHTML = lines.join('\n')
