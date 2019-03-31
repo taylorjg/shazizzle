@@ -33,6 +33,14 @@ You can try it out by playing one of the following YouTube links and clicking `R
 * [Reflections / Gun](https://www.youtube.com/watch?v=wOeUpKCCSVQ)
 * [Bach: Cantatas for Alto Solo / Cantata No. 170, BWV 170: I. Aria "Vergnügte Ruh! Beliebte Seelenlust!"](https://www.youtube.com/watch?v=nIf-2mCKLqI)
 
+# Buildless Client
+
+Just being lazy really. The client-side code does not need to be built - no `Babel`, `Browserify`, `webpack`, `npm run build`, etc. This is achieved using the `type=module` attribute of the `<script>` tag. Here is an example:
+
+```
+<script type="module" src="matchTrack.js"></script>
+```
+
 # Running Locally
 
 After cloning the repo, do the following to run everything locally. This assumes that you have Node.js, npm and Docker installed.
@@ -64,6 +72,12 @@ npm start
 ```
 
 Then, open a browser to http://localhost:3002.
+
+If you want to use a different port number, do this instead:
+
+```
+PORT=3200 npm start
+```
 
 # TODO
 
