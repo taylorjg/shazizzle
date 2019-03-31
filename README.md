@@ -6,6 +6,14 @@ This repo contains various experiments to help:
 * understand some of the concepts
 * get some experience using the [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 
+# Supported Browsers
+
+I have tried successfully it on the following browsers:
+
+* Chrome on macOS
+* Firefox on macOS
+* Chrome on Android
+
 # Database Tracks
 
 I have fingerprinted the tracks listed below.
