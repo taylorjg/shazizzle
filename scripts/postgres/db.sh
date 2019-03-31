@@ -9,8 +9,8 @@ export $(cat "$DIR"/.env | xargs)
 usage()
 {
   echo "db.sh"
-  echo -e "\t< --local | --heroku >"
-  echo -e "\t< --create | --drop | --reset | --show | --shell | --run | --start | --stop | --rm >"
+  echo "  --local < --create | --drop | --reset | --show | --shell | --run | --start | --stop | --rm >"
+  echo "  --heroku < --create | --drop | --reset | --show | --shell >"
 }
 
 local_run_sql_script()
