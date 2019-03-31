@@ -8,7 +8,7 @@ This repo contains various experiments to help:
 
 # Supported Browsers
 
-I have tried successfully it on the following browsers:
+I have tried it successfully on the following browsers:
 
 * Chrome on macOS
 * Firefox on macOS
