@@ -5,11 +5,11 @@ import * as F from '../common/logic/fingerprinting.js'
 
 describe('Shazizzle Tests', () => {
 
-  const findTopBins = frequencyData => {
-    const binValues = Array.from(frequencyData)
-    const zipped = binValues.map((binValue, index) => ({ binValue, index }))
-    return zipped.sort((a, b) => b.binValue - a.binValue)
-  }
+const findTopBins = frequencyData => {
+  const binValues = Array.from(frequencyData)
+  const zipped = binValues.map((binValue, index) => ({ binValue, index }))
+  return zipped.sort((a, b) => b.binValue - a.binValue)
+}
 
   it_multiple(
     [
@@ -22,11 +22,14 @@ describe('Shazizzle Tests', () => {
     ],
     'FFT identifies correct frequency from single OscillatorNode',
     async frequency => {
-      const CHANNELS = 1
       const DURATION = 1
       const SAMPLE_RATE = 44100
       const FFT_SIZE = 1024
-      const audioContext = new OfflineAudioContext(CHANNELS, DURATION * SAMPLE_RATE, SAMPLE_RATE)
+      const options = {
+        length: DURATION * SAMPLE_RATE,
+        sampleRate: SAMPLE_RATE
+      }
+      const audioContext = new OfflineAudioContext(options)
       const source = new OscillatorNode(audioContext, { frequency })
       const analyserNode = new AnalyserNode(audioContext, { fftSize: FFT_SIZE })
       source.connect(analyserNode)
@@ -51,6 +54,7 @@ describe('Shazizzle Tests', () => {
     'FFT identifies correct single frequency from an MP3 test tone',
     async (testToneFile, frequency) => {
 
+      const DURATION = 5
       const SAMPLE_RATE = 44100
       const FFT_SIZE = 1024
 
@@ -58,7 +62,11 @@ describe('Shazizzle Tests', () => {
       const response = await axios.get(`/signals/${testToneFile}`, config)
       const data = response.data
 
-      const audioContext = new OfflineAudioContext({ length: FFT_SIZE * 2, sampleRate: SAMPLE_RATE })
+      const options = {
+        length: DURATION * SAMPLE_RATE,
+        sampleRate: SAMPLE_RATE
+      }
+      const audioContext = new OfflineAudioContext(options)
       const audioBuffer = await audioContext.decodeAudioData(data)
 
       const source = new AudioBufferSourceNode(audioContext, { buffer: audioBuffer })
@@ -85,11 +93,14 @@ describe('Shazizzle Tests', () => {
     ],
     'UW.resample tests',
     async frequency => {
-      const CHANNELS = 1
       const DURATION = 1
       const SAMPLE_RATE_1 = 44100
       const SAMPLE_RATE_2 = 16000
-      const audioContext = new OfflineAudioContext(CHANNELS, DURATION * SAMPLE_RATE_1, SAMPLE_RATE_1)
+      const options = {
+        length: DURATION * SAMPLE_RATE_1,
+        sampleRate: SAMPLE_RATE_1
+      }
+      const audioContext = new OfflineAudioContext(options)
       const source = new OscillatorNode(audioContext, { frequency })
       source.connect(audioContext.destination)
       source.start()
@@ -152,10 +163,13 @@ describe('Shazizzle Tests', () => {
     ],
     'F.getProminentFrequencies tests (single frequency)',
     async frequency => {
-      const CHANNELS = 1
       const DURATION = 1
       const SAMPLE_RATE = 44100
-      const audioContext = new OfflineAudioContext(CHANNELS, DURATION * SAMPLE_RATE, SAMPLE_RATE)
+      const options = {
+        length: DURATION * SAMPLE_RATE,
+        sampleRate: SAMPLE_RATE
+      }
+      const audioContext = new OfflineAudioContext(options)
       const source = new OscillatorNode(audioContext, { frequency })
       source.connect(audioContext.destination)
       source.start()
@@ -176,10 +190,13 @@ describe('Shazizzle Tests', () => {
     ],
     'F.getProminentFrequencies tests (multiple frequencies)',
     async (...frequencies) => {
-      const CHANNELS = 1
       const DURATION = 1
       const SAMPLE_RATE = 44100
-      const audioContext = new OfflineAudioContext(CHANNELS, DURATION * SAMPLE_RATE, SAMPLE_RATE)
+      const options = {
+        length: DURATION * SAMPLE_RATE,
+        sampleRate: SAMPLE_RATE
+      }
+      const audioContext = new OfflineAudioContext(options)
       const sources = frequencies.map(frequency => new OscillatorNode(audioContext, { frequency }))
       sources.map(source => source.connect(audioContext.destination))
       sources.map(source => source.start())
