@@ -73,11 +73,11 @@ export const getHashes = async audioBuffer => {
 
   const tuples = R.flatten(
     pfs.map((bins, sliverIndex) =>
-      bins.map(anchorPoint => {
+      bins.map(anchorPointBin => {
         const targetZoneStartSliverIndex = sliverIndex + TARGET_ZONE_SLIVER_GAP
         const targetZonePoints = getTargetZonePoints(targetZoneStartSliverIndex)
         return targetZonePoints.map(targetPoint => {
-          const f1 = anchorPoint
+          const f1 = anchorPointBin
           const f2 = targetPoint.bin
           const t1 = sliverIndex
           const t2 = targetPoint.sliverIndex
