@@ -3,7 +3,7 @@ import * as C from '../common/constants.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as F from '../common/logic/fingerprinting.js'
 
-describe('Shazizzle Tests', () => {
+describe('Web Audio API Exploratory Tests', () => {
 
   const findTopBins = frequencyData => {
     const binValues = Array.from(frequencyData)
