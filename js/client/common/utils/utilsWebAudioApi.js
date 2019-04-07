@@ -8,7 +8,7 @@ export const decodeChunks = async (chunks, sampleRate = 44100) => {
     const response = await axios.get(url, config)
     const data = response.data
     const options = {
-      length: sampleRate,
+      length: 1,
       sampleRate
     }
     const audioContext = new OfflineAudioContext(options)
@@ -28,7 +28,27 @@ const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
   })
 }
 
-export const getSliverData = async (inputBuffer, sliverIndex) => {
+export const TIME_DOMAIN_DATA_ONLY = Symbol('TIME_DOMAIN_DATA_ONLY')
+export const FREQUENCY_DATA_ONLY = Symbol('FREQUENCY_DATA_ONLY')
+export const BOTH = Symbol('BOTH')
+
+export const getSliverTimeDomainData = async (inputBuffer, sliverIndex) => {
+  const { timeDomainData } = await getSliverData(
+    inputBuffer,
+    sliverIndex,
+    TIME_DOMAIN_DATA_ONLY)
+  return timeDomainData
+}
+
+export const getSliverFrequencyData = async (inputBuffer, sliverIndex) => {
+  const { frequencyData } = await getSliverData(
+    inputBuffer,
+    sliverIndex,
+    FREQUENCY_DATA_ONLY)
+  return frequencyData
+}
+
+export const getSliverData = async (inputBuffer, sliverIndex, flags = BOTH) => {
   const options = {
     numberOfChannels: inputBuffer.numberOfChannels,
     length: Math.ceil(inputBuffer.sampleRate * C.SLIVER_DURATION),
@@ -43,17 +63,24 @@ export const getSliverData = async (inputBuffer, sliverIndex) => {
   sourceNode.connect(analyserNode)
   sourceNode.start()
   await audioContext.startRendering()
-  const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
-  const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
-  analyserNode.getByteTimeDomainData(timeDomainData)
-  analyserNode.getByteFrequencyData(frequencyData)
+
+  const timeDomainData = flags === TIME_DOMAIN_DATA_ONLY || flags === BOTH
+    ? new Uint8Array(analyserNode.frequencyBinCount)
+    : undefined
+  timeDomainData && analyserNode.getByteTimeDomainData(timeDomainData)
+
+  const frequencyData = flags === FREQUENCY_DATA_ONLY || flags === BOTH
+    ? new Uint8Array(analyserNode.frequencyBinCount)
+    : undefined
+  frequencyData && analyserNode.getByteFrequencyData(frequencyData)
+
   return {
     timeDomainData,
     frequencyData
   }
 }
 
-export const createMediaStreamObservable = (mediaRecorder, mediaStream) => {
+export const createMediaStreamObservable = (mediaRecorder, mediaStream, bufferSize) => {
 
   const observers = []
 
@@ -71,8 +98,7 @@ export const createMediaStreamObservable = (mediaRecorder, mediaStream) => {
   }
   const audioContext = new AudioContext(options)
   const source = audioContext.createMediaStreamSource(mediaStream)
-  // TODO: is it ok to just pass 1 for both numberOfInputChannels and numberOfOutputChannels ?
-  const scriptProcessor = audioContext.createScriptProcessor(16384, 1, 1)
+  const scriptProcessor = audioContext.createScriptProcessor(bufferSize, 1, 1)
   scriptProcessor.onaudioprocess = e =>
     observers.forEach(observer => observer.next(e.inputBuffer))
   source.connect(scriptProcessor)

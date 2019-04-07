@@ -2,7 +2,6 @@
 
 import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
 import * as C from '../common/constants.js'
-import * as UH from '../common/utils/utilsHtml.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as F from '../common/logic/fingerprinting.js'
 
@@ -44,22 +43,6 @@ const { flatMap } = rxjs.operators
 
 // hamstersTests()
 
-let currentDuration = 5
-
-const durationValues = [1, 2, 5, 10, 15, 20]
-
-const durationRadioButtons = UH.createRadioButtons(
-  'durations',
-  'duration',
-  durationValues)
-
-const onDurationChange = () => {
-  currentDuration = UH.getCheckedRadioButton(durationRadioButtons)
-}
-
-UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
-UH.buttonsOnChange(durationRadioButtons, onDurationChange)
-
 const recordButton = document.getElementById('record')
 const matchingSpinner = document.getElementById('matchingSpinner')
 const albumRow = document.getElementById('albumRow')
@@ -100,14 +83,14 @@ const onRecord = async () => {
       hideMatchingSpinner()
     }
 
-    const observable = UW.createMediaStreamObservable(mediaRecorder, mediaStream).pipe(
+    const observable = UW.createMediaStreamObservable(mediaRecorder, mediaStream, 8192).pipe(
       flatMap(audioBuffer => UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE))
     )
     observable.subscribe({
       next: async audioBuffer => {
         try {
           console.dir(audioBuffer)
-          // TODO: we need to employ RxJS windowing/buffering because of TARGET_ZONE_SLIVER_GAP
+          // TODO: bufferCount(n) ?
           const hashes = await F.getHashes(audioBuffer)
           console.log(`hashes.length: ${hashes.length}`)
           // TODO: ws.send(hashes)

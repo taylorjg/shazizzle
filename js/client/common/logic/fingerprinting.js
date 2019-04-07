@@ -29,23 +29,23 @@ export const getProminentFrequencies = async audioBuffer => {
   const sliverCount = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)
   const sliverIndices = R.range(0, sliverCount)
 
-  const PIECE_SIZE = 1000
-  const pieces = R.splitEvery(PIECE_SIZE, sliverIndices)
+  const CHUNK_SIZE = 1024
+  const chunks = R.splitEvery(CHUNK_SIZE, sliverIndices)
 
-  const processPiece = async piece => {
-    const promises = piece.map(async sliverIndex => {
-      const { frequencyData } = await UW.getSliverData(audioBuffer, sliverIndex)
+  const processChunk = async chunk => {
+    const promises = chunk.map(async sliverIndex => {
+      const frequencyData = await UW.getSliverFrequencyData(audioBuffer, sliverIndex)
       return findTopBinIndices(frequencyData, binBands)
     })
     return await Promise.all(promises)
   }
 
-  const results = []
-  for (const piece of pieces) {
-    const result = await processPiece(piece)
-    results.push(result)
+  const chunkResults = []
+  for (const chunk of chunks) {
+    const chunkResult = await processChunk(chunk)
+    chunkResults.push(chunkResult)
   }
-  return R.unnest(results)
+  return R.unnest(chunkResults)
 }
 
 export const getProminentFrequenciesOfSliver = async (audioBuffer, frequencyData) => {
