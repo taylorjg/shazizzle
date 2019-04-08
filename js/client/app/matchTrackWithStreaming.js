@@ -1,47 +1,11 @@
 /* eslint-disable no-console */
 
 import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
-import * as C from '../common/constants.js'
-import * as UW from '../common/utils/utilsWebAudioApi.js'
-import * as F from '../common/logic/fingerprinting.js'
+// import * as C from '../common/constants.js'
+// import * as UW from '../common/utils/utilsWebAudioApi.js'
+// import * as F from '../common/logic/fingerprinting.js'
 
-const { flatMap } = rxjs.operators
-
-// hamsters.init() /* eslint-disable-line no-undef */
-
-// const hamstersTestPromise = async numThreads => {
-//   try {
-//     const params = {
-//       array: Float32Array.from([1, 2, 3, 4]),
-//       threads: numThreads,
-//       aggregate: true,
-//       dataType: 'Float32'
-//     }
-//     console.log(`[hamstersTestPromise] params: ${JSON.stringify(params)}`)
-//     /* eslint-disable no-undef */
-//     const results = await hamsters.promise(params, function () {
-//       console.dir(params)
-//       rtn.data = params.array.map(n => n * 4)
-//     })
-//     /* eslint-enable no-undef */
-//     console.log(`[hamstersTestPromise] results: ${JSON.stringify(results)}`)
-//     if (numThreads === 1) {
-//       console.log(`[hamstersTestPromise] results: ${JSON.stringify(Array.from(results.data[0].values()))}`)
-//     } else {
-//       console.log(`[hamstersTestPromise] results: ${JSON.stringify(Array.from(results.data.values()))}`)
-//     }
-//   } catch (error) {
-//     console.log(`[hamstersTestPromise] error: ${error}`)
-//   }
-// }
-
-// const hamstersTests = async () => {
-//   await hamstersTestPromise(1)
-//   await hamstersTestPromise(2)
-//   await hamstersTestPromise(4)
-// }
-
-// hamstersTests()
+// const { flatMap } = rxjs.operators
 
 const recordButton = document.getElementById('record')
 const matchingSpinner = document.getElementById('matchingSpinner')
@@ -57,18 +21,18 @@ const onRecord = async () => {
       .concat('/streamingMatch')
     const ws = new WebSocket(wsUrl)
     ws.onclose = () => {
-      console.log(`[ws onclose]`)
+      console.log(`[ws.onclose]`)
       stopRecording()
       !gotMatch && showNoMatchFound()
     }
     ws.onmessage = e => {
-      console.log(`[ws onmessage] e.data: ${e.data}`)
+      console.log(`[ws.onmessage] e.data: ${e.data}`)
       stopRecording()
       gotMatch = true
       showAlbumDetails(e.data)
     }
     ws.onerror = error => {
-      console.log(`[ws onerror] e.message: ${error.message}`)
+      console.log(`[ws.onerror] e.message: ${error.message}`)
       stopRecording()
       showErrorPanel(error)
     }
@@ -83,28 +47,29 @@ const onRecord = async () => {
       hideMatchingSpinner()
     }
 
-    const observable = UW.createMediaStreamObservable(mediaRecorder, mediaStream, 8192).pipe(
-      flatMap(audioBuffer => UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE))
-    )
-    observable.subscribe({
-      next: async audioBuffer => {
-        try {
-          console.dir(audioBuffer)
-          // TODO: bufferCount(n) ?
-          const hashes = await F.getHashes(audioBuffer)
-          console.log(`hashes.length: ${hashes.length}`)
-          // TODO: ws.send(hashes)
-        } catch (error) {
-          showErrorPanel(error)
-        }
-      }
-    })
-
+    const audioContext = new AudioContext()
+    const source = audioContext.createMediaStreamSource(mediaStream)
+    await audioContext.audioWorklet.addModule('pcmInterceptor.js')
+    const workletNode = new PcmInterceptorWorkletNode(audioContext)
+    source.connect(workletNode)
+    workletNode.connect(audioContext.destination)
+    mediaRecorder.onstop = () => {
+      audioContext.close()
+      console.log(`[mediaRecorder.onstop] audioContext.currentTime: ${audioContext.currentTime}`)
+    }
+  
     updateUiState(RECORDING)
     mediaRecorder.start()
     showMatchingSpinner()
   } catch (error) {
     showErrorPanel(error)
+  }
+}
+
+class PcmInterceptorWorkletNode extends AudioWorkletNode {
+  constructor(context, options) {
+    console.log(`[PcmInterceptorWorkletNode#constructor]`)
+    super(context, 'PcmInterceptor', options)
   }
 }
 
