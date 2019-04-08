@@ -50,14 +50,16 @@ const onRecord = async () => {
     const audioContext = new AudioContext()
     const source = audioContext.createMediaStreamSource(mediaStream)
     await audioContext.audioWorklet.addModule('pcmInterceptor.js')
-    const workletNode = new PcmInterceptorWorkletNode(audioContext)
+    const processorOptions = {
+      sampleRate: audioContext.sampleRate
+    }
+    const workletNode = new PcmInterceptorWorkletNode(audioContext, processorOptions)
     source.connect(workletNode)
-    workletNode.connect(audioContext.destination)
     mediaRecorder.onstop = () => {
       audioContext.close()
       console.log(`[mediaRecorder.onstop] audioContext.currentTime: ${audioContext.currentTime}`)
     }
-  
+
     updateUiState(RECORDING)
     mediaRecorder.start()
     showMatchingSpinner()
@@ -67,9 +69,20 @@ const onRecord = async () => {
 }
 
 class PcmInterceptorWorkletNode extends AudioWorkletNode {
-  constructor(context, options) {
-    console.log(`[PcmInterceptorWorkletNode#constructor]`)
+
+  constructor(context, processorOptions) {
+    console.log(`[PcmInterceptorWorkletNode#constructor] processorOptions: ${JSON.stringify(processorOptions)}`)
+    const options = {
+      numberOfInputs: 1,
+      numberOfOutputs: 0,
+      processorOptions
+    }
     super(context, 'PcmInterceptor', options)
+    this.port.onmessage = message => this.handleBuffer(message.data)
+  }
+
+  handleBuffer(buffer) {
+    console.log(`[PcmInterceptorWorkletNode#handleBuffer] buffer.length: ${buffer.length}`)
   }
 }
 

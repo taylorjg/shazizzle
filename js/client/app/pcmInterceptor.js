@@ -2,16 +2,16 @@
 
 import * as C from '../common/constants.js'
 
-const SAMPLE_RATE = 44100 // TODO: add param for this
-const NUM_SLIVERS_TO_BUFFER = 5 // TODO: add param for this
-const BUFFER_SIZE = SAMPLE_RATE * C.SLIVER_DURATION * NUM_SLIVERS_TO_BUFFER
-
 class PcmInterceptorWorkletProcessor extends AudioWorkletProcessor {
 
-  constructor() {
-    console.log(`[PcmInterceptorWorkletProcessor#constructor]`)
-    super()
-    this.buffer = new Float32Array(BUFFER_SIZE)
+  constructor(options) {
+    console.log(`[PcmInterceptorWorkletProcessor#constructor] options: ${JSON.stringify(options)}`)
+    super(options)
+    const sampleRate = options.processorOptions && options.processorOptions.sampleRate || 44100
+    const numSliversToBuffer = options.processorOptions && options.processorOptions.numSliversToBuffer || 5
+    this.bufferSize = sampleRate * numSliversToBuffer * C.SLIVER_DURATION
+    console.log(`[PcmInterceptorWorkletProcessor#constructor] this.bufferSize: ${this.bufferSize}`)
+    this.buffer = new Float32Array(this.bufferSize)
     this.bufferCount = 0
   }
 
@@ -26,17 +26,17 @@ class PcmInterceptorWorkletProcessor extends AudioWorkletProcessor {
 
   sendMessage() {
     console.log(`[PcmInterceptorWorkletProcessor#sendMessage] this.bufferCount: ${this.bufferCount}`)
-    // TODO: send a message
+    this.port.postMessage(this.buffer)
     this.buffer.fill(0)
     this.bufferCount = 0
   }
 
   appendToBuffer(channelData) {
-    const remainingSize = BUFFER_SIZE - this.bufferCount
+    const remainingSize = this.bufferSize - this.bufferCount
     if (remainingSize >= channelData.length) {
       this.buffer.set(channelData, this.bufferCount)
       this.bufferCount += channelData.length
-      if (this.bufferCount === BUFFER_SIZE) {
+      if (this.bufferCount === this.bufferSize) {
         this.sendMessage()
       }
       return
@@ -49,6 +49,7 @@ class PcmInterceptorWorkletProcessor extends AudioWorkletProcessor {
   }
 
   process(inputs) {
+
     if (inputs.length !== 1) {
       console.log(`[PcmInterceptorWorkletProcessor#process] expected 1 input but got ${inputs.length}`)
       console.log(`[PcmInterceptorWorkletProcessor#process] returning false`)
