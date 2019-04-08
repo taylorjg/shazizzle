@@ -47,18 +47,19 @@ const onRecord = async () => {
       hideMatchingSpinner()
     }
 
-    const audioContext = new AudioContext()
-    const source = audioContext.createMediaStreamSource(mediaStream)
-    await audioContext.audioWorklet.addModule('pcmInterceptor.js')
-    const processorOptions = {
-      sampleRate: audioContext.sampleRate
-    }
-    const workletNode = new PcmInterceptorWorkletNode(audioContext, processorOptions)
-    source.connect(workletNode)
-    mediaRecorder.onstop = () => {
-      audioContext.close()
-      console.log(`[mediaRecorder.onstop] audioContext.currentTime: ${audioContext.currentTime}`)
-    }
+    const pcmInterceptorObservable = await createPcmInterceptorObservable(mediaRecorder, mediaStream)
+
+    pcmInterceptorObservable.subscribe({
+      next: buffer => {
+        console.log(`[pcmInterceptorObservable.next] buffer.length: ${buffer.length}`)
+      },
+      complete: () => {
+        console.log(`[pcmInterceptorObservable.complete]`)
+      },
+      error: error => {
+        console.log(`[pcmInterceptorObservable.error] error: ${error}`)
+      }
+    })
 
     updateUiState(RECORDING)
     mediaRecorder.start()
@@ -69,21 +70,50 @@ const onRecord = async () => {
 }
 
 class PcmInterceptorWorkletNode extends AudioWorkletNode {
-
-  constructor(context, processorOptions) {
+  constructor(context, processorOptions, callback) {
     console.log(`[PcmInterceptorWorkletNode#constructor] processorOptions: ${JSON.stringify(processorOptions)}`)
     const options = {
-      numberOfInputs: 1,
       numberOfOutputs: 0,
       processorOptions
     }
     super(context, 'PcmInterceptor', options)
-    this.port.onmessage = message => this.handleBuffer(message.data)
+    this.port.onmessage = message => callback && callback(message.data)
+  }
+}
+
+export const createPcmInterceptorObservable = async (mediaRecorder, mediaStream) => {
+
+  const observers = []
+
+  const addObserver = observer => {
+    observers.push(observer)
   }
 
-  handleBuffer(buffer) {
-    console.log(`[PcmInterceptorWorkletNode#handleBuffer] buffer.length: ${buffer.length}`)
+  const removeObserver = observer => {
+    const index = observers.findIndex(value => value === observer)
+    index >= 0 && observers.splice(index, 1)
   }
+
+  const callback = buffer => observers.forEach(observer => observer.next(buffer))
+
+  const audioContext = new AudioContext()
+  const source = audioContext.createMediaStreamSource(mediaStream)
+  await audioContext.audioWorklet.addModule('pcmInterceptor.js')
+  const processorOptions = {
+    sampleRate: audioContext.sampleRate
+  }
+  const workletNode = new PcmInterceptorWorkletNode(audioContext, processorOptions, callback)
+  source.connect(workletNode)
+
+  mediaRecorder.addEventListener('stop', () => {
+    audioContext.close()
+    observers.forEach(observer => observer.complete())
+  })
+
+  return new rxjs.Observable(observer => {
+    addObserver(observer)
+    return () => removeObserver(observer)
+  })
 }
 
 const RECORDING = Symbol('RECORDING')

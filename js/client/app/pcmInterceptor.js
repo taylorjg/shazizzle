@@ -24,8 +24,8 @@ class PcmInterceptorWorkletProcessor extends AudioWorkletProcessor {
     return channelData
   }
 
-  sendMessage() {
-    console.log(`[PcmInterceptorWorkletProcessor#sendMessage] this.bufferCount: ${this.bufferCount}`)
+  postBuffer() {
+    console.log(`[PcmInterceptorWorkletProcessor#postBuffer] this.bufferCount: ${this.bufferCount}`)
     this.port.postMessage(this.buffer)
     this.buffer.fill(0)
     this.bufferCount = 0
@@ -37,13 +37,13 @@ class PcmInterceptorWorkletProcessor extends AudioWorkletProcessor {
       this.buffer.set(channelData, this.bufferCount)
       this.bufferCount += channelData.length
       if (this.bufferCount === this.bufferSize) {
-        this.sendMessage()
+        this.postBuffer()
       }
       return
     }
     this.buffer.set(channelData.slice(0, remainingSize), this.bufferCount)
     this.bufferCount += remainingSize
-    this.sendMessage()
+    this.postBuffer()
     this.buffer.set(channelData.slice(remainingSize), this.bufferCount)
     this.bufferCount = channelData.length - remainingSize
   }
