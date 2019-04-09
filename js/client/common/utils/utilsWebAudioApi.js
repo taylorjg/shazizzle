@@ -228,7 +228,7 @@ class PcmInterceptorWorkletNode extends AudioWorkletNode {
   }
 }
 
-export const createPcmInterceptorObservable = async (mediaRecorder, mediaStream) => {
+export const createPcmObservable = async (mediaRecorder, mediaStream, numSliversToBuffer) => {
 
   const observers = []
 
@@ -246,7 +246,8 @@ export const createPcmInterceptorObservable = async (mediaRecorder, mediaStream)
   await audioContext.audioWorklet.addModule('pcmInterceptor.js')
   const sampleRate = audioContext.sampleRate
   const processorOptions = {
-    sampleRate
+    sampleRate,
+    numSliversToBuffer
   }
   const callback = channelData => observers.forEach(observer =>
     observer.next({ channelData, sampleRate }))

@@ -6,7 +6,7 @@ import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as UC from '../common/utils/utilsChart.js'
 // import * as F from '../common/logic/fingerprinting.js'
 
-// const { flatMap } = rxjs.operators
+const { flatMap, map, tap } = rxjs.operators
 
 const recordButton = document.getElementById('record')
 const matchingSpinner = document.getElementById('matchingSpinner')
@@ -48,21 +48,32 @@ const onRecord = async () => {
       hideMatchingSpinner()
     }
 
-    const pcmInterceptorObservable = await UW.createPcmInterceptorObservable(mediaRecorder, mediaStream)
+    // Create observable of PCM data in multiples of sliver duration.
+    const pcmObservable = await UW.createPcmObservable(mediaRecorder, mediaStream, 5)
 
-    pcmInterceptorObservable.subscribe({
-      next: async ({ channelData, sampleRate }) => {
-        console.log(`[pcmInterceptorObservable.next] channelData.length: ${channelData.length}; sampleRate: ${sampleRate}`)
-        const audioBuffer = UW.createAudioBuffer(channelData, sampleRate)
-        const resampledAudioBuffer = await UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE)
-        const frequencyData = await UW.getSliverFrequencyData(resampledAudioBuffer, 0)
-        UC.drawFFTChart('fftChart', frequencyData, C.TARGET_SAMPLE_RATE)
+    // TODO: this will be hashesObservable
+    const observable = pcmObservable
+      .pipe(
+        map(toAudioBuffer),
+        // TODO: use a low-pass filter before resampling ?
+        flatMap(resample),
+        tap(visualise)
+        // TODO:
+        // - getProminentFrequencies
+        // - bufferCount
+        // - getHashes
+      )
+
+    observable.subscribe({
+      next: audioBuffer => {
+        console.log(`[observable.next] audioBuffer.duration: ${audioBuffer.duration}`)
+        // TODO: ws.send(hashes)
       },
       complete: () => {
-        console.log(`[pcmInterceptorObservable.complete]`)
+        console.log(`[observable.complete]`)
       },
       error: error => {
-        console.log(`[pcmInterceptorObservable.error] error: ${error}`)
+        console.log(`[observable.error] ${error.message}`)
       }
     })
 
@@ -72,6 +83,22 @@ const onRecord = async () => {
   } catch (error) {
     showErrorPanel(error)
   }
+}
+
+const toAudioBuffer = ({ channelData, sampleRate }) => {
+  console.log(`[toAudioBuffer] channelData.length: ${channelData.length}; sampleRate: ${sampleRate}`)
+  return UW.createAudioBuffer(channelData, sampleRate)
+}
+
+const resample = audioBuffer => {
+  console.log(`[resample] audioBuffer.duration: ${audioBuffer.duration}`)
+  return UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE)
+}
+
+const visualise = async audioBuffer => {
+  console.log(`[visualise] audioBuffer.duration: ${audioBuffer.duration}`)
+  const frequencyData = await UW.getSliverFrequencyData(audioBuffer, 0)
+  UC.drawFFTChart('fftChart', frequencyData, C.TARGET_SAMPLE_RATE)
 }
 
 const RECORDING = Symbol('RECORDING')
