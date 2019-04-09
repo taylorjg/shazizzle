@@ -4,9 +4,9 @@ import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
 import * as C from '../common/constants.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as UC from '../common/utils/utilsChart.js'
-// import * as F from '../common/logic/fingerprinting.js'
+import * as F from '../common/logic/fingerprinting.js'
 
-const { flatMap, map, tap } = rxjs.operators
+const { bufferCount, filter, flatMap, map, tap } = rxjs.operators
 
 const recordButton = document.getElementById('record')
 const matchingSpinner = document.getElementById('matchingSpinner')
@@ -51,22 +51,22 @@ const onRecord = async () => {
     // Create observable of PCM data in multiples of sliver duration.
     const pcmObservable = await UW.createPcmObservable(mediaRecorder, mediaStream, 5)
 
-    // TODO: this will be hashesObservable
-    const observable = pcmObservable
+    const hashesObservable = pcmObservable
       .pipe(
         map(toAudioBuffer),
-        // TODO: use a low-pass filter before resampling ?
         flatMap(resample),
-        tap(visualise)
-        // TODO:
-        // - getProminentFrequencies
-        // - bufferCount
-        // - getHashes
+        tap(visualise),
+        flatMap(getProminentFrequenciesWithIndices()),
+        flatMap(flatten),
+        filter(notEmpty),
+        bufferCount(10, 5)
+        // TODO: getHashes
       )
 
-    observable.subscribe({
-      next: audioBuffer => {
-        console.log(`[observable.next] audioBuffer.duration: ${audioBuffer.duration}`)
+    hashesObservable.subscribe({
+      next: hashes => {
+        console.dir(hashes)
+        // console.log(`[observable.next] hashes.length: ${JSON.stringify(hashes.length)}`)
         // TODO: ws.send(hashes)
       },
       complete: () => {
@@ -94,6 +94,22 @@ const resample = audioBuffer => {
   console.log(`[resample] audioBuffer.duration: ${audioBuffer.duration}`)
   return UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE)
 }
+
+const getProminentFrequenciesWithIndices = () => {
+  let index = 0
+  return async audioBuffer => {
+    console.log(`[getProminentFrequencies] audioBuffer.duration: ${audioBuffer.duration}`)
+    const values = await F.getProminentFrequencies(audioBuffer)
+    return values.map(value => ({
+      value,
+      index: index++
+    }))
+  }
+}
+
+const flatten = value => rxjs.of(...value)
+
+const notEmpty = value => value.value.length > 0
 
 const visualise = async audioBuffer => {
   console.log(`[visualise] audioBuffer.duration: ${audioBuffer.duration}`)
