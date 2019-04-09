@@ -30,6 +30,12 @@
                 <img id="matchingSpinner" src="/assets/spinner.gif" alt="Matching spinner" class="cloak" />
             </div>
         </div>
+        <div id="chartsRow">
+            <span class="single-chart-container">
+                <span class="chart-title">FFT</span>
+                <canvas id="fftChart"></canvas>
+            </span>
+        </div>
         <div id="albumRow" class="row cloak">
             <div class="col-md-4 col-md-offset-4 album-details">
                 <img class="album-artwork" src="/artwork/placeholder.jpg" alt="album artwork" />
@@ -46,6 +52,7 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.4.0/rxjs.umd.min.js"></script>

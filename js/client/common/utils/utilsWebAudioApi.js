@@ -28,6 +28,17 @@ const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
   })
 }
 
+export const createAudioBuffer = (channelData, sampleRate) => {
+  const options = {
+    length: channelData.length,
+    numberOfChannels: 1,
+    sampleRate
+  }
+  const audioBuffer = new AudioBuffer(options)
+  audioBuffer.copyToChannel(channelData, 0)
+  return audioBuffer
+}
+
 export const TIME_DOMAIN_DATA_ONLY = Symbol('TIME_DOMAIN_DATA_ONLY')
 export const FREQUENCY_DATA_ONLY = Symbol('FREQUENCY_DATA_ONLY')
 export const BOTH = Symbol('BOTH')

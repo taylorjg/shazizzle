@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 
 import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
-// import * as C from '../common/constants.js'
-// import * as UW from '../common/utils/utilsWebAudioApi.js'
+import * as C from '../common/constants.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
+import * as UC from '../common/utils/utilsChart.js'
 // import * as F from '../common/logic/fingerprinting.js'
 
 // const { flatMap } = rxjs.operators
@@ -50,8 +51,12 @@ const onRecord = async () => {
     const pcmInterceptorObservable = await createPcmInterceptorObservable(mediaRecorder, mediaStream)
 
     pcmInterceptorObservable.subscribe({
-      next: buffer => {
-        console.log(`[pcmInterceptorObservable.next] buffer.length: ${buffer.length}`)
+      next: async ({ channelData, sampleRate }) => {
+        console.log(`[pcmInterceptorObservable.next] channelData.length: ${channelData.length}; sampleRate: ${sampleRate}`)
+        const audioBuffer = UW.createAudioBuffer(channelData, sampleRate)
+        const resampledAudioBuffer = await UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE)
+        const frequencyData = await UW.getSliverFrequencyData(resampledAudioBuffer, 0)
+        UC.drawFFTChart('fftChart', frequencyData, C.TARGET_SAMPLE_RATE)
       },
       complete: () => {
         console.log(`[pcmInterceptorObservable.complete]`)
@@ -94,14 +99,15 @@ export const createPcmInterceptorObservable = async (mediaRecorder, mediaStream)
     index >= 0 && observers.splice(index, 1)
   }
 
-  const callback = buffer => observers.forEach(observer => observer.next(buffer))
-
   const audioContext = new AudioContext()
   const source = audioContext.createMediaStreamSource(mediaStream)
   await audioContext.audioWorklet.addModule('pcmInterceptor.js')
+  const sampleRate = audioContext.sampleRate
   const processorOptions = {
-    sampleRate: audioContext.sampleRate
+    sampleRate
   }
+  const callback = channelData => observers.forEach(observer =>
+    observer.next({ channelData, sampleRate }))
   const workletNode = new PcmInterceptorWorkletNode(audioContext, processorOptions, callback)
   source.connect(workletNode)
 
