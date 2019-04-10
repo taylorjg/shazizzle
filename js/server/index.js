@@ -45,25 +45,32 @@ const main = async () => {
 
   app.ws('/streamingMatch', ws => {
     wsStateMap.set(ws, [])
-    setTimeout(() => ws.close(), 2 * 1000)
-    ws.on('message', msg => {
-      console.log(`[/streamingMatch onmessage] msg: ${msg}`)
+    setTimeout(() => ws.close(), 5 * 1000)
+    ws.on('message', message => {
+      console.log(`[/streamingMatch.onmessage] ${JSON.stringify(message)}`)
       const wsState = wsStateMap.get(ws)
       if (!wsState) {
         console.log('Failed to lookup wsState!')
         return
       }
-      wsState.push(msg)
+      // TODO:
+      // - match sample hashes against the database
+      // - merge the results with wsState
+      // - save merged wsState
+
+      wsState.push(message)
+
+      // TODO: check for a convincing match
       if (ws.readyState === 1) {
-        // TODO: send matching album details here...
+        // TODO: if there is a convincing match then send the match
       }
     })
     ws.on('close', () => {
-      console.log(`[/streamingMatch onclose]`)
+      console.log(`[/streamingMatch.onclose]`)
       wsStateMap.delete(ws)
     })
-    ws.on('error', e => {
-      console.log(`[/streamingMatch onerror] e.message: ${e.message}`)
+    ws.on('error', error => {
+      console.log(`[/streamingMatch.onerror] ${error.message}`)
       wsStateMap.delete(ws)
     })
   })

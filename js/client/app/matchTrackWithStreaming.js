@@ -59,21 +59,22 @@ const onRecord = async () => {
         flatMap(getProminentFrequenciesWithIndices()),
         flatMap(flatten),
         filter(notEmpty),
-        bufferCount(10, 5)
-        // TODO: getHashes
+        bufferCount(10, 5),
+        flatMap(getHashes)
       )
 
     hashesObservable.subscribe({
       next: hashes => {
-        console.dir(hashes)
-        // console.log(`[observable.next] hashes.length: ${JSON.stringify(hashes.length)}`)
-        // TODO: ws.send(hashes)
+        console.log(`[hashesObservable.next] hashes: ${JSON.stringify(hashes)}`)
+        if (ws.readyState === 1) {
+          ws.send(hashes)
+        }
       },
       complete: () => {
-        console.log(`[observable.complete]`)
+        console.log(`[hashesObservable.complete]`)
       },
       error: error => {
-        console.log(`[observable.error] ${error.message}`)
+        console.log(`[hashesObservable.error] ${error.message}`)
       }
     })
 
@@ -98,7 +99,7 @@ const resample = audioBuffer => {
 const getProminentFrequenciesWithIndices = () => {
   let index = 0
   return async audioBuffer => {
-    console.log(`[getProminentFrequencies] audioBuffer.duration: ${audioBuffer.duration}`)
+    console.log(`[getProminentFrequenciesWithIndices] audioBuffer.duration: ${audioBuffer.duration}`)
     const pfss = await F.getProminentFrequencies(audioBuffer)
     return pfss.map(pfs => [pfs, index++])
   }
@@ -107,6 +108,11 @@ const getProminentFrequenciesWithIndices = () => {
 const flatten = value => rxjs.of(...value)
 
 const notEmpty = ([pfs]) => pfs.length > 0
+
+const getHashes = pfssWithIndices => {
+  console.log(`[getHashes] pfs.length: ${pfssWithIndices[0].length}`)
+  return F.getHashesFromProminentFrequenciesWithIndices(pfssWithIndices)
+}
 
 const visualise = async audioBuffer => {
   console.log(`[visualise] audioBuffer.duration: ${audioBuffer.duration}`)
