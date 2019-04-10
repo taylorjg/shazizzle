@@ -80,20 +80,21 @@ const onRecord = async () => {
     }
     const matchResponse = await axios.post('/api/match', hashes, config)
     if (matchResponse.data) {
-      const matchingHashes = matchResponse.data.matchingHashes
+      const match = matchResponse.data
+      const matchingHashes = match.matchingHashes
       matchScatterplotRow.style.display = 'block'
       matchHistogramRow.style.display = 'block'
-      drawMatchScatterplot(matchingHashes)
-      drawMatchHistogram(matchingHashes)
+      drawMatchScatterplot(matchingHashes, match.offset)
+      drawMatchHistogram(matchingHashes, match.offset)
       resultsPre.innerHTML = JSON.stringify(
         R.pipe(
           R.assoc('sampleHashesLength', hashes.length),
           R.assoc('matchingHashesLength', matchingHashes.length),
           R.dissoc('matchingHashes')
-        )(matchResponse.data),
+        )(match),
         null, 2)
     } else {
-      resultsPre.innerHTML = JSON.stringify(matchResponse.data, null, 2)
+      resultsPre.innerHTML = 'No match'
     }
   }
 
@@ -143,21 +144,23 @@ const drawConstellation = async audioBuffer => {
   UC.drawConstellation('constellation', dataset, audioBuffer.duration, audioBuffer.sampleRate)
 }
 
-const drawMatchScatterplot = matchingHashes => {
+const drawMatchScatterplot = (matchingHashes, bestOffset) => {
   const data = matchingHashes.map(record => ({
     x: record.t1Track,
     y: record.t1Sample
   }))
-  UC.drawScatterplot('matchScatterplot', data)
+  const [dataWithHighlight, dataNormal] = R.partition(({ x, y }) => x - y === bestOffset, data)
+  UC.drawScatterplot('matchScatterplot', dataWithHighlight, dataNormal)
 }
 
-const drawMatchHistogram = matchingHashes => {
+const drawMatchHistogram = (matchingHashes, bestOffset) => {
   const grouped = R.groupBy(record => record.offset, matchingHashes)
   const data = R.toPairs(grouped).map(([offset, hashesWithSameOffset]) => ({
-    x: offset,
+    x: Number(offset),
     y: hashesWithSameOffset.length
   }))
-  UC.drawScatterplot('matchHistogram', data, 2)
+  const [dataWithHighlight, dataNormal] = R.partition(({ x }) => x === bestOffset, data)
+  UC.drawScatterplot('matchHistogram', dataWithHighlight, dataNormal, 2)
 }
 
 const RECORDING = Symbol('RECORDING')
