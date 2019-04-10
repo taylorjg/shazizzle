@@ -99,17 +99,14 @@ const getProminentFrequenciesWithIndices = () => {
   let index = 0
   return async audioBuffer => {
     console.log(`[getProminentFrequencies] audioBuffer.duration: ${audioBuffer.duration}`)
-    const values = await F.getProminentFrequencies(audioBuffer)
-    return values.map(value => ({
-      value,
-      index: index++
-    }))
+    const pfss = await F.getProminentFrequencies(audioBuffer)
+    return pfss.map(pfs => [pfs, index++])
   }
 }
 
 const flatten = value => rxjs.of(...value)
 
-const notEmpty = value => value.value.length > 0
+const notEmpty = ([pfs]) => pfs.length > 0
 
 const visualise = async audioBuffer => {
   console.log(`[visualise] audioBuffer.duration: ${audioBuffer.duration}`)

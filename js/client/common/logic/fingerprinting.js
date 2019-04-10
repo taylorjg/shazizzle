@@ -54,15 +54,13 @@ export const getProminentFrequenciesOfSliver = async (audioBuffer, frequencyData
   return findTopBinIndices(frequencyData, binBands)
 }
 
-export const getHashes = async audioBuffer => {
+export const getHashesFromProminentFrequenciesWithIndices = async pfssWithIndices => {
 
   const TARGET_ZONE_SLIVER_GAP = 5
   const TARGET_ZONE_NUM_POINTS = 5
 
-  const pfs = await getProminentFrequencies(audioBuffer)
-
   const allTargetPoints = R.flatten(
-    pfs.map((bins, sliverIndex) =>
+    pfssWithIndices.map(([bins, sliverIndex]) =>
       bins.map(bin => ({ bin, sliverIndex }))))
 
   const getTargetZonePoints = targetZoneStartSliverIndex => {
@@ -72,7 +70,7 @@ export const getHashes = async audioBuffer => {
   }
 
   const tuples = R.flatten(
-    pfs.map((bins, sliverIndex) =>
+    pfssWithIndices.map(([bins, sliverIndex]) =>
       bins.map(anchorPointBin => {
         const targetZoneStartSliverIndex = sliverIndex + TARGET_ZONE_SLIVER_GAP
         const targetZonePoints = getTargetZonePoints(targetZoneStartSliverIndex)
@@ -91,4 +89,10 @@ export const getHashes = async audioBuffer => {
     const hash = (f1 << 20) | (f2 << 8) | dt
     return [hash, t1]
   })
+}
+
+export const getHashes = async audioBuffer => {
+  const pfss = await getProminentFrequencies(audioBuffer)
+  const pfssWithIndices = U.zipWithIndex(pfss)
+  return getHashesFromProminentFrequenciesWithIndices(pfssWithIndices)
 }

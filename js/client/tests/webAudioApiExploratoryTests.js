@@ -216,8 +216,8 @@ describe('Web Audio API Exploratory Tests', () => {
       const audioBuffer = await audioContext.startRendering()
       const binSize = SAMPLE_RATE / C.FFT_SIZE
       const expectedTopBinIndex = Math.round(frequency / binSize)
-      const prominentFrequencies = await F.getProminentFrequencies(audioBuffer)
-      prominentFrequencies.forEach(pf => chai.expect(pf).to.include(expectedTopBinIndex))
+      const pfss = await F.getProminentFrequencies(audioBuffer)
+      pfss.forEach(pfs => chai.expect(pfs).to.include(expectedTopBinIndex))
     })
 
   it_multiple(
@@ -243,10 +243,10 @@ describe('Web Audio API Exploratory Tests', () => {
       const audioBuffer = await audioContext.startRendering()
       const binSize = SAMPLE_RATE / C.FFT_SIZE
       const expectedTopBinIndices = frequencies.map(frequency => Math.round(frequency / binSize))
-      const prominentFrequencies = await F.getProminentFrequencies(audioBuffer)
-      prominentFrequencies.forEach(pf => {
+      const pfss = await F.getProminentFrequencies(audioBuffer)
+      pfss.forEach(pfs => {
         expectedTopBinIndices.forEach(expectedTopBinIndex =>
-          chai.expect(pf).to.include(expectedTopBinIndex))
+          chai.expect(pfs).to.include(expectedTopBinIndex))
       })
     })
 })
