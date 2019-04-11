@@ -138,12 +138,48 @@ const configureDb = async uri => {
     }
   }
 
+  const matchPartial = async hashes => {
+    if (hashes.length === 0) {
+      return []
+    }
+    try {
+      await db.none(
+        `
+          CREATE TEMPORARY TABLE samples (
+            tuple int NOT NULL,
+            t1 int NOT NULL
+          )
+        `)
+      const insertQueryPrefix = 'INSERT INTO samples (tuple, t1) VALUES'
+      const insertQueryValues = hashes.map(([tuple, t1]) => `(${tuple}, ${t1})`).join(', ')
+      const insertQuery = [insertQueryPrefix, insertQueryValues].join(' ')
+      await db.none(insertQuery)
+      const records = await db.any(
+        `
+          SELECT
+            track_hashes.track_metadata_id AS "trackId",
+            (track_hashes.t1 - samples.t1) AS offset,
+            COUNT (track_hashes.t1 - samples.t1)::int AS count
+          FROM track_hashes
+          INNER JOIN samples ON track_hashes.tuple = samples.tuple
+          GROUP BY
+            track_hashes.track_metadata_id,
+            (track_hashes.t1 - samples.t1)
+        `)
+      // console.dir(records)
+      return records
+    } finally {
+      await db.none('DROP TABLE samples')
+    }
+  }
+
   return {
     createTrack,
     listTracks,
     findTrack,
     findTuple,
-    matchOptimised
+    matchOptimised,
+    matchPartial
   }
 }
 

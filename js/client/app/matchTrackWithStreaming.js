@@ -27,10 +27,11 @@ const onRecord = async () => {
       !gotMatch && showNoMatchFound()
     }
     ws.onmessage = e => {
-      console.log(`[ws.onmessage] e.data: ${e.data}`)
+      const match = JSON.parse(e.data)
+      console.log(`[ws.onmessage] ${JSON.stringify(match)}`)
       stopRecording()
       gotMatch = true
-      showAlbumDetails(e.data)
+      showAlbumDetails(match)
     }
     ws.onerror = error => {
       console.log(`[ws.onerror] e.message: ${error.message}`)
@@ -42,10 +43,12 @@ const onRecord = async () => {
     const mediaRecorder = new MediaRecorder(mediaStream)
 
     const stopRecording = () => {
-      mediaRecorder.stop()
-      mediaStream.getTracks().forEach(track => track.stop())
-      updateUiState(FINISHED_RECORDING)
-      hideMatchingSpinner()
+      if (mediaRecorder.state === 'recording') {
+        mediaRecorder.stop()
+        mediaStream.getTracks().forEach(track => track.stop())
+        updateUiState(FINISHED_RECORDING)
+        hideMatchingSpinner()
+      }
     }
 
     // Create observable of PCM data in multiples of sliver duration.
@@ -67,7 +70,7 @@ const onRecord = async () => {
       next: hashes => {
         console.log(`[hashesObservable.next] hashes: ${JSON.stringify(hashes)}`)
         if (ws.readyState === 1) {
-          ws.send(hashes)
+          ws.send(JSON.stringify(hashes))
         }
       },
       complete: () => {

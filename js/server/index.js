@@ -7,6 +7,7 @@ const postgresDb = require('./db/postgres')
 const tracksApi = require('./api/tracks')
 const matchApi = require('./api/match')
 const app = express()
+const R = require('ramda')
 // eslint-disable-next-line no-unused-vars
 const expressWs = require('express-ws')(app)
 
@@ -44,25 +45,40 @@ const main = async () => {
   const wsStateMap = new Map()
 
   app.ws('/streamingMatch', ws => {
-    wsStateMap.set(ws, [])
-    setTimeout(() => ws.close(), 5 * 1000)
-    ws.on('message', message => {
-      console.log(`[/streamingMatch.onmessage] ${JSON.stringify(message)}`)
+    wsStateMap.set(ws, {
+      grouped: [],
+      matchFound: false
+    })
+    setTimeout(() => ws.close(), 20 * 1000)
+    ws.on('message', async message => {
+      const hashes = JSON.parse(message)
+      console.log(`[/streamingMatch.onmessage] ${JSON.stringify(hashes)}`)
+      console.dir(message)
       const wsState = wsStateMap.get(ws)
       if (!wsState) {
         console.log('Failed to lookup wsState!')
         return
       }
-      // TODO:
-      // - match sample hashes against the database
-      // - merge the results with wsState
-      // - save merged wsState
 
-      wsState.push(message)
+      if (wsState.matchFound) return
 
-      // TODO: check for a convincing match
-      if (ws.readyState === 1) {
-        // TODO: if there is a convincing match then send the match
+      const records = await db.matchPartial(hashes)
+      const grouped = R.fromPairs(records.map(r => [`${r.trackId}:${r.offset}`, r.count]))
+      wsState.grouped = R.mergeWith(R.add, wsState.grouped, grouped)
+
+      const sorted = R.sort(([, count1], [, count2]) => count2 - count1, R.toPairs(wsState.grouped))
+      console.dir(sorted.slice(0, 10))
+      const [key, count] = R.head(sorted)
+      const trackIdString = count >= 100
+        ? key.substr(0, key.indexOf(':'))
+        : undefined
+
+      if (trackIdString && ws.readyState === 1) {
+        const trackId = Number(trackIdString)
+        const match = await db.findTrack(trackId)
+        wsState.matchFound = true
+        console.dir(match)
+        ws.send(JSON.stringify(match))
       }
     })
     ws.on('close', () => {
