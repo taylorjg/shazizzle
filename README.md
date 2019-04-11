@@ -108,9 +108,9 @@ Some of the settings that can be adjusted are:
     * Load static resources from an Amazon S3 bucket configured for static website hosting
     * Move the `match` web api endpoint to AWS Lambda
     * Store the track data in Amazon RDS for PostgreSQL
-* Implement streaming-based match
-    * Rather than capture a 5 second sample and then send it to the server for matching,
-    stream data to the server and return a match as soon as possible e.g. after 2 seconds.
+* ~~Implement streaming-based match~~
+    * ~~Rather than capture a 5 second sample and then send it to the server for matching,
+    stream data to the server and return a match as soon as possible e.g. after 2 seconds.~~
 
 # Test Signals
 
