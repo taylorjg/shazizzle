@@ -8,6 +8,7 @@ const tracksApi = require('./api/tracks')
 const matchApi = require('./api/match')
 const app = express()
 const R = require('ramda')
+const moment = require('moment')
 // eslint-disable-next-line no-unused-vars
 const expressWs = require('express-ws')(app)
 
@@ -46,7 +47,7 @@ const main = async () => {
 
   app.ws('/streamingMatch', ws => {
     wsStateMap.set(ws, {
-      grouped: [],
+      grouped: {},
       matchFound: false
     })
     setTimeout(() => ws.close(), 20 * 1000)
@@ -62,22 +63,24 @@ const main = async () => {
       if (wsState.matchFound) return
 
       const records = await db.matchPartial(hashes)
-      const grouped = R.fromPairs(records.map(r => [`${r.trackId}:${r.offset}`, r.count]))
-      wsState.grouped = R.mergeWith(R.add, wsState.grouped, grouped)
+      const grouped = R.fromPairs(records.map(r => [`${r.trackId}:${r.offset}`, r]))
+      const addCounts = (r1, r2) => ({ ...r1, count: r1.count + r2.count })
+      wsState.grouped = R.mergeWith(addCounts, wsState.grouped, grouped)
 
-      const sorted = R.sort(([, count1], [, count2]) => count2 - count1, R.toPairs(wsState.grouped))
+      const compareCountsDescending = ([, r1], [, r2]) => r2.count - r1.count
+      const sorted = R.sort(compareCountsDescending, R.toPairs(wsState.grouped))
       console.dir(sorted.slice(0, 10))
-      const [key, count] = R.head(sorted)
-      const trackIdString = count >= 100
-        ? key.substr(0, key.indexOf(':'))
-        : undefined
+      if (sorted.length === 0) return
+      const [, r] = R.head(sorted)
 
-      if (trackIdString && ws.readyState === 1) {
-        const trackId = Number(trackIdString)
-        const match = await db.findTrack(trackId)
-        wsState.matchFound = true
+      if (r.count >= 100 && ws.readyState === 1) {
+        const track = await db.findTrack(r.trackId)
+        const sliversPerSecond = 20
+        const time = moment.utc(r.offset * 1000 / sliversPerSecond).format('m:ss')
+        const match = { ...track, offset: r.offset, time }
         console.dir(match)
         ws.send(JSON.stringify(match))
+        wsState.matchFound = true
       }
     })
     ws.on('close', () => {
