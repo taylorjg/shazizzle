@@ -3,18 +3,19 @@
 import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
 import * as C from '../common/constants.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
-import * as UC from '../common/utils/utilsChart.js'
 import * as F from '../common/logic/fingerprinting.js'
 
-const { bufferCount, filter, flatMap, map, tap } = rxjs.operators
+const { bufferCount, filter, flatMap, map } = rxjs.operators
 
 const recordButton = document.getElementById('record')
 const matchingSpinner = document.getElementById('matchingSpinner')
 const albumRow = document.getElementById('albumRow')
 const noMatchFoundRow = document.getElementById('noMatchFoundRow')
+const elapsedTimeRow = document.getElementById('elapsedTimeRow')
 
 const onRecord = async () => {
   try {
+    const startTime = performance.now()
     let gotMatch = false
     const wsUrl = location.origin
       .replace(/^http:/, 'ws:')
@@ -48,6 +49,9 @@ const onRecord = async () => {
         mediaStream.getTracks().forEach(track => track.stop())
         updateUiState(FINISHED_RECORDING)
         hideMatchingSpinner()
+        const endTime = performance.now()
+        const elapsedTime = ((endTime - startTime) / 1000).toFixed(2)
+        showElapsedTime(elapsedTime)
       }
     }
 
@@ -58,7 +62,6 @@ const onRecord = async () => {
       .pipe(
         map(toAudioBuffer),
         flatMap(resample),
-        tap(visualise),
         flatMap(getProminentFrequenciesWithIndices()),
         flatMap(flatten),
         filter(notEmpty),
@@ -68,7 +71,7 @@ const onRecord = async () => {
 
     hashesObservable.subscribe({
       next: hashes => {
-        console.log(`[hashesObservable.next] hashes: ${JSON.stringify(hashes)}`)
+        // console.log(`[hashesObservable.next] hashes: ${JSON.stringify(hashes)}`)
         if (ws.readyState === 1) {
           ws.send(JSON.stringify(hashes))
         }
@@ -90,19 +93,19 @@ const onRecord = async () => {
 }
 
 const toAudioBuffer = ({ channelData, sampleRate }) => {
-  console.log(`[toAudioBuffer] channelData.length: ${channelData.length}; sampleRate: ${sampleRate}`)
+  // console.log(`[toAudioBuffer] channelData.length: ${channelData.length}; sampleRate: ${sampleRate}`)
   return UW.createAudioBuffer(channelData, sampleRate)
 }
 
 const resample = audioBuffer => {
-  console.log(`[resample] audioBuffer.duration: ${audioBuffer.duration}`)
+  // console.log(`[resample] audioBuffer.duration: ${audioBuffer.duration}`)
   return UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE)
 }
 
 const getProminentFrequenciesWithIndices = () => {
   let index = 0
   return async audioBuffer => {
-    console.log(`[getProminentFrequenciesWithIndices] audioBuffer.duration: ${audioBuffer.duration}`)
+    // console.log(`[getProminentFrequenciesWithIndices] audioBuffer.duration: ${audioBuffer.duration}`)
     const pfss = await F.getProminentFrequencies(audioBuffer)
     return pfss.map(pfs => [pfs, index++])
   }
@@ -113,14 +116,8 @@ const flatten = value => rxjs.of(...value)
 const notEmpty = ([pfs]) => pfs.length > 0
 
 const getHashes = pfssWithIndices => {
-  console.log(`[getHashes] pfs.length: ${pfssWithIndices[0].length}`)
+  // console.log(`[getHashes] pfs.length: ${pfssWithIndices[0].length}`)
   return F.getHashesFromProminentFrequenciesWithIndices(pfssWithIndices)
-}
-
-const visualise = async audioBuffer => {
-  console.log(`[visualise] audioBuffer.duration: ${audioBuffer.duration}`)
-  const frequencyData = await UW.getSliverFrequencyData(audioBuffer, 0)
-  UC.drawFFTChart('fftChart', frequencyData, C.TARGET_SAMPLE_RATE)
 }
 
 const RECORDING = Symbol('RECORDING')
@@ -133,6 +130,7 @@ const updateUiState = state => {
     hideMatchingSpinner()
     noMatchFoundRow.style.display = 'none'
     albumRow.style.display = 'none'
+    elapsedTimeRow.style.display = 'none'
   }
 }
 
@@ -162,4 +160,10 @@ const showAlbumDetails = album => {
   artist.innerHTML = album.artist
   albumTitle.innerHTML = album.albumTitle
   sampleStartTime.innerHTML = album.time
+}
+
+const showElapsedTime = elapsedTime => {
+  elapsedTimeRow.style.display = 'block'
+  const elapsedTimePre = elapsedTimeRow.querySelector('pre')
+  elapsedTimePre.innerHTML = `Elapsed time: ${elapsedTime}`
 }

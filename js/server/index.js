@@ -52,8 +52,7 @@ const main = async () => {
     setTimeout(() => ws.close(), 20 * 1000)
     ws.on('message', async message => {
       const hashes = JSON.parse(message)
-      console.log(`[/streamingMatch.onmessage] ${JSON.stringify(hashes)}`)
-      console.dir(message)
+      // console.log(`[/streamingMatch.onmessage] ${JSON.stringify(hashes)}`)
       const wsState = wsStateMap.get(ws)
       if (!wsState) {
         console.log('Failed to lookup wsState!')
