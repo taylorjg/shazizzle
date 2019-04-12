@@ -76,13 +76,13 @@ const main = async () => {
 
       const cluster = sorted.filter(([, r]) =>
         r.trackId === best.trackId &&
-        r.offset >= best.offset - 1 &&
-        r.offset <= best.offset + 1)
+        r.offset >= best.offset - 2 &&
+        r.offset <= best.offset + 2)
       const clusterCountTotal = R.sum(cluster.map(([, r]) => r.count))
       console.log(`clusterCountTotal: ${clusterCountTotal}`)
       console.dir(cluster)
 
-      if (clusterCountTotal >= 100 && ws.readyState === 1) {
+      if (best.count >= 75 && clusterCountTotal >= 150 && ws.readyState === 1) {
         const track = await db.findTrack(best.trackId)
         const sliversPerSecond = 20
         const time = moment.utc(best.offset * 1000 / sliversPerSecond).format('m:ss')
