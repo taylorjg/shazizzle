@@ -61,8 +61,9 @@ const main = async () => {
       }
 
       if (wsState.matchFound) return
-
       const records = await db.matchPartial(hashes)
+      if (wsState.matchFound) return
+
       const grouped = R.fromPairs(records.map(r => [`${r.trackId}:${r.offset}`, r]))
       const addCounts = (r1, r2) => ({ ...r1, count: r1.count + r2.count })
       wsState.grouped = R.mergeWith(addCounts, wsState.grouped, grouped)
@@ -71,13 +72,21 @@ const main = async () => {
       const sorted = R.sort(compareCountsDescending, R.toPairs(wsState.grouped))
       console.dir(sorted.slice(0, 10))
       if (sorted.length === 0) return
-      const [, r] = R.head(sorted)
+      const [, best] = R.head(sorted)
 
-      if (r.count >= 100 && ws.readyState === 1) {
-        const track = await db.findTrack(r.trackId)
+      const cluster = sorted.filter(([, r]) =>
+        r.trackId === best.trackId &&
+        r.offset >= best.offset - 1 &&
+        r.offset <= best.offset + 1)
+      const clusterCountTotal = R.sum(cluster.map(([, r]) => r.count))
+      console.log(`clusterCountTotal: ${clusterCountTotal}`)
+      console.dir(cluster)
+
+      if (clusterCountTotal >= 100 && ws.readyState === 1) {
+        const track = await db.findTrack(best.trackId)
         const sliversPerSecond = 20
-        const time = moment.utc(r.offset * 1000 / sliversPerSecond).format('m:ss')
-        const match = { ...track, offset: r.offset, time }
+        const time = moment.utc(best.offset * 1000 / sliversPerSecond).format('m:ss')
+        const match = { ...track, offset: best.offset, time }
         console.dir(match)
         ws.send(JSON.stringify(match))
         wsState.matchFound = true
