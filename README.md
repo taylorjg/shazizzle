@@ -11,8 +11,18 @@ This repo contains various experiments to help:
 I have tried it successfully on the following browsers:
 
 * Chrome on macOS
-* Firefox on macOS
+* ~~Firefox on macOS~~
 * Chrome on Android
+
+It no longer works in Firefox since I implemented a streaming
+version of matching using an `AudioWorkletNode` and `AudioWorkletProcessor`:
+```
+ReferenceError: AudioWorkletNode is not defined[Learn More] utilsWebAudioApi.js:183:1
+<anonymous> https://shazizzle.herokuapp.com/common/utils/utilsWebAudioApi.js:183
+InnerModuleEvaluation self-hosted:4364
+InnerModuleEvaluation self-hosted:4353
+evaluation self-hosted:4317
+```
 
 # Database Tracks
 
@@ -125,7 +135,8 @@ Some of the settings that can be adjusted are:
 # Links
 
 * [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
-* [Media​Stream Recording API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API)
+* [MediaStream Recording API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API)
+* [Enter Audio Worklet](https://developers.google.com/web/updates/2017/12/audio-worklet)
 * [Fourier - Math.NET Numerics Documentation](https://numerics.mathdotnet.com/api/MathNet.Numerics.IntegralTransforms/Fourier.htm)
 * [An Industrial-Strength Audio Search Algorithm](https://www.ee.columbia.edu/~dpwe/papers/Wang03-shazam.pdf)
 * [How does Shazam work](http://coding-geek.com/how-shazam-works/)
