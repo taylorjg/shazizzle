@@ -4,6 +4,7 @@ import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
 import * as C from '../common/constants.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as F from '../common/logic/fingerprinting.js'
+import { createPcmObservable } from '../common/utils/pcmObservable.js'
 
 const { bufferCount, filter, flatMap, map } = rxjs.operators
 
@@ -56,7 +57,7 @@ const onRecord = async () => {
     }
 
     // Create observable of PCM data in multiples of sliver duration.
-    const pcmObservable = await UW.createPcmObservable(mediaRecorder, mediaStream, 5)
+    const pcmObservable = await createPcmObservable(mediaRecorder, mediaStream, 5)
 
     const hashesObservable = pcmObservable
       .pipe(

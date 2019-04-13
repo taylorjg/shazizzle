@@ -11,17 +11,18 @@ This repo contains various experiments to help:
 I have tried it successfully on the following browsers:
 
 * Chrome on macOS
-* ~~Firefox on macOS~~
+* Firefox on macOS
 * Chrome on Android
 
-It no longer works in Firefox since I implemented a streaming
-version of matching using an `AudioWorkletNode` and `AudioWorkletProcessor`:
+> **NOTE:** [matchTrackWithStreaming.html](https://shazizzle.herokuapp.com/app/matchTrackWithStreaming.html) does not work on Firefox because it doesn't seem to
+support `AudioWorkletNode`:
+
 ```
-ReferenceError: AudioWorkletNode is not defined[Learn More] utilsWebAudioApi.js:183:1
-<anonymous> https://shazizzle.herokuapp.com/common/utils/utilsWebAudioApi.js:183
-InnerModuleEvaluation self-hosted:4364
-InnerModuleEvaluation self-hosted:4353
-evaluation self-hosted:4317
+ReferenceError: AudioWorkletNode is not defined [Learn More] pcmObservable.js:1:1
+    <anonymous> http://localhost:3002/common/utils/pcmObservable.js:1
+    InnerModuleEvaluation self-hosted:4364
+    InnerModuleEvaluation self-hosted:4353
+    evaluation self-hosted:4317
 ```
 
 # Database Tracks
