@@ -18,11 +18,11 @@ I have tried it successfully on the following browsers:
 
 You can try it out by playing one of the YouTube links below and clicking `Record` on one of these pages:
 
-* [matchTrack.html](https://shazizzle-prep.herokuapp.com/app/matchTrack.html)
+* [matchTrack.html](https://shazizzle.herokuapp.com/app/matchTrack.html)
   * _capture chosen length of sample then send to server for matching_
-* [matchTrackWithDiagnostics.html](https://shazizzle-prep.herokuapp.com/app/matchTrackWithDiagnostics.html)
+* [matchTrackWithDiagnostics.html](https://shazizzle.herokuapp.com/app/matchTrackWithDiagnostics.html)
   * _as above but with various diagnostic charts_
-* [matchTrackWithStreaming.html](https://shazizzle-prep.herokuapp.com/app/matchTrackWithStreaming.html)
+* [matchTrackWithStreaming.html](https://shazizzle.herokuapp.com/app/matchTrackWithStreaming.html)
   * _stream fingerprinted data to the server over a web socket for progressive matching_
 
 I have fingerprinted 12 tracks. 11 of them are available on YouTube:
