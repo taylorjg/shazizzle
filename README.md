@@ -35,7 +35,8 @@ You can try it out by playing one of the YouTube links below and clicking `Recor
 * [matchTrackWithStreaming.html](https://shazizzle.herokuapp.com/app/matchTrackWithStreaming.html)
   * _stream fingerprinted data to the server over a web socket for progressive matching_
 
-I have fingerprinted 12 tracks. 11 of them are available on YouTube:
+I have fingerprinted 12 tracks. I bought them all from iTunes. The .m4a files are not in the repo.
+However, you can play the tracks on YouTube:
 
 * [Walton: Henry V - A Musical Scenario after Shakespeare / Henry V: IV. Interlude: Touch Her Soft Lips and Part](https://www.youtube.com/watch?v=va_ePnLbr10)
 * [Cecilia Bartoli - Arie Antiche: Se tu m'ami / Caro mio ben](https://www.youtube.com/watch?v=1Gu8oi8eJSg)
@@ -48,6 +49,8 @@ I have fingerprinted 12 tracks. 11 of them are available on YouTube:
 * [Too Hot to Handle / Boogie Nights](https://www.youtube.com/watch?v=nFAuXLEa31s)
 * [Reflections / Gun](https://www.youtube.com/watch?v=wOeUpKCCSVQ)
 * [Bach: Cantatas for Alto Solo / Cantata No. 170, BWV 170: I. Aria "Vergnügte Ruh! Beliebte Seelenlust!"](https://www.youtube.com/watch?v=nIf-2mCKLqI)
+* [Haydn: Strings Quartets Op. 71 / Griogal Cridhe "Gregor’s Lament"](https://www.youtube.com/watch?v=cE1oMU27Jus)
+  * _this is actually a live performance but some of it still matches against the fingerprinted iTunes track!_
 
 # Buildless Client
 
@@ -137,6 +140,6 @@ Some of the settings that can be adjusted are:
 * [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 * [MediaStream Recording API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API)
 * [Enter Audio Worklet](https://developers.google.com/web/updates/2017/12/audio-worklet)
-* [Fourier - Math.NET Numerics Documentation](https://numerics.mathdotnet.com/api/MathNet.Numerics.IntegralTransforms/Fourier.htm)
 * [An Industrial-Strength Audio Search Algorithm](https://www.ee.columbia.edu/~dpwe/papers/Wang03-shazam.pdf)
 * [How does Shazam work](http://coding-geek.com/how-shazam-works/)
+* [Fourier - Math.NET Numerics Documentation](https://numerics.mathdotnet.com/api/MathNet.Numerics.IntegralTransforms/Fourier.htm)
