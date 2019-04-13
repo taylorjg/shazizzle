@@ -16,10 +16,16 @@ I have tried it successfully on the following browsers:
 
 # Database Tracks
 
-I have fingerprinted the tracks listed below.
-You can try it out by playing one of the following YouTube links and clicking `Record` on either
-[matchTrack.html](https://shazizzle-prep.herokuapp.com/app/matchTrack.html) or
-[matchTrackWithDiagnostics.html](https://shazizzle-prep.herokuapp.com/app/matchTrackWithDiagnostics.html).
+You can try it out by playing one of the YouTube links below and clicking `Record` on one of these pages:
+
+* [matchTrack.html](https://shazizzle-prep.herokuapp.com/app/matchTrack.html)
+  * _capture chosen length of sample then send to server for matching_
+* [matchTrackWithDiagnostics.html](https://shazizzle-prep.herokuapp.com/app/matchTrackWithDiagnostics.html)
+  * _as above but with various diagnostic charts_
+* [matchTrackWithStreaming.html](https://shazizzle-prep.herokuapp.com/app/matchTrackWithStreaming.html)
+  * _stream fingerprinted data to the server over a web socket for progressive matching_
+
+I have fingerprinted 12 tracks. 11 of them are available on YouTube:
 
 * [Walton: Henry V - A Musical Scenario after Shakespeare / Henry V: IV. Interlude: Touch Her Soft Lips and Part](https://www.youtube.com/watch?v=va_ePnLbr10)
 * [Cecilia Bartoli - Arie Antiche: Se tu m'ami / Caro mio ben](https://www.youtube.com/watch?v=1Gu8oi8eJSg)
