@@ -65,13 +65,13 @@ HEROKU_DB_PASSWORD=
 EOF
 
 # run PostgreSQL in a Docker container
-scripts/postgres/db.sh --local --run
+scripts/db.sh --local --run
 
 # create database schema
-scripts/postgres/db.sh --local --create
+scripts/db.sh --local --create
 
 # restore the database
-scripts/postgres/local_restore.sh
+scripts/local_restore.sh
 
 # start the Express server
 npm start

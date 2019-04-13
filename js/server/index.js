@@ -2,7 +2,6 @@ const path = require('path')
 const express = require('express')
 const cors = require('cors')
 const bodyParser = require('body-parser')
-const mongoDb = require('./db/mongo')
 const postgresDb = require('./db/postgres')
 const tracksApi = require('./api/tracks')
 const matchApi = require('./api/match')
@@ -13,25 +12,12 @@ const moment = require('moment')
 const expressWs = require('express-ws')(app)
 
 const PORT = process.env.PORT || 3002
-const dbType = process.env.DB_TYPE || 'mongo'
 const dbReadOnly = !!process.env.DB_READONLY || false
-const MONGODB_URI = process.env.MONGODB_URI
 const DATABASE_URL = process.env.DATABASE_URL
-
-const initDb = dbType => {
-  console.log(`[initDb] dbType: ${dbType}`)
-  switch (dbType) {
-    case 'mongo': return mongoDb(MONGODB_URI)
-    case 'postgres': return postgresDb(DATABASE_URL)
-    default:
-      console.log(`Unknown dbType, "${dbType}".`)
-      process.exit(1)
-  }
-}
 
 const main = async () => {
 
-  const db = await initDb(dbType)
+  const db = await postgresDb(DATABASE_URL)
 
   const apiRouters = [
     tracksApi.configureRouter(db, dbReadOnly),
