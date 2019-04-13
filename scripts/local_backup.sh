@@ -7,5 +7,5 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 export $(cat "$DIR"/.env | xargs)
 
 docker exec \
-  postgres-shazizzle-prep \
+  postgres-shazizzle \
   pg_dump -Fc --no-acl --no-owner -h localhost -U postgres postgres > "$DIR"/postgres.dump

@@ -16,7 +16,7 @@ usage()
 local_run_sql_script()
 {
   docker exec \
-    postgres-shazizzle-prep \
+    postgres-shazizzle \
     psql -U postgres -f "/db_scripts/$1"
 }
 
@@ -25,14 +25,14 @@ local_shell()
   docker exec \
     --interactive \
     --tty \
-    postgres-shazizzle-prep \
+    postgres-shazizzle \
     psql -U postgres
 }
 
 local_run()
 {
   docker run \
-    --name postgres-shazizzle-prep \
+    --name postgres-shazizzle \
     --publish 5432:5432 \
     --volume "$DIR":/db_scripts \
     --env PGPASSWORD=$HEROKU_DB_PASSWORD \
@@ -42,23 +42,23 @@ local_run()
 
 local_start()
 {
-  docker start postgres-shazizzle-prep
+  docker start postgres-shazizzle
 }
 
 local_stop()
 {
-  docker stop postgres-shazizzle-prep
+  docker stop postgres-shazizzle
 }
 
 local_rm()
 {
-  docker rm postgres-shazizzle-prep
+  docker rm postgres-shazizzle
 }
 
 heroku_run_sql_script()
 {
   docker exec \
-    postgres-shazizzle-prep \
+    postgres-shazizzle \
     psql \
       -U "$HEROKU_DB_USERNAME" \
       -h "$HEROKU_DB_HOST" \
@@ -72,7 +72,7 @@ heroku_shell()
   docker exec \
     --interactive \
     --tty \
-    postgres-shazizzle-prep \
+    postgres-shazizzle \
     psql \
       -U "$HEROKU_DB_USERNAME" \
       -h "$HEROKU_DB_HOST" \

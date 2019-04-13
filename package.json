@@ -1,7 +1,7 @@
 {
-  "name": "shazizzle-prep",
+  "name": "shazizzle",
   "version": "1.0.0",
-  "description": "Prep work for shzizzle",
+  "description": "Experiments with Web Audio API with a view to creating a simplified version of Shazam",
   "main": "index.js",
   "author": "Jonathan Taylor",
   "license": "MIT",
