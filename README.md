@@ -69,7 +69,7 @@ After cloning the repo, do the following to run everything locally. This assumes
 npm install
 
 # create .env file with empty env vars
-cat << 'EOF' >> scripts/postgres/.env
+cat << 'EOF' >> scripts/.env
 HEROKU_DB_HOST=
 HEROKU_DB_PORT=
 HEROKU_DB_DATABASE=
