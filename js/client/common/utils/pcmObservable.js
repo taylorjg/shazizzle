@@ -1,10 +1,14 @@
+/* eslint-disable no-console */
+
 class PcmInterceptorWorkletNode extends AudioWorkletNode {
-  constructor(context, processorOptions, callback) {
-    // eslint-disable-next-line
-    console.log(`[PcmInterceptorWorkletNode#constructor] processorOptions: ${JSON.stringify(processorOptions)}`)
+  constructor(context, sampleRate, numSliversToBuffer, callback) {
+    console.log(`[PcmInterceptorWorkletNode#constructor] sampleRate: ${sampleRate}; numSliversToBuffer: ${numSliversToBuffer}`)
     const options = {
       numberOfOutputs: 0,
-      processorOptions
+      processorOptions: {
+        sampleRate,
+        numSliversToBuffer
+      }
     }
     super(context, 'PcmInterceptor', options)
     this.port.onmessage = message => callback && callback(message.data)
@@ -28,13 +32,13 @@ export const createPcmObservable = async (mediaRecorder, mediaStream, numSlivers
   const source = audioContext.createMediaStreamSource(mediaStream)
   await audioContext.audioWorklet.addModule('pcmInterceptor.js')
   const sampleRate = audioContext.sampleRate
-  const processorOptions = {
-    sampleRate,
-    numSliversToBuffer
-  }
   const callback = channelData => observers.forEach(observer =>
     observer.next({ channelData, sampleRate }))
-  const workletNode = new PcmInterceptorWorkletNode(audioContext, processorOptions, callback)
+  const workletNode = new PcmInterceptorWorkletNode(
+    audioContext,
+    sampleRate,
+    numSliversToBuffer,
+    callback)
   source.connect(workletNode)
 
   mediaRecorder.addEventListener('stop', () => {
