@@ -47,7 +47,7 @@ const main = async () => {
       }
 
       if (wsState.matchFound) return
-      const records = await db.matchPartial(hashes)
+      const records = await db.matchPartialSample(hashes)
       if (wsState.matchFound) return
 
       const grouped = R.fromPairs(records.map(r => [`${r.trackId}:${r.offset}`, r]))
