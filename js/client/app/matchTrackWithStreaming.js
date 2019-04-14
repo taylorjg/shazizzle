@@ -10,9 +10,15 @@ const { bufferCount, filter, flatMap, map } = rxjs.operators
 
 const recordButton = document.getElementById('record')
 const matchingSpinner = document.getElementById('matchingSpinner')
+const listeningAnimationRow = document.getElementById('listeningAnimationRow')
+const listeningAnimation = document.getElementById('listeningAnimation')
 const albumRow = document.getElementById('albumRow')
 const noMatchFoundRow = document.getElementById('noMatchFoundRow')
 const elapsedTimeRow = document.getElementById('elapsedTimeRow')
+
+const listeningAnimationState = {
+  active: false  
+}
 
 const onRecord = async () => {
   try {
@@ -50,6 +56,7 @@ const onRecord = async () => {
         mediaStream.getTracks().forEach(track => track.stop())
         updateUiState(FINISHED_RECORDING)
         hideMatchingSpinner()
+        stopListeningAnimation()
         const endTime = performance.now()
         const elapsedTime = ((endTime - startTime) / 1000).toFixed(2)
         showElapsedTime(elapsedTime)
@@ -88,6 +95,7 @@ const onRecord = async () => {
     updateUiState(RECORDING)
     mediaRecorder.start()
     showMatchingSpinner()
+    startListeningAnimation()
   } catch (error) {
     showErrorPanel(error)
   }
@@ -127,11 +135,13 @@ const FINISHED_RECORDING = Symbol('FINISHED_RECORDING')
 const updateUiState = state => {
   state === RECORDING && hideErrorPanel()
   recordButton.disabled = state === RECORDING
+  listeningAnimationRow.style.display = state === RECORDING ? 'block' : 'none'
   if (state === RECORDING) {
     hideMatchingSpinner()
     noMatchFoundRow.style.display = 'none'
     albumRow.style.display = 'none'
     elapsedTimeRow.style.display = 'none'
+    listeningAnimation.style.height = listeningAnimation.getBoundingClientRect().width
   }
 }
 
@@ -167,4 +177,19 @@ const showElapsedTime = elapsedTime => {
   elapsedTimeRow.style.display = 'block'
   const elapsedTimePre = elapsedTimeRow.querySelector('pre')
   elapsedTimePre.innerHTML = `Elapsed time: ${elapsedTime}`
+}
+
+const startListeningAnimation = () => {
+  listeningAnimationState.active = true
+  requestAnimationFrame(drawListeningAnimation)
+}
+
+const stopListeningAnimation = () => {
+  listeningAnimationState.active = false
+}
+
+const drawListeningAnimation = () => {
+  console.log('[drawListeningAnimation]')
+  // TODO: implement the animation...
+  listeningAnimationState.active && requestAnimationFrame(drawListeningAnimation)
 }

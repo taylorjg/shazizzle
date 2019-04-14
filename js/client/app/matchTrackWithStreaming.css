@@ -52,35 +52,7 @@
   text-align: center;
 }
 
-.charts {
-  display: flex;
-  flex-direction: column;
-}
-
-.single-chart-container, .multi-chart-container {
-  margin: 10px;
-  display: flex;
-  flex-direction: column;
-}
-
-.chart-title {
-  align-self: center;
-}
-
-@media (min-width: 768px) {
-
-  .charts {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-
-  .multi-chart-container {
-    width: 100%;
-  }
-}
-
-canvas {
+#listeningAnimation {
   background-color: aliceblue;
   width: 100%;
 }
