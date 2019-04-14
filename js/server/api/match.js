@@ -9,11 +9,10 @@ const configureRouter = db => {
     try {
       const includeMatchingHashes = !!req.query.includeMatchingHashes
       const hashes = req.body
-      const fn = service.matchOptimised || service.match
-      const result = await fn(hashes, includeMatchingHashes)
+      const result = await service.matchFullSample(hashes, includeMatchingHashes)
       res.json(result)
     } catch (error) {
-      console.log(`[matchApi#match] ${error}`)
+      console.log(`[api.match#match] ${error}`)
       res.status(500).send(error.message || 'Internal Server Error')
     }
   }

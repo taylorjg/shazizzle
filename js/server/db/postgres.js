@@ -54,20 +54,9 @@ const configureDb = async uri => {
       `,
       id)
 
-  const findTuple = tuple =>
-    db.any(
-      `
-        SELECT
-          track_metadata_id AS "trackMetadataId",
-          t1
-        FROM track_hashes
-        WHERE tuple = $1
-      `,
-      tuple)
-
-  const matchOptimised = async (hashes, includeMatchingHashes) => {
+  const matchFullSample = async (hashes, includeMatchingHashes) => {
     if (hashes.length === 0) {
-      console.log(`[postgres#matchOptimised] no hashes - returning null`)
+      console.log(`[db.postgres#matchFullSample] no hashes - returning null`)
       return null
     }
     try {
@@ -99,12 +88,12 @@ const configureDb = async uri => {
         `)
       // console.dir(records)
       if (records.length === 0) {
-        console.log(`[postgres#matchOptimised] no records - returning null`)
+        console.log(`[db.postgres#matchFullSample] no records - returning null`)
         return null
       }
       const bestMatch = records[0]
       if (bestMatch.count < 50) {
-        console.log(`[postgres#matchOptimised] best match has low count (${bestMatch.count}) - retuning null`)
+        console.log(`[db.postgres#matchFullSample] best match has low count (${bestMatch.count}) - retuning null`)
         return null
       }
       const seconds = bestMatch.offset / 20
@@ -138,7 +127,7 @@ const configureDb = async uri => {
     }
   }
 
-  const matchPartial = async hashes => {
+  const matchPartialSample = async hashes => {
     if (hashes.length === 0) {
       return []
     }
@@ -177,9 +166,8 @@ const configureDb = async uri => {
     createTrack,
     listTracks,
     findTrack,
-    findTuple,
-    matchOptimised,
-    matchPartial
+    matchFullSample,
+    matchPartialSample
   }
 }
 
