@@ -23,6 +23,4 @@ const configureRouter = db => {
   return router
 }
 
-module.exports = {
-  configureRouter
-}
+module.exports = configureRouter
