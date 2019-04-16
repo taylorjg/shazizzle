@@ -25,8 +25,8 @@ const main = async () => {
   app.use(cors())
   app.use(bodyParser.json({ limit: '5mb' }))
   app.use('/api', apiRouters)
-  app.use('/', express.static(path.join(__dirname, '..', 'client')))
   app.ws('/streamingMatch', configureStreamingMatchWs(db))
+  app.use(express.static(path.resolve(__dirname, '..', 'client')))
   app.listen(PORT, () => console.log(`Listening on port http://localhost:${PORT}`))
 }
 
