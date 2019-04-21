@@ -1,7 +1,7 @@
 const pgp = require('pg-promise')()
 const moment = require('moment')
 
-const configureDb = async uri => {
+const configurePostgres = async uri => {
 
   const db = pgp(uri)
 
@@ -171,4 +171,4 @@ const configureDb = async uri => {
   }
 }
 
-module.exports = configureDb
+module.exports = configurePostgres

@@ -2,17 +2,21 @@ import * as UH from '../common/utils/utilsHtml.js'
 import * as UC from '../common/utils/utilsChart.js'
 
 const frequencyValues = [10, 440, 1000, 2000]
+const cutOffFrequencyValues = [{ value: 0, label: 'Off' }, 800, 1500]
 const gainValues = [0.125, 0.25, 0.5, 0.75, 1.0]
 
 let currentFrequencies = []
+let currentCutOffFrequency = 1500
 let currentGain = 1
 
 const onReset = () => {
   currentFrequencies = []
+  currentCutOffFrequency = 1500
   currentGain = 1
   UH.setCheckedCheckboxes(frequencyCheckboxes, currentFrequencies)
+  UH.setCheckedRadioButton(cutOffFrequencyRadioButtons, currentCutOffFrequency)
   UH.setCheckedRadioButton(gainRadioButtons, currentGain)
-  drawCharts(currentFrequencies, currentGain)
+  drawCharts(currentFrequencies, currentCutOffFrequency, currentGain)
 }
 
 document.getElementById('resetButton').addEventListener('click', onReset)
@@ -22,6 +26,11 @@ const frequencyCheckboxes = UH.createCheckboxes(
   'frequency',
   frequencyValues)
 
+const cutOffFrequencyRadioButtons = UH.createRadioButtons(
+  'cutOffFrequency',
+  'cutOffFrequency',
+  cutOffFrequencyValues)
+
 const gainRadioButtons = UH.createRadioButtons(
   'gain',
   'gain',
@@ -29,18 +38,25 @@ const gainRadioButtons = UH.createRadioButtons(
 
 const onFrequencyChange = () => {
   currentFrequencies = UH.getCheckedCheckboxes(frequencyCheckboxes)
-  drawCharts(currentFrequencies, currentGain)
+  drawCharts(currentFrequencies, currentCutOffFrequency, currentGain)
+}
+
+const onCutOffFrequencyChange = () => {
+  currentCutOffFrequency = UH.getCheckedRadioButton(cutOffFrequencyRadioButtons)
+  drawCharts(currentFrequencies, currentCutOffFrequency, currentGain)
 }
 
 const onGainChange = () => {
   currentGain = UH.getCheckedRadioButton(gainRadioButtons)
-  drawCharts(currentFrequencies, currentGain)
+  drawCharts(currentFrequencies, currentCutOffFrequency, currentGain)
 }
 
 UH.setCheckedCheckboxes(frequencyCheckboxes, currentFrequencies)
+UH.setCheckedRadioButton(cutOffFrequencyRadioButtons, currentCutOffFrequency)
 UH.setCheckedRadioButton(gainRadioButtons, currentGain)
 
 UH.buttonsOnChange(frequencyCheckboxes, onFrequencyChange)
+UH.buttonsOnChange(cutOffFrequencyRadioButtons, onCutOffFrequencyChange)
 UH.buttonsOnChange(gainRadioButtons, onGainChange)
 
 const makeOscillatorNode = (audioContext, gainNode) => frequency => {
@@ -52,7 +68,7 @@ const makeOscillatorNode = (audioContext, gainNode) => frequency => {
 const startOscillatorNode = when => oscillatorNode => oscillatorNode.start(when)
 const stopOscillatorNode = when => oscillatorNode => oscillatorNode.stop(when)
 
-const drawCharts = async (frequencies, gain) => {
+const drawCharts = async (frequencies, cutOffFrequency, gain) => {
   const SAMPLE_RATE = 8000
   const FFT_SIZE = 1024
   const options = {
@@ -63,8 +79,18 @@ const drawCharts = async (frequencies, gain) => {
   const gainNode = new GainNode(audioContext, { gain })
   const oscillatorNodes = frequencies.map(makeOscillatorNode(audioContext, gainNode))
   const analyserNode = new AnalyserNode(audioContext, { fftSize: FFT_SIZE })
-  gainNode.connect(audioContext.destination)
-  gainNode.connect(analyserNode)
+  if (cutOffFrequency > 0) {
+    const biquadFilterNode = new BiquadFilterNode(audioContext, {
+      type: 'lowpass',
+      frequency: cutOffFrequency
+    })
+    gainNode.connect(biquadFilterNode)
+    biquadFilterNode.connect(audioContext.destination)
+    biquadFilterNode.connect(analyserNode)
+  } else {
+    gainNode.connect(audioContext.destination)
+    gainNode.connect(analyserNode)
+  }
   oscillatorNodes.forEach(startOscillatorNode(0))
   oscillatorNodes.forEach(stopOscillatorNode(1))
   await audioContext.startRendering()

@@ -150,7 +150,7 @@ const drawMatchScatterplot = (matchingHashes, bestOffset) => {
     y: record.t1Sample
   }))
   const [dataWithHighlight, dataNormal] = R.partition(({ x, y }) => x - y === bestOffset, data)
-  UC.drawScatterplot('matchScatterplot', dataWithHighlight, dataNormal)
+  UC.drawMatchingHashLocationsScatterplot('matchingHashLocationsScatterplot', dataWithHighlight, dataNormal)
 }
 
 const drawMatchHistogram = (matchingHashes, bestOffset) => {
@@ -160,7 +160,7 @@ const drawMatchHistogram = (matchingHashes, bestOffset) => {
     y: hashesWithSameOffset.length
   }))
   const [dataWithHighlight, dataNormal] = R.partition(({ x }) => x === bestOffset, data)
-  UC.drawScatterplot('matchHistogram', dataWithHighlight, dataNormal, 2)
+  UC.drawMatchingHashLocationsHistogram('matchingHashLocationsHistogram', dataWithHighlight, dataNormal)
 }
 
 const RECORDING = Symbol('RECORDING')

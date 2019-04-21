@@ -1,16 +1,10 @@
-const configureService = (db, dbReadOnly) => {
+const configureService = db => {
 
-  const getTracks = () => {
-    return db.listTracks()
-  }
+  const getTracks = () =>
+    db.listTracks()
 
-  const createTrack = (metadata, hashes) => {
-    console.log(`[tracksService#createTrack]\n  metadata: ${JSON.stringify(metadata)}\n  hashes.length: ${hashes.length}`)
-    if (dbReadOnly) {
-      throw new Error('The database is readonly')
-    }
-    return db.createTrack(metadata, hashes)
-  }
+  const createTrack = (metadata, hashes) =>
+    db.createTrack(metadata, hashes)
 
   const service = {
     getTracks,

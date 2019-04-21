@@ -213,7 +213,31 @@ export const drawConstellation = (canvasId, dataset, duration, sampleRate) => {
   new Chart(canvas, config)
 }
 
-export const drawScatterplot = (canvasId, dataWithHighlight, dataNormal, pointRadius = 1) => {
+export const drawMatchingHashLocationsScatterplot = (canvasId, dataWithHighlight, dataNormal) =>
+  drawMatchingHashLocationsChart(
+    canvasId,
+    dataWithHighlight,
+    dataNormal,
+    1,
+    'Track t1 values',
+    'Sample t1 values')
+
+export const drawMatchingHashLocationsHistogram = (canvasId, dataWithHighlight, dataNormal) =>
+  drawMatchingHashLocationsChart(
+    canvasId,
+    dataWithHighlight,
+    dataNormal,
+    2,
+    `Offset difference (track t1 - sample t1)`,
+    `Group Size`)
+
+const drawMatchingHashLocationsChart = (
+  canvasId,
+  dataWithHighlight,
+  dataNormal,
+  pointRadius,
+  xAxisLabel,
+  yAxisLabel) => {
 
   const config = {
     type: 'scatter',
@@ -239,6 +263,20 @@ export const drawScatterplot = (canvasId, dataWithHighlight, dataNormal, pointRa
       },
       legend: {
         display: false
+      },
+      scales: {
+        xAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: xAxisLabel
+          },
+        }],
+        yAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: yAxisLabel
+          },
+        }]
       }
     }
   }

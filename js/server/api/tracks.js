@@ -1,9 +1,9 @@
 const express = require('express')
 const configureService = require('../services/tracks')
 
-const configureRouter = (db, dbReadOnly) => {
+const configureRouter = db => {
 
-  const service = configureService(db, dbReadOnly)
+  const service = configureService(db)
 
   const getTracks = async (_, res) => {
     try {
@@ -38,6 +38,4 @@ const configureRouter = (db, dbReadOnly) => {
   return router
 }
 
-module.exports = {
-  configureRouter
-}
+module.exports = configureRouter
