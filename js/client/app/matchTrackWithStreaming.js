@@ -142,6 +142,9 @@ const updateUiState = state => {
     albumRow.style.display = 'none'
     elapsedTimeRow.style.display = 'none'
     listeningAnimation.style.height = listeningAnimation.getBoundingClientRect().width
+    const maskRect = document.getElementById('maskRect')
+    maskRect.style.width = listeningAnimation.getBoundingClientRect().width
+    maskRect.style.height = listeningAnimation.getBoundingClientRect().height
   }
 }
 
