@@ -35,21 +35,30 @@
                 <svg id="listeningAnimation">
                     <defs>
                         <linearGradient id="alphaLinear" gradientTransform="rotate(90)">
-                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.6" />
+                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".6" />
                             <stop offset="66%" stop-color="#FFFFFF" stop-opacity="1" />
                             <stop offset="100%" stop-color="#FFFFFF" stop-opacity="1" />
                         </linearGradient>
+                        <radialGradient id="alphaRadial">
+                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1" />
+                            <stop offset="50%" stop-color="#FFFFFF" stop-opacity=".5" />
+                            <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".1" />
+                        </radialGradient>
                         <mask id="mask">
                             <rect id="maskRect" fill="url(#alphaLinear)" />
+                            <!-- <rect id="maskRect" fill="url(#alphaRadial)" /> -->
                         </mask>
                     </defs>
                     <rect width="100%" height="100%" fill="#0266FE" mask="url(#mask)" />
-                    <circle cx="50%" cy="50%" r="100" fill="#3C8DFE" mask="url(#mask)" />
-                    <circle cx="50%" cy="50%" r="80" fill="#77B2FF" mask="url(#mask)" />
-                    <circle cx="50%" cy="50%" r="60" fill="#C2E2FF" mask="url(#mask)" />
+
+                    <circle class="outermost-circle" cx="50%" cy="50%" />
+                    <circle class="middle-circle" cx="50%" cy="50%" />
+                    <circle class="innermost-circle" cx="50%" cy="50%" />
+
                     <circle cx="50%" cy="50%" r="40" fill="#51A2FF" mask="url(#mask)" />
-                    <circle cx="50%" cy="50%" r="160" fill="#0000" stroke="#FFFFFF" mask="url(#mask)" />
-                    <circle cx="50%" cy="50%" r="200" fill="#0000" stroke="#FFFFFF" mask="url(#mask)" />
+
+                    <circle class="inner-ring" cx="50%" cy="50%" />
+                    <circle class="outer-ring" cx="50%" cy="50%" />
                 </svg>
             </div>
         </div>

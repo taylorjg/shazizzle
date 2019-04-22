@@ -55,3 +55,69 @@
 #listeningAnimation {
   width: 100%;
 }
+
+@keyframes outermost-circle-throb {
+  0% { r: 40; opacity: 1; }
+  50% { r: 100; opacity: 1; }
+  100% { r: 40; opacity: 0; }
+}
+
+@keyframes middle-circle-throb {
+  0% { r: 40; opacity: 1; }
+  50% { r: 80; opacity: 1; }
+  100% { r: 40; opacity: 0; }
+}
+
+@keyframes innermost-circle-throb {
+  0% { r: 40; opacity: 1; }
+  50% { r: 60; opacity: 1; }
+  100% { r: 40; opacity: 0; }
+}
+
+.outermost-circle {
+  fill: #3C8DFE;
+  mask: url(#mask);
+  animation: 2.5s ease-in-out infinite outermost-circle-throb;
+}
+
+.middle-circle {
+  fill: #77B2FF;
+  mask: url(#mask);
+  animation: 2.5s ease-in-out infinite .2s middle-circle-throb;
+}
+
+.innermost-circle {
+  fill: #C2E2FF;
+  mask: url(#mask);
+  animation: 2.5s ease-in-out infinite .4s innermost-circle-throb;
+}
+
+.center-bit {
+  fill: #51A2FF;
+  mask: url(#mask);
+  r: 40;
+}
+
+@keyframes inner-ring-throb {
+  0% { r: 130; }
+  100% { r: 300; }
+}
+
+@keyframes outer-ring-throb {
+  0% { r: 150; }
+  100% { r: 300; }
+}
+
+.inner-ring {
+  fill: #0000;
+  stroke: #FFFFFF;
+  mask: url(#mask);
+  animation: 1.5s ease-in-out infinite .6s inner-ring-throb;
+}
+
+.outer-ring {
+  fill: #0000;
+  stroke: #FFFFFF;
+  mask: url(#mask);
+  animation: 1.5s ease-in-out infinite .4s outer-ring-throb;
+}
