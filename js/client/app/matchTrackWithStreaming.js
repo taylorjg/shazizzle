@@ -16,10 +16,6 @@ const albumRow = document.getElementById('albumRow')
 const noMatchFoundRow = document.getElementById('noMatchFoundRow')
 const elapsedTimeRow = document.getElementById('elapsedTimeRow')
 
-const listeningAnimationState = {
-  active: false  
-}
-
 const onRecord = async () => {
   try {
     const startTime = performance.now()
@@ -36,13 +32,13 @@ const onRecord = async () => {
     }
     ws.onmessage = e => {
       const match = JSON.parse(e.data)
-      console.log(`[ws.onmessage] ${JSON.stringify(match)}`)
+      console.log(`[ws.onmessage] match:\n${JSON.stringify(match, null, 2)}`)
       stopRecording()
       gotMatch = true
       showAlbumDetails(match)
     }
     ws.onerror = error => {
-      console.log(`[ws.onerror] e.message: ${error.message}`)
+      console.log(`[ws.onerror] ${error.message}`)
       stopRecording()
       showErrorPanel(error)
     }
@@ -56,7 +52,6 @@ const onRecord = async () => {
         mediaStream.getTracks().forEach(track => track.stop())
         updateUiState(FINISHED_RECORDING)
         hideMatchingSpinner()
-        stopListeningAnimation()
         const endTime = performance.now()
         const elapsedTime = ((endTime - startTime) / 1000).toFixed(2)
         showElapsedTime(elapsedTime)
@@ -70,16 +65,17 @@ const onRecord = async () => {
       .pipe(
         map(toAudioBuffer),
         flatMap(resample),
-        flatMap(getProminentFrequenciesWithIndices()),
-        flatMap(flatten),
-        filter(notEmpty),
+        flatMap(F.getProminentFrequencies),
+        flatMap(R.identity),
+        map(addIndex()),
+        filter(nonEmptySliver),
         bufferCount(10, 5),
-        flatMap(getHashes)
+        flatMap(F.getHashesFromProminentFrequenciesWithIndices)
       )
 
     hashesObservable.subscribe({
       next: hashes => {
-        // console.log(`[hashesObservable.next] hashes: ${JSON.stringify(hashes)}`)
+        console.log(`[hashesObservable.next] hashes.length: ${hashes.length}`)
         if (ws.readyState === 1) {
           ws.send(JSON.stringify(hashes))
         }
@@ -95,39 +91,22 @@ const onRecord = async () => {
     updateUiState(RECORDING)
     mediaRecorder.start()
     showMatchingSpinner()
-    startListeningAnimation()
   } catch (error) {
     showErrorPanel(error)
   }
 }
 
-const toAudioBuffer = ({ channelData, sampleRate }) => {
-  // console.log(`[toAudioBuffer] channelData.length: ${channelData.length}; sampleRate: ${sampleRate}`)
-  return UW.createAudioBuffer(channelData, sampleRate)
-}
+const toAudioBuffer = ({ channelData, sampleRate }) =>
+  UW.createAudioBuffer(channelData, sampleRate)
 
-const resample = audioBuffer => {
-  // console.log(`[resample] audioBuffer.duration: ${audioBuffer.duration}`)
-  return UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE)
-}
+const resample = audioBuffer =>
+  UW.resample(audioBuffer, C.TARGET_SAMPLE_RATE)
 
-const getProminentFrequenciesWithIndices = () => {
-  let index = 0
-  return async audioBuffer => {
-    // console.log(`[getProminentFrequenciesWithIndices] audioBuffer.duration: ${audioBuffer.duration}`)
-    const pfss = await F.getProminentFrequencies(audioBuffer)
-    return pfss.map(pfs => [pfs, index++])
-  }
-}
+const addIndex = (index = 0) =>
+  item => [item, index++]
 
-const flatten = value => rxjs.of(...value)
-
-const notEmpty = ([pfs]) => pfs.length > 0
-
-const getHashes = pfssWithIndices => {
-  // console.log(`[getHashes] pfs.length: ${pfssWithIndices[0].length}`)
-  return F.getHashesFromProminentFrequenciesWithIndices(pfssWithIndices)
-}
+const nonEmptySliver = ([pfs]) =>
+  pfs.length > 0
 
 const RECORDING = Symbol('RECORDING')
 const FINISHED_RECORDING = Symbol('FINISHED_RECORDING')
@@ -180,19 +159,4 @@ const showElapsedTime = elapsedTime => {
   elapsedTimeRow.style.display = 'block'
   const elapsedTimePre = elapsedTimeRow.querySelector('pre')
   elapsedTimePre.innerHTML = `Elapsed time: ${elapsedTime}`
-}
-
-const startListeningAnimation = () => {
-  listeningAnimationState.active = true
-  requestAnimationFrame(drawListeningAnimation)
-}
-
-const stopListeningAnimation = () => {
-  listeningAnimationState.active = false
-}
-
-const drawListeningAnimation = () => {
-  console.log('[drawListeningAnimation]')
-  // TODO: implement the animation...
-  listeningAnimationState.active && requestAnimationFrame(drawListeningAnimation)
 }
