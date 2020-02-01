@@ -55,3 +55,17 @@ canvas {
 fieldset {
   margin-top: 10px;
 }
+
+#error-panel {
+  position: fixed;
+  z-index: 2;
+  max-width: calc(100% - 40px);
+  overflow-wrap: break-word;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+#error-panel .close {
+  margin-left: 10px;
+}
