@@ -99,9 +99,8 @@ const updateCharts = () =>
 const drawCharts = async (sampleRate, fftSize, frequencies, gain) => {
   try {
     UH.hideErrorPanel()
-    const SECONDS = 1
     const numberOfChannels = 1
-    const length = sampleRate * SECONDS
+    const length = sampleRate
     const audioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
     const gainNode = audioContext.createGain()
     gainNode.gain.value = gain
@@ -110,9 +109,12 @@ const drawCharts = async (sampleRate, fftSize, frequencies, gain) => {
     analyserNode.fftSize = fftSize
     gainNode.connect(analyserNode)
     analyserNode.connect(audioContext.destination)
-    oscillatorNodes.forEach(startOscillatorNode(audioContext.currentTime))
-    oscillatorNodes.forEach(stopOscillatorNode(audioContext.currentTime + SECONDS))
-    await audioContext.startRendering()
+    oscillatorNodes.forEach(startOscillatorNode(0))
+    oscillatorNodes.forEach(stopOscillatorNode(1))
+    await new Promise(resolve => {
+      audioContext.oncomplete = resolve
+      audioContext.startRendering()
+    })
     const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
     const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
     analyserNode.getByteTimeDomainData(timeDomainData)

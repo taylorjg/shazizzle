@@ -1,40 +1,60 @@
 <html>
 
 <head>
-    <title>Test Tones (mp3 files)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
-    <link rel="stylesheet" href="styles.css">
+  <title>Test Tones (mp3 files)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
+  <link rel="stylesheet" href="styles.css">
+  <template id="error-panel-template">
+    <div id="error-panel" class="alert alert-danger" role="alert">
+      <button type="button" class="close" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <span class="error-panel-text"></span>
+    </div>
+  </template>
 </head>
 
 <body>
-    <div class="container">
-        <div id="chartsRow" class="charts">
-            <span class="multi-chart-container">
-                <span class="chart-title">Time Domain</span>
-                <canvas id="timeDomainChart"></canvas>
-            </span>
-            <span class="multi-chart-container">
-                <span class="chart-title">FFT</span>
-                <canvas id="fftChart"></canvas>
-            </span>
-        </div>
-        <div id="testTonesRow">
-            <fieldset id="testTones">
-                <legend>Test Tones</legend>
-            </fieldset>
-        </div>
-        <div id="binsRow">
-            <pre></pre>
-        </div>
+  <div class="container">
+    <div id="chartsRow" class="charts">
+      <span class="multi-chart-container">
+        <span class="chart-title">Time Domain</span>
+        <canvas id="timeDomainChart"></canvas>
+      </span>
+      <span class="multi-chart-container">
+        <span class="chart-title">FFT</span>
+        <canvas id="fftChart"></canvas>
+      </span>
     </div>
+    <div id="sampleRatesRow">
+      <fieldset id="sampleRates">
+        <legend>Sample Rates</legend>
+      </fieldset>
+    </div>
+    <div id="fftSizesRow">
+      <fieldset id="fftSizes">
+        <legend>FFT Sizes</legend>
+      </fieldset>
+    </div>
+    <div id="testTonesRow">
+      <fieldset id="testTones">
+        <legend>Test Tones</legend>
+      </fieldset>
+    </div>
+    <div id="binsRow">
+      <fieldset>
+        <legend>Top Bins</legend>
+      </fieldset>
+      <pre></pre>
+    </div>
+  </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
-    <script type="module" src="mp3TestTones.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+  <script type="module" src="mp3TestTones.js"></script>
 </body>
 
 </html>
