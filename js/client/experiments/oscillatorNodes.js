@@ -69,11 +69,6 @@ const onGainChange = () => {
   updateCharts()
 }
 
-UH.setSelectedValue(sampleRateSelect, currentSampleRate)
-UH.setSelectedValue(fftSizesSelect, currentFftSize)
-UH.setCheckedCheckboxes(frequencyCheckboxes, currentFrequencies)
-UH.setCheckedRadioButton(gainRadioButtons, currentGain)
-
 UH.selectOnChange(sampleRateSelect, onSampleRateChange)
 UH.selectOnChange(fftSizesSelect, onFftSizeChange)
 UH.checkboxesOnChange(frequencyCheckboxes, onFrequencyChange)
