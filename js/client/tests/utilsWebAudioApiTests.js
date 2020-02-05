@@ -1,6 +1,7 @@
-import { it_multiple } from './it_multiple.js'
+import '../AudioContextMonkeyPatch.js'
 import * as C from '../common/constants.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
+import { it_multiple } from './it_multiple.js'
 
 describe('utilsWebAudioApi.js tests', () => {
 
@@ -22,16 +23,15 @@ describe('utilsWebAudioApi.js tests', () => {
       const DURATION = 1
       const SAMPLE_RATE_1 = 44100
       const SAMPLE_RATE_2 = 16000
-      const options = {
-        length: DURATION * SAMPLE_RATE_1,
-        sampleRate: SAMPLE_RATE_1
-      }
-      const audioContext = new OfflineAudioContext(options)
-      const source = new OscillatorNode(audioContext, { frequency })
-      source.connect(audioContext.destination)
-      source.start()
-      source.stop(DURATION)
-      const audioBuffer1 = await audioContext.startRendering()
+      const numberOfChannels = 1
+      const length = DURATION * SAMPLE_RATE_1
+      const audioContext = new OfflineAudioContext(numberOfChannels, length, SAMPLE_RATE_1)
+      const oscillatorNode = audioContext.createOscillator()
+      oscillatorNode.frequency.value = frequency
+      oscillatorNode.connect(audioContext.destination)
+      oscillatorNode.start()
+      oscillatorNode.stop(DURATION)
+      const audioBuffer1 = await UW.startRenderingPromise(audioContext)
       const audioBuffer2 = await UW.resample(audioBuffer1, SAMPLE_RATE_2)
       const { frequencyData: frequencyData1 } = await UW.getSliverData(audioBuffer1, 10)
       const { frequencyData: frequencyData2 } = await UW.getSliverData(audioBuffer2, 10)
@@ -53,12 +53,11 @@ describe('utilsWebAudioApi.js tests', () => {
     ],
     'UW.steroToMono correctly combines left and right channels',
     async (constant1, constant2) => {
-      const options = {
-        numberOfChannels: 2,
-        length: 1024,
-        sampleRate: 44100
-      }
-      const steroBuffer = new AudioBuffer(options)
+      const numberOfChannels = 2
+      const length = 1024
+      const sampleRate = 44100
+      const audioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
+      const steroBuffer = audioContext.createBuffer(numberOfChannels, length, sampleRate)
       const steroChannelData0 = steroBuffer.getChannelData(0)
       const steroChannelData1 = steroBuffer.getChannelData(1)
       steroChannelData0.fill(constant1)

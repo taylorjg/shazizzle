@@ -1,8 +1,9 @@
 import '../AudioContextMonkeyPatch.js'
 import * as UH from '../common/utils/utilsHtml.js'
 import * as UC from '../common/utils/utilsChart.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
 
-const SAMPLE_RATES = [44100, 8000]
+const SAMPLE_RATES = [44100, 22050, 8000]
 const FFT_SIZES = [256, 512, 1024, 2048, 4096, 8192]
 const FREQUENCY_VALUES = [10, 440, 1000, 2000]
 const GAIN_VALUES = [0.125, 0.25, 0.5, 0.75, 1.0]
@@ -106,10 +107,7 @@ const drawCharts = async (sampleRate, fftSize, frequencies, gain) => {
     analyserNode.connect(audioContext.destination)
     oscillatorNodes.forEach(startOscillatorNode(0))
     oscillatorNodes.forEach(stopOscillatorNode(1))
-    await new Promise(resolve => {
-      audioContext.oncomplete = resolve
-      audioContext.startRendering()
-    })
+    await UW.startRenderingPromise(audioContext)
     const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
     const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
     analyserNode.getByteTimeDomainData(timeDomainData)

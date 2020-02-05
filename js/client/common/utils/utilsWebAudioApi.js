@@ -21,17 +21,20 @@ export const decodeChunks = async (chunks, sampleRate = 44100) => {
 
 const copySliver = (srcBuffer, dstBuffer, sliverIndex) => {
   const startOffset = Math.floor(srcBuffer.sampleRate * sliverIndex * C.SLIVER_DURATION)
+  const endOffset = Math.floor(srcBuffer.sampleRate * (sliverIndex + 1) * C.SLIVER_DURATION)
   const channelIndices = R.range(0, srcBuffer.numberOfChannels)
   channelIndices.forEach(channelIndex => {
+    const srcChannelData = srcBuffer.getChannelData(channelIndex)
     const dstChannelData = dstBuffer.getChannelData(channelIndex)
-    srcBuffer.copyFromChannel(dstChannelData, channelIndex, startOffset)
+    const sliverOfData = srcChannelData.subarray(startOffset, endOffset)
+    dstChannelData.set(sliverOfData)
   })
 }
 
 export const createAudioBuffer = (channelData, sampleRate) => {
   const options = {
-    length: channelData.length,
     numberOfChannels: 1,
+    length: channelData.length,
     sampleRate
   }
   const audioBuffer = new AudioBuffer(options)
@@ -60,20 +63,21 @@ export const getSliverFrequencyData = async (inputBuffer, sliverIndex) => {
 }
 
 export const getSliverData = async (inputBuffer, sliverIndex, flags = BOTH) => {
-  const options = {
-    numberOfChannels: inputBuffer.numberOfChannels,
-    length: Math.ceil(inputBuffer.sampleRate * C.SLIVER_DURATION),
-    sampleRate: inputBuffer.sampleRate
-  }
-  const sliverBuffer = new AudioBuffer(options)
+  const numberOfChannels = inputBuffer.numberOfChannels
+  // TODO: should length calculation include numberOfChannels factor ?
+  const length = Math.ceil(inputBuffer.sampleRate * C.SLIVER_DURATION)
+  const sampleRate = inputBuffer.sampleRate
+  const audioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
+  const sliverBuffer = audioContext.createBuffer(numberOfChannels, length, sampleRate)
   copySliver(inputBuffer, sliverBuffer, sliverIndex)
-  const audioContext = new OfflineAudioContext(options)
-  const sourceNode = new AudioBufferSourceNode(audioContext, { buffer: sliverBuffer })
-  const analyserNode = new AnalyserNode(audioContext, { fftSize: C.FFT_SIZE })
+  const sourceNode = audioContext.createBufferSource()
+  const analyserNode = audioContext.createAnalyser()
+  analyserNode.fftSize = C.FFT_SIZE
+  sourceNode.buffer = sliverBuffer
   sourceNode.connect(audioContext.destination)
   sourceNode.connect(analyserNode)
   sourceNode.start()
-  await audioContext.startRendering()
+  await startRenderingPromise(audioContext)
 
   const timeDomainData = flags === TIME_DOMAIN_DATA_ONLY || flags === BOTH
     ? new Uint8Array(analyserNode.frequencyBinCount)
@@ -150,32 +154,35 @@ export const createLiveVisualisationObservable = (mediaRecorder, mediaStream) =>
 }
 
 export const resample = async (srcBuffer, targetSampleRate) => {
-  const options = {
-    numberOfChannels: srcBuffer.numberOfChannels,
-    length: srcBuffer.duration * targetSampleRate,
-    sampleRate: targetSampleRate
-  }
-  const audioContext = new OfflineAudioContext(options)
-  const source = audioContext.createBufferSource()
-  source.buffer = srcBuffer
-  source.connect(audioContext.destination)
-  source.start()
-  const dstBuffer = await audioContext.startRendering()
-  return dstBuffer
+  const numberOfChannels = srcBuffer.numberOfChannels
+  const length = srcBuffer.duration * targetSampleRate
+  const audioContext = new OfflineAudioContext(numberOfChannels, length, targetSampleRate)
+  const sourceNode = audioContext.createBufferSource()
+  sourceNode.buffer = srcBuffer
+  sourceNode.connect(audioContext.destination)
+  sourceNode.start()
+  return startRenderingPromise(audioContext)
 }
 
 export const steroToMono = async srcBuffer => {
   if (srcBuffer.numberOfChannels === 1) return srcBuffer
-  const options = {
-    numberOfChannels: 1,
-    length: srcBuffer.length,
-    sampleRate: srcBuffer.sampleRate
-  }
-  const audioContext = new OfflineAudioContext(options)
-  const source = audioContext.createBufferSource()
-  source.buffer = srcBuffer
-  source.connect(audioContext.destination)
-  source.start()
-  const dstBuffer = await audioContext.startRendering()
-  return dstBuffer
+  const numberOfChannels = 1
+  const length = srcBuffer.length
+  const sampleRate = srcBuffer.sampleRate
+  const audioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
+  const sourceNode = audioContext.createBufferSource()
+  sourceNode.buffer = srcBuffer
+  sourceNode.connect(audioContext.destination)
+  sourceNode.start()
+  return startRenderingPromise(audioContext)
 }
+
+export const startRenderingPromise = offlineAudioContext =>
+  new Promise(resolve => {
+    offlineAudioContext.oncomplete = e => resolve(e.renderedBuffer)
+    offlineAudioContext.startRendering()
+  })
+
+export const decodeAudioDataPromise = (baseAudioContext, data) =>
+  new Promise((resolve, reject) =>
+    baseAudioContext.decodeAudioData(data, resolve, reject))

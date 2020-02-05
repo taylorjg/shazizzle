@@ -1,6 +1,8 @@
-import { it_multiple } from './it_multiple.js'
+import '../AudioContextMonkeyPatch.js'
 import * as C from '../common/constants.js'
 import * as F from '../common/logic/fingerprinting.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
+import { it_multiple } from './it_multiple.js'
 
 describe('fingerprinting.js tests', () => {
 
@@ -15,16 +17,14 @@ describe('fingerprinting.js tests', () => {
     async frequency => {
       const DURATION = 1
       const SAMPLE_RATE = 44100
-      const options = {
-        length: DURATION * SAMPLE_RATE,
-        sampleRate: SAMPLE_RATE
-      }
-      const audioContext = new OfflineAudioContext(options)
-      const source = new OscillatorNode(audioContext, { frequency })
-      source.connect(audioContext.destination)
-      source.start()
-      source.stop(DURATION)
-      const audioBuffer = await audioContext.startRendering()
+      const length = DURATION * SAMPLE_RATE
+      const audioContext = new OfflineAudioContext(1, length, SAMPLE_RATE)
+      const oscillatorNode = audioContext.createOscillator()
+      oscillatorNode.frequency.value = frequency
+      oscillatorNode.connect(audioContext.destination)
+      oscillatorNode.start()
+      oscillatorNode.stop(DURATION)
+      const audioBuffer = await UW.startRenderingPromise(audioContext)
       const binSize = SAMPLE_RATE / C.FFT_SIZE
       const expectedTopBinIndex = Math.round(frequency / binSize)
       const pfss = await F.getProminentFrequencies(audioBuffer)
@@ -42,16 +42,17 @@ describe('fingerprinting.js tests', () => {
     async (...frequencies) => {
       const DURATION = 1
       const SAMPLE_RATE = 44100
-      const options = {
-        length: DURATION * SAMPLE_RATE,
-        sampleRate: SAMPLE_RATE
-      }
-      const audioContext = new OfflineAudioContext(options)
-      const sources = frequencies.map(frequency => new OscillatorNode(audioContext, { frequency }))
-      sources.map(source => source.connect(audioContext.destination))
-      sources.map(source => source.start())
-      sources.map(source => source.stop(DURATION))
-      const audioBuffer = await audioContext.startRendering()
+      const length = DURATION * SAMPLE_RATE
+      const audioContext = new OfflineAudioContext(1, length, SAMPLE_RATE)
+      const oscillatorNodes = frequencies.map(frequency => {
+        const oscillatorNode = audioContext.createOscillator()
+        oscillatorNode.frequency.value = frequency
+        return oscillatorNode
+      })
+      oscillatorNodes.map(source => source.connect(audioContext.destination))
+      oscillatorNodes.map(source => source.start())
+      oscillatorNodes.map(source => source.stop(DURATION))
+      const audioBuffer = await UW.startRenderingPromise(audioContext)
       const binSize = SAMPLE_RATE / C.FFT_SIZE
       const expectedTopBinIndices = frequencies.map(frequency => Math.round(frequency / binSize))
       const pfss = await F.getProminentFrequencies(audioBuffer)

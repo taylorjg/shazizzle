@@ -1,3 +1,5 @@
+import '../AudioContextMonkeyPatch.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
 import { it_multiple } from './it_multiple.js'
 
 describe('Exploratory tests', () => {
@@ -22,18 +24,17 @@ describe('Exploratory tests', () => {
       const DURATION = 1
       const SAMPLE_RATE = 44100
       const FFT_SIZE = 1024
-      const options = {
-        length: DURATION * SAMPLE_RATE,
-        sampleRate: SAMPLE_RATE
-      }
-      const audioContext = new OfflineAudioContext(options)
-      const source = new OscillatorNode(audioContext, { frequency })
-      const analyserNode = new AnalyserNode(audioContext, { fftSize: FFT_SIZE })
-      source.connect(analyserNode)
+      const length = DURATION * SAMPLE_RATE
+      const audioContext = new OfflineAudioContext(1, length, SAMPLE_RATE)
+      const oscillatorNode = audioContext.createOscillator()
+      oscillatorNode.frequency.value = frequency
+      const analyserNode = audioContext.createAnalyser()
+      analyserNode.fftSize = FFT_SIZE
+      oscillatorNode.connect(analyserNode)
       analyserNode.connect(audioContext.destination)
-      source.start()
-      source.stop(DURATION)
-      await audioContext.startRendering()
+      oscillatorNode.start()
+      oscillatorNode.stop(DURATION)
+      await UW.startRenderingPromise(audioContext)
       const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
       analyserNode.getByteFrequencyData(frequencyData)
       const binSize = SAMPLE_RATE / FFT_SIZE
@@ -52,22 +53,25 @@ describe('Exploratory tests', () => {
     'FFT identifies correct frequencies from multiple oscillators',
     async (...frequencies) => {
       const DURATION = 1
-      const SAMPLE_RATE = 8000
+      const SAMPLE_RATE = 44100
       const FFT_SIZE = 1024
-      const options = {
-        length: DURATION * SAMPLE_RATE,
-        sampleRate: SAMPLE_RATE
-      }
-      const audioContext = new OfflineAudioContext(options)
-      const analyserNode = new AnalyserNode(audioContext, { fftSize: FFT_SIZE })
+      const length = DURATION * SAMPLE_RATE
+      const audioContext = new OfflineAudioContext(1, length, SAMPLE_RATE)
+      const analyserNode = audioContext.createAnalyser()
+      analyserNode.fftSize = FFT_SIZE
       analyserNode.connect(audioContext.destination)
-      const gainNode = new GainNode(audioContext, { gain: 0.125 })
+      const gainNode = audioContext.createGain()
+      gainNode.gain.value = 0.125
       gainNode.connect(analyserNode)
-      const sources = frequencies.map(frequency => new OscillatorNode(audioContext, { frequency }))
-      sources.map(source => source.connect(gainNode))
-      sources.map(source => source.start())
-      sources.map(source => source.stop(DURATION))
-      await audioContext.startRendering()
+      const oscillatorNodes = frequencies.map(frequency => {
+        const oscillatorNode = audioContext.createOscillator()
+        oscillatorNode.frequency.value = frequency
+        return oscillatorNode
+      })
+      oscillatorNodes.map(source => source.connect(gainNode))
+      oscillatorNodes.map(source => source.start())
+      oscillatorNodes.map(source => source.stop(DURATION))
+      await UW.startRenderingPromise(audioContext)
       const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
       analyserNode.getByteFrequencyData(frequencyData)
       const binSize = SAMPLE_RATE / FFT_SIZE
@@ -98,19 +102,18 @@ describe('Exploratory tests', () => {
       const response = await axios.get(`/signals/${testToneFile}`, config)
       const data = response.data
 
-      const options = {
-        length: DURATION * SAMPLE_RATE,
-        sampleRate: SAMPLE_RATE
-      }
-      const audioContext = new OfflineAudioContext(options)
-      const audioBuffer = await audioContext.decodeAudioData(data)
+      const length = DURATION * SAMPLE_RATE
+      const audioContext = new OfflineAudioContext(1, length, SAMPLE_RATE)
+      const audioBuffer = await UW.decodeAudioDataPromise(audioContext, data)
 
-      const source = new AudioBufferSourceNode(audioContext, { buffer: audioBuffer })
-      const analyserNode = new AnalyserNode(audioContext, { fftSize: FFT_SIZE })
-      source.connect(audioContext.destination)
-      source.connect(analyserNode)
-      source.start()
-      await audioContext.startRendering()
+      const sourceNode = audioContext.createBufferSource()
+      sourceNode.buffer = audioBuffer
+      const analyserNode = audioContext.createAnalyser()
+      analyserNode.fftSize = FFT_SIZE
+      sourceNode.connect(audioContext.destination)
+      sourceNode.connect(analyserNode)
+      sourceNode.start()
+      await UW.startRenderingPromise(audioContext)
       const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
       analyserNode.getByteFrequencyData(frequencyData)
 

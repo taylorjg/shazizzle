@@ -1,8 +1,9 @@
 import '../AudioContextMonkeyPatch.js'
 import * as UH from '../common/utils/utilsHtml.js'
 import * as UC from '../common/utils/utilsChart.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
 
-const SAMPLE_RATES = [44100, 8000]
+const SAMPLE_RATES = [44100, 22050, 8000]
 const FFT_SIZES = [256, 512, 1024, 2048, 4096, 8192]
 const TEST_TONES_TO_URLS_MAP = new Map([
   [100, '/signals/100Hz_44100Hz_16bit_05sec.mp3'],
@@ -69,7 +70,7 @@ const drawCharts = async (sampleRate, fftSize, testTone) => {
     const numberOfChannels = 1
     const length = sampleRate
     const audioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
-    const audioBuffer = await new Promise(resolve => audioContext.decodeAudioData(data, resolve))
+    const audioBuffer = await UW.decodeAudioDataPromise(audioContext, data)
     const analyser = audioContext.createAnalyser()
     analyser.fftSize = fftSize
     const source = audioContext.createBufferSource()
@@ -77,10 +78,7 @@ const drawCharts = async (sampleRate, fftSize, testTone) => {
     source.connect(analyser)
     source.start(0)
     source.stop(1)
-    await new Promise(resolve => {
-      audioContext.oncomplete = resolve
-      audioContext.startRendering()
-    })
+    await UW.startRenderingPromise(audioContext)
     const timeDomainData = new Uint8Array(analyser.frequencyBinCount)
     const frequencyData = new Uint8Array(analyser.frequencyBinCount)
     analyser.getByteTimeDomainData(timeDomainData)
