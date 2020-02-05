@@ -16,7 +16,7 @@ const durationRadioButtons = UH.createRadioButtons(
   durationValues)
 
 const onDurationChange = () => {
-  currentDuration = UH.getCheckedRadioButton(durationRadioButtons)
+  currentDuration = Number(UH.getCheckedRadioButton(durationRadioButtons))
 }
 
 UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
@@ -49,6 +49,15 @@ const onRecord = async () => {
     mediaRecorder.onstop = async () => {
       try {
         mediaStream.getTracks().forEach(track => track.stop())
+        const arrayBuffer = await chunks[0].arrayBuffer()
+        console.log(`arrayBuffer.byteLength: ${arrayBuffer.byteLength}`)
+        const config = {
+          headers: {
+            'content-type': 'application/octet-stream'
+          }
+        }
+        const postRecordingsResponse = await axios.post('/api/recordings', arrayBuffer, config)
+        console.log(`postRecordingsResponse.fileName: ${postRecordingsResponse.data.fileName}`)
         audioBuffer = await UW.decodeChunks(chunks, C.TARGET_SAMPLE_RATE)
         const hashes = await F.getHashes(audioBuffer)
         showMatchingSpinner()
@@ -77,6 +86,7 @@ const makeLiveChartingObserver = (mediaRecorder, duration) => ({
       updateProgressBar(percent)
     }
     if (value.currentTime >= (duration + 0.1)) {
+      console.log('Calling mediaRecorder.stop()')
       mediaRecorder.stop()
     }
   }

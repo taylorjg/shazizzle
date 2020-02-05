@@ -20,7 +20,7 @@ const durationRadioButtons = UH.createRadioButtons(
   durationValues)
 
 const onDurationChange = () => {
-  currentDuration = UH.getCheckedRadioButton(durationRadioButtons)
+  currentDuration = Number(UH.getCheckedRadioButton(durationRadioButtons))
 }
 
 UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
