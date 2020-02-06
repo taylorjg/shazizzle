@@ -4,7 +4,7 @@ const path = require('path')
 
 const DAT_EXT = '.dat'
 
-const configureRouter = RECORDINGS_FOLDER => {
+const configureRouter = SAMPLES_FOLDER => {
 
   const numberToFileName = n =>
     `${n.toString().padStart(5, 0)}${DAT_EXT}`
@@ -21,20 +21,20 @@ const configureRouter = RECORDINGS_FOLDER => {
     return path.resolve(folder, numberToFileName(nextNumber))
   }
 
-  const saveRecording = async (req, res) => {
+  const saveSample = async (req, res) => {
     try {
-      console.log(`[recordingsApi#saveRecording] req.body.length: ${req.body.length}`)
-      const fileName = await getNextFileName(RECORDINGS_FOLDER)
+      console.log(`[samplesApi#saveSample] req.body.length: ${req.body.length}`)
+      const fileName = await getNextFileName(SAMPLES_FOLDER)
       await fs.writeFile(fileName, req.body)
       res.json({ fileName })
     } catch (error) {
-      console.log(`[recordingsApi#saveRecording] ${error}`)
+      console.log(`[samplesApi#saveSample] ${error}`)
       res.status(500).send(error.message || 'Internal Server Error')
     }
   }
 
   const router = express.Router()
-  router.post('/recordings', saveRecording)
+  router.post('/samples', saveSample)
 
   return router
 }

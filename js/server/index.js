@@ -6,13 +6,13 @@ const bodyParser = require('body-parser')
 const configurePostgres = require('./db/postgres')
 const configureTracksApi = require('./api/tracks')
 const configureMatchApi = require('./api/match')
-const configureRecordingsApi = require('./api/recordings')
+const configureSamplesApi = require('./api/samples')
 const configureStreamingMatchWs = require('./ws/streamingMatch')
 
 const PORT = process.env.PORT || 3002
 const DATABASE_URL = process.env.DATABASE_URL
 const CLIENT_FOLDER = path.resolve(__dirname, '..', 'client')
-const RECORDINGS_FOLDER = path.resolve(CLIENT_FOLDER, 'recordings')
+const SAMPLES_FOLDER = path.resolve(CLIENT_FOLDER, 'samples')
 
 const main = async () => {
 
@@ -21,7 +21,7 @@ const main = async () => {
   const apiRouters = [
     configureTracksApi(db),
     configureMatchApi(db),
-    configureRecordingsApi(RECORDINGS_FOLDER)
+    configureSamplesApi(SAMPLES_FOLDER)
   ]
 
   const app = express()

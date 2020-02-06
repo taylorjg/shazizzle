@@ -5,8 +5,10 @@ import * as UH from '../common/utils/utilsHtml.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as F from '../common/logic/fingerprinting.js'
 
+const url = new URL(document.location)
+const saveSample = url.searchParams.has('saveSample')
+
 let currentDuration = 5
-let audioBuffer = null
 
 const durationValues = [1, 2, 5, 10, 15, 20]
 
@@ -50,15 +52,26 @@ const onRecord = async () => {
       try {
         mediaStream.getTracks().forEach(track => track.stop())
         const arrayBuffer = await chunks[0].arrayBuffer()
-        console.log(`arrayBuffer.byteLength: ${arrayBuffer.byteLength}`)
-        const config = {
-          headers: {
-            'content-type': 'application/octet-stream'
+
+        if (saveSample) {
+          try {
+            const config = {
+              headers: {
+                'content-type': 'application/octet-stream'
+              }
+            }
+            const saveSampleResponse = await axios.post('/api/samples', arrayBuffer, config)
+            console.log('[mediaRecorder.onstop] saveSampleResponse', saveSampleResponse)
+          } catch (error) {
+            console.log(`[mediaRecorder.onstop] failed to save sample: ${error.message}`)
           }
         }
-        const postRecordingsResponse = await axios.post('/api/recordings', arrayBuffer, config)
-        console.log(`postRecordingsResponse.fileName: ${postRecordingsResponse.data.fileName}`)
-        audioBuffer = await UW.decodeChunks(chunks, C.TARGET_SAMPLE_RATE)
+
+        const numberOfChannels = 1
+        const length = 1
+        const sampleRate = C.TARGET_SAMPLE_RATE
+        const audioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
+        const audioBuffer = await UW.decodeAudioDataPromise(audioContext, arrayBuffer)
         const hashes = await F.getHashes(audioBuffer)
         showMatchingSpinner()
         const matchResponse = await axios.post('/api/match', hashes)
@@ -86,7 +99,6 @@ const makeLiveChartingObserver = (mediaRecorder, duration) => ({
       updateProgressBar(percent)
     }
     if (value.currentTime >= (duration + 0.1)) {
-      console.log('Calling mediaRecorder.stop()')
       mediaRecorder.stop()
     }
   }
