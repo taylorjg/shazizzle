@@ -55,6 +55,33 @@ const createAudioBuffer = (offlineAudioContext, channels) => {
 // [-1, 1] => [0, 255]
 const floatToByte = v => Math.round((v + 1) / 2 * 255)
 
+/* -------------------------------------------------------------------------- */
+
+// https://stackoverflow.com/questions/53150556/accessing-microphone-with-the-help-of-getusermedia-on-ios-safari
+
+if (navigator.mediaDevices === undefined) {
+  navigator.mediaDevices = {}
+}
+
+if (navigator.mediaDevices.getUserMedia === undefined) {
+  navigator.mediaDevices.getUserMedia = constraints => {
+    const getUserMedia = (
+      navigator.getUserMedia ||
+      navigator.webkitGetUserMedia ||
+      navigator.mozGetUserMedia
+    )
+
+    if (!getUserMedia) {
+      return Promise.reject(new Error('getUserMedia is not implemented in this browser'))
+    }
+
+    return new Promise((resolve, reject) =>
+      getUserMedia.call(navigator, constraints, resolve, reject))
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 const onRecord = async () => {
 
   const FFT_SIZE = 4096
