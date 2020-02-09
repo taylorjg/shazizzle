@@ -55,53 +55,67 @@ const createAudioBuffer = (offlineAudioContext, channels) => {
 // [-1, 1] => [0, 255]
 const floatToByte = v => Math.round((v + 1) / 2 * 255)
 
-const FFT_SIZE = 4096
-
 const onRecord = async () => {
-  const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-  const audioContext = new AudioContext()
-  const sourceNode = audioContext.createMediaStreamSource(mediaStream)
-  const moduleUrl = `${location.origin}/experiments/stream-processor.js`
-  await audioContext.audioWorklet.addModule(moduleUrl)
-  const streamWorklet = new StreamWorklet(audioContext, 'stream-processor', FFT_SIZE)
-  sourceNode.connect(streamWorklet)
-  streamWorklet.connect(audioContext.destination)
-  updateUiState(RECORDING)
+
+  const FFT_SIZE = 4096
+
+  let mediaStream
+  let audioContext
+  let streamWorklet
+
+  try {
+    UH.hideErrorPanel()
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    audioContext = new AudioContext()
+    const sourceNode = audioContext.createMediaStreamSource(mediaStream)
+    const moduleUrl = `${location.origin}/experiments/stream-processor.js`
+    await audioContext.audioWorklet.addModule(moduleUrl)
+    streamWorklet = new StreamWorklet(audioContext, 'stream-processor', FFT_SIZE)
+    sourceNode.connect(streamWorklet)
+    streamWorklet.connect(audioContext.destination)
+    updateUiState(RECORDING)
+  } catch (error) {
+    UH.showErrorPanel((error.message + '\n' + error.stack).replace('\n', '<br />'))
+  }
 
   setTimeout(async () => {
-    mediaStream.getTracks().forEach(track => track.stop())
-    await audioContext.close()
-    updateUiState(FINISHED_RECORDING)
-    console.dir(`streamWorklet.allBuffers.length: ${streamWorklet.allBuffers.length}`)
+    try {
+      mediaStream.getTracks().forEach(track => track.stop())
+      await audioContext.close()
+      updateUiState(FINISHED_RECORDING)
+      console.dir(`streamWorklet.allBuffers.length: ${streamWorklet.allBuffers.length}`)
 
-    const numberOfChannels = streamWorklet.allBuffers[0].length
-    const length = FFT_SIZE
-    const sampleRate = audioContext.sampleRate
-    const offlineAudioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
+      const numberOfChannels = streamWorklet.allBuffers[0].length
+      const length = FFT_SIZE
+      const sampleRate = audioContext.sampleRate
+      const offlineAudioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
 
-    const channels = streamWorklet.allBuffers[10]
-    const audioBuffer = createAudioBuffer(offlineAudioContext, channels)
+      const channels = streamWorklet.allBuffers[3]
+      const audioBuffer = createAudioBuffer(offlineAudioContext, channels)
 
-    const analyserNode = offlineAudioContext.createAnalyser()
-    analyserNode.fftSize = FFT_SIZE
-    const sourceNode = offlineAudioContext.createBufferSource()
-    sourceNode.buffer = audioBuffer
-    sourceNode.connect(analyserNode)
-    sourceNode.connect(offlineAudioContext.destination)
-    sourceNode.start()
-    await UW.startRenderingPromise(offlineAudioContext)
+      const analyserNode = offlineAudioContext.createAnalyser()
+      analyserNode.fftSize = FFT_SIZE
+      const sourceNode = offlineAudioContext.createBufferSource()
+      sourceNode.buffer = audioBuffer
+      sourceNode.connect(analyserNode)
+      sourceNode.connect(offlineAudioContext.destination)
+      sourceNode.start()
+      await UW.startRenderingPromise(offlineAudioContext)
 
-    // const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
-    // analyserNode.getByteTimeDomainData(timeDomainData)
-    // UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
-    UC.drawTimeDomainChart('timeDomainChart', channels[0].map(floatToByte))
+      // const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
+      // analyserNode.getByteTimeDomainData(timeDomainData)
+      // UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
+      UC.drawTimeDomainChart('timeDomainChart', channels[0].map(floatToByte))
 
-    const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
-    analyserNode.getByteFrequencyData(frequencyData)
+      const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
+      analyserNode.getByteFrequencyData(frequencyData)
 
-    UC.drawFFTChart('fftChart', frequencyData, sampleRate)
-    const binSize = sampleRate / FFT_SIZE
-    showBins(binSize, frequencyData)
+      UC.drawFFTChart('fftChart', frequencyData, sampleRate)
+      const binSize = sampleRate / FFT_SIZE
+      showBins(binSize, frequencyData)
+    } catch (error) {
+      UH.showErrorPanel((error.message + '\n' + error.stack).replace('\n', '<br />'))
+    }
   }, currentDuration * 1000)
 }
 

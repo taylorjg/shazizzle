@@ -89,7 +89,7 @@ export const showErrorPanel = errorMessage => {
   const clone = document.importNode(template.content, true)
   const errorPanelText = clone.querySelector('.error-panel-text')
   const closeBtn = clone.querySelector('.close')
-  errorPanelText.textContent = errorMessage
+  errorPanelText.innerHTML = errorMessage
   closeBtn.addEventListener('click', hideErrorPanel)
   parentElement.appendChild(clone)
 }
