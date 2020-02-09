@@ -1,5 +1,4 @@
 import '../AudioContextMonkeyPatch.js'
-import * as C from '../common/constants.js'
 import * as UC from '../common/utils/utilsChart.js'
 import * as UH from '../common/utils/utilsHtml.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
@@ -56,16 +55,17 @@ const createAudioBuffer = (offlineAudioContext, channels) => {
 // [-1, 1] => [0, 255]
 const floatToByte = v => Math.round((v + 1) / 2 * 255)
 
+const FFT_SIZE = 4096
+
 const onRecord = async () => {
   const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
   const audioContext = new AudioContext()
   const sourceNode = audioContext.createMediaStreamSource(mediaStream)
   const moduleUrl = `${location.origin}/experiments/stream-processor.js`
   await audioContext.audioWorklet.addModule(moduleUrl)
-  const streamWorklet = new StreamWorklet(audioContext, 'stream-processor', C.FFT_SIZE)
+  const streamWorklet = new StreamWorklet(audioContext, 'stream-processor', FFT_SIZE)
   sourceNode.connect(streamWorklet)
   streamWorklet.connect(audioContext.destination)
-
   updateUiState(RECORDING)
 
   setTimeout(async () => {
@@ -75,7 +75,7 @@ const onRecord = async () => {
     console.dir(`streamWorklet.allBuffers.length: ${streamWorklet.allBuffers.length}`)
 
     const numberOfChannels = streamWorklet.allBuffers[0].length
-    const length = C.FFT_SIZE
+    const length = FFT_SIZE
     const sampleRate = audioContext.sampleRate
     const offlineAudioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
 
@@ -83,7 +83,7 @@ const onRecord = async () => {
     const audioBuffer = createAudioBuffer(offlineAudioContext, channels)
 
     const analyserNode = offlineAudioContext.createAnalyser()
-    analyserNode.fftSize = C.FFT_SIZE
+    analyserNode.fftSize = FFT_SIZE
     const sourceNode = offlineAudioContext.createBufferSource()
     sourceNode.buffer = audioBuffer
     sourceNode.connect(analyserNode)
@@ -100,7 +100,7 @@ const onRecord = async () => {
     analyserNode.getByteFrequencyData(frequencyData)
 
     UC.drawFFTChart('fftChart', frequencyData, sampleRate)
-    const binSize = sampleRate / C.FFT_SIZE
+    const binSize = sampleRate / FFT_SIZE
     showBins(binSize, frequencyData)
   }, currentDuration * 1000)
 }
