@@ -56,6 +56,8 @@ class StreamWorklet extends AudioWorkletNode {
   constructor(audioContext, name, bufferSize) {
     logMessage(`[StreamWorklet#constructor] name: ${name}`)
     const options = {
+      numberOfInputs: 1,
+      numberOfOutputs: 1,
       processorOptions: {
         bufferSize
       }
