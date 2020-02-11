@@ -1,7 +1,27 @@
+// TODO:
+// * add message area <pre> element
+// - handle FFT_SIZE < ScriptProcessorNode buffer size
+//  - in StreamWorklet#onMessage, accumulate all buffers into a single buffer
+//   - with combined channel data
+//  - preallocate buffer ?
+// - add radio buttons to select FFT_SIZE
+// - add live visualisation of data (time domain and frequency domain)
+//  - using requestAnimationFrame
+//  - use last FFT_SIZE elements of accumulated/combined data
+//   - skip if we don't have enough data yet
+// allow selection of sliver to show data for (full slivers only)
+// - index 0: first FFT_SIZE elements
+// - index 1: second FFT_SIZE elements
+// - etc.
+// have separate time domain chart functions for Float32Array [-1, 1] and Uint8Array [0, 255]
+//  - won't need to do floatToByte
+// improve labels on charts
+//  - time domain
+//  - frequency domain
+
 import '../AudioContextMonkeyPatch.js'
 import * as UC from '../common/utils/utilsChart.js'
 import * as UH from '../common/utils/utilsHtml.js'
-import * as UW from '../common/utils/utilsWebAudioApi.js'
 
 const DURATIONS = [1, 2, 5, 10, 15, 20]
 
@@ -21,10 +41,20 @@ UH.radioButtonsOnChange(durationRadioButtons, onDurationChange)
 
 const recordButton = document.getElementById('record')
 const binsRow = document.getElementById('binsRow')
+const messageLog = document.getElementById('messageLog')
+
+const clearMessages = () =>
+  messageLog.innerText = ''
+
+const logMessage = message => {
+  const oldText = messageLog.innerText
+  const newText = oldText ? `${oldText}\n${message}` : message
+  messageLog.innerText = newText
+}
 
 class StreamWorklet extends AudioWorkletNode {
   constructor(audioContext, name, bufferSize) {
-    console.log(`[StreamWorklet#constructor] name: ${name}; sampleRate: ${audioContext.sampleRate}`)
+    logMessage(`[StreamWorklet#constructor] name: ${name}`)
     const options = {
       processorOptions: {
         bufferSize
@@ -34,53 +64,36 @@ class StreamWorklet extends AudioWorkletNode {
     this.allBuffers = []
     this.port.onmessage = message => {
       const buffers = message.data
-      console.log(`[StreamWorklet#onMessage] buffers.length: ${buffers.length}; buffers[0].length: ${buffers[0].length}`)
+      logMessage(`[StreamWorklet#onMessage] buffers.length: ${buffers.length}; buffers[0].length: ${buffers[0].length}`)
       this.allBuffers.push(buffers)
     }
   }
 }
 
-const createAudioBuffer = (offlineAudioContext, channels) => {
+const formatError = error =>
+  `${error.message}\n${error.stack}`.replace('\n', '<br />')
+
+const combineChannels = channels => {
   const numberOfChannels = channels.length
-  const length = channels[0].length
-  const sampleRate = offlineAudioContext.sampleRate
-  const audioBuffer = offlineAudioContext.createBuffer(numberOfChannels, length, sampleRate)
-  channels.forEach((srcChannelData, channelIndex) => {
-    const destChannelData = audioBuffer.getChannelData(channelIndex)
-    destChannelData.set(srcChannelData)
-  })
-  return audioBuffer
+  if (numberOfChannels === 1) return channels[0]
+  if (numberOfChannels === 2) {
+    const [channel0, channel1] = channels
+    return channel0.map((value, idx) => 0.5 * (value + channel1[idx]))
+  }
+  throw new Error(`[combineChannels] expected 1 or 2 channels but got ${numberOfChannels}`)
+}
+
+const getFrequencyData = async channelData => {
+  const real = tf.tensor1d(channelData)
+  const imag = tf.zerosLike(real)
+  const x = tf.complex(real, imag)
+  const X = x.fft()
+  const reX = await tf.real(X).data()
+  return reX.slice(0, reX.length / 2)
 }
 
 // [-1, 1] => [0, 255]
 const floatToByte = v => Math.round((v + 1) / 2 * 255)
-
-/* -------------------------------------------------------------------------- */
-
-// https://stackoverflow.com/questions/53150556/accessing-microphone-with-the-help-of-getusermedia-on-ios-safari
-
-// if (navigator.mediaDevices === undefined) {
-//   navigator.mediaDevices = {}
-// }
-
-// if (navigator.mediaDevices.getUserMedia === undefined) {
-//   navigator.mediaDevices.getUserMedia = constraints => {
-//     const getUserMedia = (
-//       navigator.getUserMedia ||
-//       navigator.webkitGetUserMedia ||
-//       navigator.mozGetUserMedia
-//     )
-
-//     if (!getUserMedia) {
-//       return Promise.reject(new Error('getUserMedia is not implemented in this browser'))
-//     }
-
-//     return new Promise((resolve, reject) =>
-//       getUserMedia.call(navigator, constraints, resolve, reject))
-//   }
-// }
-
-/* -------------------------------------------------------------------------- */
 
 const onRecord = async () => {
 
@@ -92,8 +105,10 @@ const onRecord = async () => {
 
   try {
     UH.hideErrorPanel()
+    clearMessages()
     mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
     audioContext = new AudioContext()
+    logMessage(`audioContext.sampleRate: ${audioContext.sampleRate}`)
     const sourceNode = audioContext.createMediaStreamSource(mediaStream)
     const moduleUrl = `${location.origin}/experiments/stream-processor.js`
     await audioContext.audioWorklet.addModule(moduleUrl)
@@ -102,46 +117,31 @@ const onRecord = async () => {
     streamWorklet.connect(audioContext.destination)
     updateUiState(RECORDING)
   } catch (error) {
-    UH.showErrorPanel((error.message + '\n' + error.stack).replace('\n', '<br />'))
+    UH.showErrorPanel(formatError(error))
+    return
   }
 
   setTimeout(async () => {
     try {
+      logMessage(`[setTimeout callback] stopping tracks`)
       mediaStream.getTracks().forEach(track => track.stop())
+      logMessage(`[setTimeout callback] closing audioContext`)
       await audioContext.close()
       updateUiState(FINISHED_RECORDING)
-      console.dir(`streamWorklet.allBuffers.length: ${streamWorklet.allBuffers.length}`)
+      logMessage(`[setTimeout callback] streamWorklet.allBuffers.length: ${streamWorklet.allBuffers.length}`)
 
-      const numberOfChannels = streamWorklet.allBuffers[0].length
-      const length = FFT_SIZE
+      const channels = streamWorklet.allBuffers.slice(-1)[0]
+      const combinedChannel = combineChannels(channels)
+
+      UC.drawTimeDomainChart('timeDomainChart', combinedChannel.map(floatToByte))
+
       const sampleRate = audioContext.sampleRate
-      const offlineAudioContext = new OfflineAudioContext(numberOfChannels, length, sampleRate)
-
-      const channels = streamWorklet.allBuffers[3]
-      const audioBuffer = createAudioBuffer(offlineAudioContext, channels)
-
-      const analyserNode = offlineAudioContext.createAnalyser()
-      analyserNode.fftSize = FFT_SIZE
-      const sourceNode = offlineAudioContext.createBufferSource()
-      sourceNode.buffer = audioBuffer
-      sourceNode.connect(analyserNode)
-      sourceNode.connect(offlineAudioContext.destination)
-      sourceNode.start()
-      await UW.startRenderingPromise(offlineAudioContext)
-
-      // const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
-      // analyserNode.getByteTimeDomainData(timeDomainData)
-      // UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
-      UC.drawTimeDomainChart('timeDomainChart', channels[0].map(floatToByte))
-
-      const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
-      analyserNode.getByteFrequencyData(frequencyData)
-
+      const frequencyData = await getFrequencyData(combinedChannel)
       UC.drawFFTChart('fftChart', frequencyData, sampleRate)
       const binSize = sampleRate / FFT_SIZE
       showBins(binSize, frequencyData)
     } catch (error) {
-      UH.showErrorPanel((error.message + '\n' + error.stack).replace('\n', '<br />'))
+      UH.showErrorPanel(formatError(error))
     }
   }, currentDuration * 1000)
 }
@@ -164,7 +164,7 @@ const findTopBins = frequencyData => {
 
 const showBins = (binSize, frequencyData) => {
   const topBins = findTopBins(frequencyData)
-  const topFewBins = R.take(4, topBins)
+  const topFewBins = R.take(1, topBins)
   const frequencyRange = bin => {
     const from = (bin * binSize).toFixed(2).padStart(7)
     const to = ((bin + 1) * binSize).toFixed(2).padStart(7)
@@ -176,5 +176,5 @@ const showBins = (binSize, frequencyData) => {
     return `bin: ${binStr}; value: ${valueStr}; frequency range: ${frequencyRange(bin)}`
   })
   const binsPre = document.getElementById('binsRow').querySelector('pre')
-  binsPre.innerHTML = lines.join('\n')
+  binsPre.innerText = lines.join('\n')
 }
