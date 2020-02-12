@@ -1,18 +1,17 @@
 // TODO:
-// * add message area <pre> element
-// - handle FFT_SIZE < ScriptProcessorNode buffer size
-//  - in StreamWorklet#onMessage, accumulate all buffers into a single buffer
-//   - with combined channel data
-//  - preallocate buffer ?
-// - add radio buttons to select FFT_SIZE
-// - add live visualisation of data (time domain and frequency domain)
-//  - using requestAnimationFrame
-//  - use last FFT_SIZE elements of accumulated/combined data
-//   - skip if we don't have enough data yet
+// * add a <pre> element to show message log
+// * combine channels in the AudioWorkletProcessor
+// * accumulate combined channels into a singe pre-allocated buffer in the AudioWorkletNode
+// * add live visualisation of data (time domain and frequency domain)
+//  * using requestAnimationFrame
+//  * use the last FFT_SIZE elements of the accumulated channel data
+//   * skip if we don't have enough data yet
+//   * skip if we don't have any new data yet
 // - allow selection of sliver to show data for (full slivers only)
 //  - index 0: first FFT_SIZE elements
 //  - index 1: second FFT_SIZE elements
 //  - etc.
+// - add radio buttons to select FFT_SIZE
 // * have separate time domain chart functions for Float32Array [-1, 1] and Uint8Array [0, 255]
 // - improve labels on charts
 //  - time domain
@@ -46,13 +45,14 @@ const clearMessages = () =>
   messageLog.innerText = ''
 
 const logMessage = message => {
+  console.log(message)
   const oldText = messageLog.innerText
   const newText = oldText ? `${oldText}\n${message}` : message
   messageLog.innerText = newText
 }
 
 class StreamWorklet extends AudioWorkletNode {
-  constructor(audioContext, name, bufferSize) {
+  constructor(audioContext, name, bufferSize, duration) {
     logMessage(`[StreamWorklet#constructor] name: ${name}`)
     const options = {
       processorOptions: {
@@ -60,27 +60,44 @@ class StreamWorklet extends AudioWorkletNode {
       }
     }
     super(audioContext, name, options)
-    this.allBuffers = []
+    this.accumulatedChannelData = new Float32Array(audioContext.sampleRate * duration)
+    this.offset = 0
     this.port.onmessage = message => {
-      const buffers = message.data
-      logMessage(`[StreamWorklet#onMessage] buffers.length: ${buffers.length}; buffers[0].length: ${buffers[0].length}`)
-      this.allBuffers.push(buffers)
+      const channelData = message.data
+      const channelDataLength = channelData.length
+      logMessage(`[StreamWorklet#onMessage] channelDataLength: ${channelDataLength}`)
+      if (this.offset + channelDataLength <= this.accumulatedChannelData.length) {
+        this.accumulatedChannelData.set(channelData, this.offset)
+        this.offset += channelDataLength
+      }
     }
   }
 }
 
+const doLiveVisualisation = (mediaStream, streamWorklet, sampleRate, fftSize) => {
+  const track = mediaStream.getTracks()[0]
+  let lastBegin = -1
+  const render = async () => {
+    if (streamWorklet.offset >= fftSize) {
+      const begin = streamWorklet.offset - fftSize
+      const end = streamWorklet.offset
+      if (begin > lastBegin) {
+        const channelData = streamWorklet.accumulatedChannelData.slice(begin, end)
+        UC.drawFloatTimeDomainChart('timeDomainChart', channelData)
+        const frequencyData = await getFrequencyData(channelData)
+        UC.drawFFTChart('fftChart', frequencyData, sampleRate)
+        lastBegin = begin
+      }
+    }
+    if (track.enabled) {
+      requestAnimationFrame(render)
+    }
+  }
+  requestAnimationFrame(render)
+}
+
 const formatError = error =>
   `${error.message}\n${error.stack}`.replace('\n', '<br />')
-
-const combineChannels = channels => {
-  const numberOfChannels = channels.length
-  if (numberOfChannels === 1) return channels[0]
-  if (numberOfChannels === 2) {
-    const [channel0, channel1] = channels
-    return channel0.map((value, idx) => 0.5 * (value + channel1[idx]))
-  }
-  throw new Error(`[combineChannels] expected 1 or 2 channels but got ${numberOfChannels}`)
-}
 
 const getFrequencyData = async channelData => {
   const real = tf.tensor1d(channelData)
@@ -102,16 +119,21 @@ const onRecord = async () => {
   try {
     UH.hideErrorPanel()
     clearMessages()
-    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+
     audioContext = new AudioContext()
     logMessage(`audioContext.sampleRate: ${audioContext.sampleRate}`)
-    const sourceNode = audioContext.createMediaStreamSource(mediaStream)
     const moduleUrl = `${location.origin}/experiments/stream-processor.js`
     await audioContext.audioWorklet.addModule(moduleUrl)
-    streamWorklet = new StreamWorklet(audioContext, 'stream-processor', FFT_SIZE)
+
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    const sourceNode = audioContext.createMediaStreamSource(mediaStream)
+    streamWorklet = new StreamWorklet(audioContext, 'stream-processor', FFT_SIZE, currentDuration)
     sourceNode.connect(streamWorklet)
     streamWorklet.connect(audioContext.destination)
     updateUiState(RECORDING)
+    if (audioContext.audioWorklet.$$context === undefined) {
+      doLiveVisualisation(mediaStream, streamWorklet, audioContext.sampleRate, 1024)
+    }
   } catch (error) {
     UH.showErrorPanel(formatError(error))
     return
@@ -124,18 +146,20 @@ const onRecord = async () => {
       logMessage(`[setTimeout callback] closing audioContext`)
       await audioContext.close()
       updateUiState(FINISHED_RECORDING)
-      logMessage(`[setTimeout callback] streamWorklet.allBuffers.length: ${streamWorklet.allBuffers.length}`)
+      logMessage(`[setTimeout callback] streamWorklet.accumulatedChannelData.length: ${streamWorklet.accumulatedChannelData.length}`)
+      logMessage(`[setTimeout callback] streamWorklet.offset: ${streamWorklet.offset}`)
 
-      const channels = streamWorklet.allBuffers.slice(-1)[0]
-      const combinedChannel = combineChannels(channels)
-
-      UC.drawFloatTimeDomainChart('timeDomainChart', combinedChannel)
-
-      const sampleRate = audioContext.sampleRate
-      const frequencyData = await getFrequencyData(combinedChannel)
-      UC.drawFFTChart('fftChart', frequencyData, sampleRate)
-      const binSize = sampleRate / FFT_SIZE
-      showBins(binSize, frequencyData)
+      if (streamWorklet.offset >= FFT_SIZE) {
+        const begin = streamWorklet.offset - FFT_SIZE
+        const end = streamWorklet.offset
+        const channelData = streamWorklet.accumulatedChannelData.slice(begin, end)
+        UC.drawFloatTimeDomainChart('timeDomainChart', channelData)
+        const sampleRate = audioContext.sampleRate
+        const frequencyData = await getFrequencyData(channelData)
+        UC.drawFFTChart('fftChart', frequencyData, sampleRate)
+        const binSize = sampleRate / FFT_SIZE
+        showBins(binSize, frequencyData)
+      }
     } catch (error) {
       UH.showErrorPanel(formatError(error))
     }
