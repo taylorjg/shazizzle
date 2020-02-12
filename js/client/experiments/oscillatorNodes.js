@@ -112,7 +112,7 @@ const drawCharts = async (sampleRate, fftSize, frequencies, gain) => {
     const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
     analyserNode.getByteTimeDomainData(timeDomainData)
     analyserNode.getByteFrequencyData(frequencyData)
-    UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
+    UC.drawByteTimeDomainChart('timeDomainChart', timeDomainData)
     UC.drawFFTChart('fftChart', frequencyData, sampleRate)
     const binSize = sampleRate / fftSize
     showBins(binSize, frequencies.length, frequencyData)

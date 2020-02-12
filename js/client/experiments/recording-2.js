@@ -9,13 +9,12 @@
 //  - using requestAnimationFrame
 //  - use last FFT_SIZE elements of accumulated/combined data
 //   - skip if we don't have enough data yet
-// allow selection of sliver to show data for (full slivers only)
-// - index 0: first FFT_SIZE elements
-// - index 1: second FFT_SIZE elements
-// - etc.
-// have separate time domain chart functions for Float32Array [-1, 1] and Uint8Array [0, 255]
-//  - won't need to do floatToByte
-// improve labels on charts
+// - allow selection of sliver to show data for (full slivers only)
+//  - index 0: first FFT_SIZE elements
+//  - index 1: second FFT_SIZE elements
+//  - etc.
+// * have separate time domain chart functions for Float32Array [-1, 1] and Uint8Array [0, 255]
+// - improve labels on charts
 //  - time domain
 //  - frequency domain
 
@@ -56,8 +55,6 @@ class StreamWorklet extends AudioWorkletNode {
   constructor(audioContext, name, bufferSize) {
     logMessage(`[StreamWorklet#constructor] name: ${name}`)
     const options = {
-      numberOfInputs: 1,
-      numberOfOutputs: 1,
       processorOptions: {
         bufferSize
       }
@@ -93,9 +90,6 @@ const getFrequencyData = async channelData => {
   const reX = await tf.real(X).data()
   return reX.slice(0, reX.length / 2)
 }
-
-// [-1, 1] => [0, 255]
-const floatToByte = v => Math.round((v + 1) / 2 * 255)
 
 const onRecord = async () => {
 
@@ -135,7 +129,7 @@ const onRecord = async () => {
       const channels = streamWorklet.allBuffers.slice(-1)[0]
       const combinedChannel = combineChannels(channels)
 
-      UC.drawTimeDomainChart('timeDomainChart', combinedChannel.map(floatToByte))
+      UC.drawFloatTimeDomainChart('timeDomainChart', combinedChannel)
 
       const sampleRate = audioContext.sampleRate
       const frequencyData = await getFrequencyData(combinedChannel)

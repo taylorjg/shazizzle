@@ -74,7 +74,7 @@ const makeLiveChartingObserver = (mediaRecorder, duration) => ({
       const percent = R.clamp(0, 100, Math.round(value.currentTime / duration * 100))
       updateProgressBar(percent)
     }
-    UC.drawTimeDomainChart('timeDomainChart', value.timeDomainData)
+    UC.drawByteTimeDomainChart('timeDomainChart', value.timeDomainData)
     UC.drawFFTChart('fftChart', value.frequencyData, value.sampleRate)
     if (value.currentTime >= (duration + 0.1)) {
       mediaRecorder.stop()
@@ -108,7 +108,7 @@ const setCurrentSliver = adjustment => async () => {
   currentSliverLabel.innerText = `${currentSliver + 1}`
   maxSliverLabel.innerText = `${maxSliver}`
   const { timeDomainData, frequencyData } = await UW.getSliverData(audioBuffer, currentSliver)
-  UC.drawTimeDomainChart('timeDomainChart', timeDomainData)
+  UC.drawByteTimeDomainChart('timeDomainChart', timeDomainData)
   UC.drawFFTChart('fftChart', frequencyData, audioBuffer.sampleRate)
   const binSize = C.TARGET_SAMPLE_RATE / C.FFT_SIZE
   showBins(binSize, frequencyData)

@@ -11,7 +11,7 @@ const categoryTickCallbackFrequency = (sampleRate, binCount) => bin =>
     ? formatFrequencyTickWithHz(bin / binCount * sampleRate / 2)
     : null
 
-export const drawTimeDomainChart = (canvasId, data) => {
+export const drawByteTimeDomainChart = (canvasId, data) => {
   const xAxis = {
     type: 'category',
     labels: R.range(0, data.length + 1),
@@ -28,6 +28,28 @@ export const drawTimeDomainChart = (canvasId, data) => {
       min: 0,
       max: 255,
       stepSize: 32
+    }
+  }
+  drawChartInternal(canvasId, data, xAxis, yAxis)
+}
+
+export const drawFloatTimeDomainChart = (canvasId, data) => {
+  const xAxis = {
+    type: 'category',
+    labels: R.range(0, data.length + 1),
+    ticks: {
+      fontSize: 8,
+      autoSkip: false,
+      callback: x => x % 16 === 0 ? x : null
+    }
+  }
+  const yAxis = {
+    type: 'linear',
+    ticks: {
+      fontSize: 8,
+      min: -1,
+      max: +1,
+      stepSize: 0.1
     }
   }
   drawChartInternal(canvasId, data, xAxis, yAxis)
