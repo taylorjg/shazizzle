@@ -7,23 +7,28 @@
 //  * use the last FFT_SIZE elements of the accumulated channel data
 //   * skip if we don't have enough data yet
 //   * skip if we don't have any new data yet
-// - allow selection of sliver to show data for (full slivers only)
-//  - index 0: first FFT_SIZE elements
-//  - index 1: second FFT_SIZE elements
-//  - etc.
-// - add radio buttons to select FFT_SIZE
+// - add a checkbox to enable/disable live visualisation
+// - add a dropdown to control FFT_SIZE used for live visualisation
+// - on finished recording: allow choice of which chunk of FFT_SIZE elements to show graphs for
+// - on finished recording: add radio buttons to select FFT_SIZE
 // * have separate time domain chart functions for Float32Array [-1, 1] and Uint8Array [0, 255]
-// - improve labels on charts
+// - improve the x-axis labels on the charts (e.g. only show a maximum of 32 labels - unreadable when there are more)
 //  - time domain
 //  - frequency domain
+// - provide ability to playback the captured PCM data
+//  - useful to check whether there are any gaps i.e. did any data get lost ?
 
 import '../AudioContextMonkeyPatch.js'
+import * as U from '../common/utils/utils.js'
 import * as UC from '../common/utils/utilsChart.js'
 import * as UH from '../common/utils/utilsHtml.js'
+import * as UW from '../common/utils/utilsWebAudioApi.js'
+import * as UTF from '../common/utils/utilsTensorFlow.js'
 
 const DURATIONS = [1, 2, 5, 10, 15, 20]
 
 let currentDuration = DURATIONS[2]
+let audioBuffer = undefined
 
 const durationRadioButtons = UH.createRadioButtons(
   'durations',
@@ -38,6 +43,7 @@ UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
 UH.radioButtonsOnChange(durationRadioButtons, onDurationChange)
 
 const recordButton = document.getElementById('record')
+const playButton = document.getElementById('play')
 const binsRow = document.getElementById('binsRow')
 const messageLog = document.getElementById('messageLog')
 
@@ -51,10 +57,12 @@ const logMessage = message => {
   messageLog.innerText = newText
 }
 
-class StreamWorklet extends AudioWorkletNode {
+class StreamWorkletNode extends AudioWorkletNode {
   constructor(audioContext, name, bufferSize, duration) {
-    logMessage(`[StreamWorklet#constructor] name: ${name}`)
+    logMessage(`[StreamWorkletNode#constructor] name: ${name}`)
     const options = {
+      numberOfInputs: 1,
+      numberOfOutputs: 1,
       processorOptions: {
         bufferSize
       }
@@ -62,50 +70,44 @@ class StreamWorklet extends AudioWorkletNode {
     super(audioContext, name, options)
     this.accumulatedChannelData = new Float32Array(audioContext.sampleRate * duration)
     this.offset = 0
+    this.messagesReceived = 0
     this.port.onmessage = message => {
+      this.messagesReceived++
+      if (this.messagesReceived < 3) {
+        return
+      }
       const channelData = message.data
       const channelDataLength = channelData.length
-      logMessage(`[StreamWorklet#onMessage] channelDataLength: ${channelDataLength}`)
-      if (this.offset + channelDataLength <= this.accumulatedChannelData.length) {
+      logMessage(`[StreamWorkletNode#onMessage] channelDataLength: ${channelDataLength}; messagesReceived: ${this.messagesReceived}`)
+      const remaining = this.accumulatedChannelData.length - this.offset
+      if (remaining >= channelDataLength) {
         this.accumulatedChannelData.set(channelData, this.offset)
         this.offset += channelDataLength
+      } else {
+        const channelDataSlice = channelData.slice(0, remaining)
+        this.accumulatedChannelData.set(channelDataSlice, this.offset)
+        this.offset += remaining
       }
     }
   }
-}
-
-const doLiveVisualisation = (mediaStream, streamWorklet, sampleRate, fftSize) => {
-  const track = mediaStream.getTracks()[0]
-  let lastBegin = -1
-  const render = async () => {
-    if (streamWorklet.offset >= fftSize) {
-      const begin = streamWorklet.offset - fftSize
-      const end = streamWorklet.offset
-      if (begin > lastBegin) {
-        const channelData = streamWorklet.accumulatedChannelData.slice(begin, end)
-        UC.drawFloatTimeDomainChart('timeDomainChart', channelData)
-        const frequencyData = await getFrequencyData(channelData)
-        UC.drawFFTChart('fftChart', frequencyData, sampleRate)
-        lastBegin = begin
-      }
-    }
-    if (track.enabled) {
-      requestAnimationFrame(render)
-    }
-  }
-  requestAnimationFrame(render)
 }
 
 const formatError = error =>
   `${error.message}\n${error.stack}`.replace('\n', '<br />')
 
-const getFrequencyData = async channelData => {
-  const real = tf.tensor1d(channelData)
-  const imag = tf.zerosLike(real)
-  const x = tf.complex(real, imag)
-  const X = x.fft()
-  const reX = await tf.real(X).data()
-  return reX.slice(0, reX.length / 2)
+const liveChartingObserver = ({
+  next: value => {
+    UC.drawByteTimeDomainChart('timeDomainChart', value.timeDomainData)
+    UC.drawFFTChart('fftChart', value.frequencyData, value.sampleRate)
+  }
+})
+
+const createAudioBuffer = (audioContext, srcChannelData, length) => {
+  const audioBuffer = audioContext.createBuffer(1, length, audioContext.sampleRate)
+  const srcChannelDataSlice = srcChannelData.slice(0, length)
+  const destChannelData = audioBuffer.getChannelData(0)
+  destChannelData.set(srcChannelDataSlice)
+  return audioBuffer
 }
 
 const onRecord = async () => {
@@ -114,26 +116,41 @@ const onRecord = async () => {
 
   let mediaStream
   let audioContext
-  let streamWorklet
+  let streamWorkletNode
+  let sampleRate
 
   try {
     UH.hideErrorPanel()
     clearMessages()
 
     audioContext = new AudioContext()
-    logMessage(`audioContext.sampleRate: ${audioContext.sampleRate}`)
+    sampleRate = audioContext.sampleRate
+    logMessage(`sampleRate: ${sampleRate}`)
     const moduleUrl = `${location.origin}/experiments/stream-processor.js`
     await audioContext.audioWorklet.addModule(moduleUrl)
 
-    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    const sourceNode = audioContext.createMediaStreamSource(mediaStream)
-    streamWorklet = new StreamWorklet(audioContext, 'stream-processor', FFT_SIZE, currentDuration)
-    sourceNode.connect(streamWorklet)
-    streamWorklet.connect(audioContext.destination)
-    updateUiState(RECORDING)
-    if (audioContext.audioWorklet.$$context === undefined) {
-      doLiveVisualisation(mediaStream, streamWorklet, audioContext.sampleRate, 1024)
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        sampleRate
+      },
+      video: false
+    })
+
+    const track = mediaStream.getTracks()[0]
+    console.log('track', track)
+    console.log('track.getSettings()', track.getSettings())
+
+    const mediaStreamSourceNode = audioContext.createMediaStreamSource(mediaStream)
+    streamWorkletNode = new StreamWorkletNode(audioContext, 'stream-processor', FFT_SIZE, currentDuration)
+    mediaStreamSourceNode.connect(streamWorkletNode)
+    streamWorkletNode.connect(audioContext.destination)
+
+    if (!audioContext.$$audioWorklet) {
+      const liveVisualisationObservable = UW.createLiveVisualisationObservable2(mediaStreamSourceNode, 1024)
+      liveVisualisationObservable.subscribe(liveChartingObserver)
     }
+
+    updateUiState(RECORDING)
   } catch (error) {
     UH.showErrorPanel(formatError(error))
     return
@@ -146,24 +163,43 @@ const onRecord = async () => {
       logMessage(`[setTimeout callback] closing audioContext`)
       await audioContext.close()
       updateUiState(FINISHED_RECORDING)
-      logMessage(`[setTimeout callback] streamWorklet.accumulatedChannelData.length: ${streamWorklet.accumulatedChannelData.length}`)
-      logMessage(`[setTimeout callback] streamWorklet.offset: ${streamWorklet.offset}`)
+      logMessage(`[setTimeout callback] streamWorkletNode.accumulatedChannelData.length: ${streamWorkletNode.accumulatedChannelData.length}`)
+      logMessage(`[setTimeout callback] streamWorkletNode.offset: ${streamWorkletNode.offset}`)
 
-      if (streamWorklet.offset >= FFT_SIZE) {
-        const begin = streamWorklet.offset - FFT_SIZE
-        const end = streamWorklet.offset
-        const channelData = streamWorklet.accumulatedChannelData.slice(begin, end)
-        UC.drawFloatTimeDomainChart('timeDomainChart', channelData)
-        const sampleRate = audioContext.sampleRate
-        const frequencyData = await getFrequencyData(channelData)
-        UC.drawFFTChart('fftChart', frequencyData, sampleRate)
-        const binSize = sampleRate / FFT_SIZE
-        showBins(binSize, frequencyData)
+      if (streamWorkletNode.offset >= FFT_SIZE) {
+        U.defer(100, async () => {
+          const begin = streamWorkletNode.offset - FFT_SIZE
+          const end = begin + FFT_SIZE
+          const channelData = streamWorkletNode.accumulatedChannelData.slice(begin, end)
+          UC.drawFloatTimeDomainChart('timeDomainChart', channelData)
+          const frequencyData = await UTF.getFrequencyData(channelData)
+          UC.drawFFTChart('fftChart', frequencyData, sampleRate)
+          const binSize = sampleRate / FFT_SIZE
+          showBins(binSize, frequencyData)
+          {
+            const audioContext2 = new AudioContext({ sampleRate })
+            audioBuffer = createAudioBuffer(
+              audioContext2,
+              streamWorkletNode.accumulatedChannelData,
+              streamWorkletNode.offset)
+          }
+        })
       }
     } catch (error) {
       UH.showErrorPanel(formatError(error))
     }
-  }, currentDuration * 1000)
+  }, currentDuration * 1000 + 250)
+}
+
+const onPlay = async () => {
+  if (!audioBuffer) return
+  console.dir(audioBuffer)
+  const audioContext = new AudioContext({ sampleRate: audioBuffer.sampleRate })
+  const bufferSourceNode = audioContext.createBufferSource()
+  bufferSourceNode.buffer = audioBuffer
+  bufferSourceNode.connect(audioContext.destination)
+  bufferSourceNode.start()
+  setTimeout(() => audioContext.close(), audioBuffer.duration * 1000)
 }
 
 const RECORDING = Symbol('RECORDING')
@@ -175,6 +211,7 @@ const updateUiState = state => {
 }
 
 recordButton.addEventListener('click', onRecord)
+playButton.addEventListener('click', onPlay)
 
 const findTopBins = frequencyData => {
   const binValues = Array.from(frequencyData)

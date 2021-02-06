@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>Test Tones (mp3 files)</title>
+  <title>Oscillators</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
@@ -28,6 +28,9 @@
         <canvas id="fftChart"></canvas>
       </span>
     </div>
+    <div>
+      <button id="resetButton" class="btn btn-xs btn-danger">Reset</button>
+    </div>
     <div id="sampleRatesRow">
       <fieldset id="sampleRates">
         <legend>Sample Rates</legend>
@@ -38,9 +41,14 @@
         <legend>FFT Sizes</legend>
       </fieldset>
     </div>
-    <div id="testTonesRow">
-      <fieldset id="testTones">
-        <legend>Test Tones</legend>
+    <div id="frequenciesRow">
+      <fieldset id="frequencies">
+        <legend>Frequencies</legend>
+      </fieldset>
+    </div>
+    <div id="gainRow">
+      <fieldset id="gain">
+        <legend>Gain</legend>
       </fieldset>
     </div>
     <div id="binsRow">
@@ -53,8 +61,8 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.25.0/ramda.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
-  <script type="module" src="mp3TestTones.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs"></script>
+  <script type="module" src="oscillators-2.js"></script>
 </body>
 
 </html>

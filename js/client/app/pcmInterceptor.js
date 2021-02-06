@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import * as C from '../common/constants.js'
 
 class PcmInterceptorWorkletProcessor extends AudioWorkletProcessor {

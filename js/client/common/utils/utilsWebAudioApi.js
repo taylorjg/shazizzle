@@ -7,12 +7,8 @@ export const decodeChunks = async (chunks, sampleRate = 44100) => {
     const config = { responseType: 'arraybuffer' }
     const response = await axios.get(url, config)
     const data = response.data
-    const options = {
-      length: 1,
-      sampleRate
-    }
-    const audioContext = new OfflineAudioContext(options)
-    const audioBuffer = await audioContext.decodeAudioData(data)
+    const audioContext = new OfflineAudioContext(2, 1, sampleRate)
+    const audioBuffer = await decodeAudioDataPromise(audioContext, data)
     return audioBuffer
   } finally {
     URL.revokeObjectURL(url)
@@ -146,6 +142,57 @@ export const createLiveVisualisationObservable = (mediaRecorder, mediaStream) =>
   })
 
   requestAnimationFrame(rafCallback)
+
+  return new rxjs.Observable(observer => {
+    addObserver(observer)
+    return () => removeObserver(observer)
+  })
+}
+
+export const createLiveVisualisationObservable2 = (mediaStreamSourceNode, fftSize) => {
+
+  const mediaStream = mediaStreamSourceNode.mediaStream
+  const mediaStreamTrack = mediaStream.getTracks()[0]
+  const audioContext = mediaStreamSourceNode.context
+  const sampleRate = audioContext.sampleRate
+
+  const observers = []
+
+  const addObserver = observer => {
+    observers.push(observer)
+  }
+
+  const removeObserver = observer => {
+    const index = observers.findIndex(value => value === observer)
+    index >= 0 && observers.splice(index, 1)
+  }
+
+  const analyserNode = audioContext.createAnalyser()
+  analyserNode.fftSize = fftSize
+  mediaStreamSourceNode.connect(analyserNode)
+
+  const timeDomainData = new Uint8Array(analyserNode.frequencyBinCount)
+  const frequencyData = new Uint8Array(analyserNode.frequencyBinCount)
+
+  const render = () => {
+
+    analyserNode.getByteTimeDomainData(timeDomainData)
+    analyserNode.getByteFrequencyData(frequencyData)
+
+    observers.forEach(observer => observer.next({
+      timeDomainData,
+      frequencyData,
+      sampleRate
+    }))
+
+    if (mediaStreamTrack.readyState === 'live') {
+      requestAnimationFrame(render)
+    } else {
+      console.log('[createLiveVisualisationObservable2#render] mediaStreamTrack no longer live - quitting')
+    }
+  }
+
+  requestAnimationFrame(render)
 
   return new rxjs.Observable(observer => {
     addObserver(observer)

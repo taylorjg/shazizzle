@@ -1,5 +1,4 @@
-/* eslint-disable no-console */
-
+import '../AudioContextMonkeyPatch.js'
 import * as C from '../common/constants.js'
 import * as U from '../common/utils/utils.js'
 import * as UC from '../common/utils/utilsChart.js'
@@ -27,6 +26,7 @@ UH.setCheckedRadioButton(durationRadioButtons, currentDuration)
 UH.buttonsOnChange(durationRadioButtons, onDurationChange)
 
 const recordButton = document.getElementById('record')
+const playButton = document.getElementById('play')
 const progressRow = document.getElementById('progressRow')
 const progressBar = progressRow.querySelector('.progress-bar')
 const buttonsRow = document.getElementById('buttonsRow')
@@ -41,31 +41,58 @@ const maxSliverLabel = document.getElementById('maxSliverLabel')
 const slider = document.getElementById('slider')
 
 const onRecord = async () => {
+  let mediaStream
+  try {
+    UH.hideErrorPanel()
 
-  const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-  const mediaRecorder = new MediaRecorder(mediaStream)
+    const tmpAudioContext = new AudioContext()
+    const sampleRate = tmpAudioContext.sampleRate
+    await tmpAudioContext.close()
 
-  const chunks = []
-  mediaRecorder.ondataavailable = e => chunks.push(e.data)
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        sampleRate
+      },
+      video: false
+    })
+    const mediaRecorder = new MediaRecorder(mediaStream)
 
-  mediaRecorder.onstart = () => {
-    const liveVisualisationObservable = UW.createLiveVisualisationObservable(mediaRecorder, mediaStream)
-    liveVisualisationObservable.subscribe(makeLiveChartingObserver(mediaRecorder, currentDuration))
+    const chunks = []
+    mediaRecorder.ondataavailable = e => chunks.push(e.data)
+
+    mediaRecorder.onstart = () => {
+      const liveVisualisationObservable = UW.createLiveVisualisationObservable(mediaRecorder, mediaStream)
+      liveVisualisationObservable.subscribe(makeLiveChartingObserver(mediaRecorder, currentDuration))
+    }
+
+    mediaRecorder.onstop = async () => {
+      mediaStream.getTracks().forEach(track => track.stop())
+      audioBuffer = await UW.decodeChunks(chunks, sampleRate)
+      currentSliver = 0
+      maxSliver = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)
+      slider.min = 0
+      slider.max = maxSliver - 1
+      setCurrentSliver(0)()
+      U.defer(500, () => updateUiState(FINISHED_RECORDING))
+    }
+
+    updateUiState(RECORDING)
+    setTimeout(() => mediaRecorder.stop(), currentDuration * 1000 + 250)
+    mediaRecorder.start()
+  } catch (error) {
+    UH.showErrorPanel(error.message)
   }
+}
 
-  mediaRecorder.onstop = async () => {
-    mediaStream.getTracks().forEach(track => track.stop())
-    audioBuffer = await UW.decodeChunks(chunks, C.TARGET_SAMPLE_RATE)
-    currentSliver = 0
-    maxSliver = Math.floor(audioBuffer.duration / C.SLIVER_DURATION)
-    slider.min = 0
-    slider.max = maxSliver - 1
-    setCurrentSliver(0)()
-    U.defer(500, updateUiState, FINISHED_RECORDING)
-  }
-
-  updateUiState(RECORDING)
-  mediaRecorder.start()
+const onPlay = async () => {
+  if (!audioBuffer) return
+  console.dir(audioBuffer)
+  const audioContext = new AudioContext({ sampleRate: audioBuffer.sampleRate })
+  const bufferSourceNode = audioContext.createBufferSource()
+  bufferSourceNode.buffer = audioBuffer
+  bufferSourceNode.connect(audioContext.destination)
+  bufferSourceNode.start()
+  setTimeout(() => audioContext.close(), audioBuffer.duration * 1000)
 }
 
 const makeLiveChartingObserver = (mediaRecorder, duration) => ({
@@ -76,9 +103,6 @@ const makeLiveChartingObserver = (mediaRecorder, duration) => ({
     }
     UC.drawByteTimeDomainChart('timeDomainChart', value.timeDomainData)
     UC.drawFFTChart('fftChart', value.frequencyData, value.sampleRate)
-    if (value.currentTime >= (duration + 0.1)) {
-      mediaRecorder.stop()
-    }
   }
 })
 
@@ -125,10 +149,10 @@ stepForwardButton.addEventListener('click', setCurrentSliver(+1))
 fastForwardButton.addEventListener('click', setCurrentSliver(+10))
 
 slider.addEventListener('click', onSliverSliderChange)
-// TODO: use RxJS's debounceTime ?
 slider.addEventListener('input', onSliverSliderChange)
 
 recordButton.addEventListener('click', onRecord)
+playButton.addEventListener('click', onPlay)
 
 const updateProgressBar = percent => {
   const currentPercent = Number(progressBar.getAttribute('aria-valuenow'))
