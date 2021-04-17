@@ -15,7 +15,7 @@
     "express": "^4.17.1",
     "express-ws": "^4.0.0",
     "moment": "^2.24.0",
-    "pg-promise": "^8.7.5",
+    "pg-promise": "^10.10.1",
     "ramda": "^0.26.1"
   }
 }

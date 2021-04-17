@@ -3,6 +3,7 @@ const moment = require('moment')
 
 const configurePostgres = async uri => {
 
+  console.log(`[configurePostgres] PGSSLMODE: ${process.env.PGSSLMODE}`)
   const db = pgp(uri)
 
   const createTrack = async (metadata, hashes) => {
