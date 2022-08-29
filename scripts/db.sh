@@ -24,6 +24,7 @@ usage()
   echo "  psql"
   echo "  shell"
   echo "  backup"
+  echo "  backup-info"
   echo "  restore"
 }
 
@@ -92,14 +93,21 @@ backup()
 {
   docker exec \
     $CONTAINER_NAME \
-    pg_dump -Fc --no-acl --no-owner $DATABASE_URL -f /db_scripts/postgres.dump
+    pg_dump -Fc --data-only --verbose $DATABASE_URL -f /db_scripts/postgres.dump
+}
+
+backup_info()
+{
+  docker exec \
+    $CONTAINER_NAME \
+    pg_restore -d $DATABASE_URL --list /db_scripts/postgres.dump
 }
 
 restore()
 {
   docker exec \
     $CONTAINER_NAME \
-    pg_restore -d $DATABASE_URL --clean --no-owner /db_scripts/postgres.dump
+    pg_restore -d $DATABASE_URL --data-only --verbose /db_scripts/postgres.dump
 }
 
 case "${1:-}" in
@@ -119,6 +127,7 @@ case "${1:-}" in
 
   backup) backup ;;
   restore) restore ;;
+  backup-info) backup_info ;;
 
   -h | --help) usage ;;
 
