@@ -1,8 +1,7 @@
 {
   "name": "shazizzle",
-  "version": "1.0.0",
   "description": "Experiments with Web Audio API with a view to creating a simplified version of Shazam",
-  "main": "index.js",
+  "version": "1.0.0",
   "author": "Jonathan Taylor",
   "license": "MIT",
   "scripts": {

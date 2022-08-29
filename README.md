@@ -69,23 +69,23 @@ After cloning the repo, do the following to run everything locally. This assumes
 # restore npm packages
 npm install
 
-# create .env file with empty env vars
-cat << 'EOF' >> scripts/.env
-HEROKU_DB_HOST=
-HEROKU_DB_PORT=
-HEROKU_DB_DATABASE=
-HEROKU_DB_USERNAME=
-HEROKU_DB_PASSWORD=
+# create a .env file
+cat << 'EOF' >> .env
+PGSSLMODE=disable
+DATABASE_URL=postgres://postgres:mypassword@localhost:5432/postgres
 EOF
 
 # run PostgreSQL in a Docker container
-scripts/db.sh --local --run
+scripts/db.sh run
 
 # create database schema
-scripts/db.sh --local --create
+scripts/db.sh create
 
 # restore the database
-scripts/local_restore.sh
+scripts/db.sh restore
+
+# (optional) show summary of restored database
+scripts/db.sh show
 
 # start the Express server
 npm start
@@ -93,7 +93,7 @@ npm start
 
 Then, open a browser to http://localhost:3002.
 
-If you want to use a different port number, do this instead:
+Or, you can specify a different port number e.g.:
 
 ```
 PORT=3200 npm start

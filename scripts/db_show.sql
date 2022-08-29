@@ -4,6 +4,8 @@
 -- SELECT COUNT(*) FROM track_metadata;
 -- SELECT COUNT(*) FROM track_hashes;
 
+\conninfo
+
 SELECT m.track_title, COUNT(h.id)
 FROM track_hashes AS h
 INNER JOIN track_metadata AS m
