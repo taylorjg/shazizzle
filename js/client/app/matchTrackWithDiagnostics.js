@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-import { matchSuccess, matchFailure } from './customTaggingEvents'
+import { matchSuccess, matchFailure } from './customTaggingEvents.js'
 import * as C from '../common/constants.js'
 import * as U from '../common/utils/utils.js'
 import * as UC from '../common/utils/utilsChart.js'

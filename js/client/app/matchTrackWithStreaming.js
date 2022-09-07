@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
-import { matchSuccess, matchFailure } from './customTaggingEvents'
+import { matchSuccess, matchFailure } from './customTaggingEvents.js'
 import * as C from '../common/constants.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as F from '../common/logic/fingerprinting.js'

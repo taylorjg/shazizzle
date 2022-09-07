@@ -1,5 +1,5 @@
 import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
-import { matchSuccess, matchFailure } from './customTaggingEvents'
+import { matchSuccess, matchFailure } from './customTaggingEvents.js'
 import * as C from '../common/constants.js'
 import * as U from '../common/utils/utils.js'
 import * as UH from '../common/utils/utilsHtml.js'
