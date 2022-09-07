@@ -3,7 +3,8 @@ module.exports = {
     browser: true
   },
   globals: {
-    tf: 'readonly'
+    tf: 'readonly',
+    gtag: 'readonly'
   },
   rules: {
     'no-console': 'off'

@@ -1,4 +1,5 @@
 import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
+import { matchSuccess, matchFailure } from './customTaggingEvents'
 import * as C from '../common/constants.js'
 import * as U from '../common/utils/utils.js'
 import * as UH from '../common/utils/utilsHtml.js'
@@ -138,10 +139,12 @@ const hideMatchingSpinner = () => {
 }
 
 const showNoMatchFound = () => {
+  matchFailure()
   noMatchFoundRow.style.display = 'block'
 }
 
-const showAlbumDetails = album => {
+const showAlbumDetails = (album) => {
+  matchSuccess(album)
   albumRow.style.display = 'block'
   const artwork = albumRow.querySelector('.album-artwork')
   const trackTitle = albumRow.querySelector('.album-track-title')

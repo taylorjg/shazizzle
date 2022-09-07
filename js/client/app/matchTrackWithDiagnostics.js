@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 
+import { matchSuccess, matchFailure } from './customTaggingEvents'
 import * as C from '../common/constants.js'
 import * as U from '../common/utils/utils.js'
 import * as UC from '../common/utils/utilsChart.js'
@@ -81,6 +82,7 @@ const onRecord = async () => {
     const matchResponse = await axios.post('/api/match', hashes, config)
     if (matchResponse.data) {
       const match = matchResponse.data
+      matchSuccess(match)
       const matchingHashes = match.matchingHashes
       matchScatterplotRow.style.display = 'block'
       matchHistogramRow.style.display = 'block'
@@ -94,6 +96,7 @@ const onRecord = async () => {
         )(match),
         null, 2)
     } else {
+      matchFailure()
       resultsPre.innerHTML = 'No match'
     }
   }

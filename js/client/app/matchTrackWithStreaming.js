@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 
 import { showErrorPanel, hideErrorPanel } from './errorPanel.js'
+import { matchSuccess, matchFailure } from './customTaggingEvents'
 import * as C from '../common/constants.js'
 import * as UW from '../common/utils/utilsWebAudioApi.js'
 import * as F from '../common/logic/fingerprinting.js'
@@ -138,10 +139,12 @@ const hideMatchingSpinner = () => {
 }
 
 const showNoMatchFound = () => {
+  matchFailure()
   noMatchFoundRow.style.display = 'block'
 }
 
-const showAlbumDetails = album => {
+const showAlbumDetails = (album) => {
+  matchSuccess(album)
   albumRow.style.display = 'block'
   const artwork = albumRow.querySelector('.album-artwork')
   const trackTitle = albumRow.querySelector('.album-track-title')
