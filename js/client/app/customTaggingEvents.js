@@ -1,19 +1,17 @@
-export const matchSuccess = (match) => {
+export const matchSuccess = match => {
   const {
     artist,
     trackTitle,
     albumTitle,
     offset,
-    time,
-    matchingHashes
+    time
   } = match
   const parameters = {
     artist,
     track_title: trackTitle,
     album_title: albumTitle,
     offset,
-    time,
-    matching_hashes_length: matchingHashes.length
+    time
   }
   gtag('event', 'match_success', parameters)
 }
